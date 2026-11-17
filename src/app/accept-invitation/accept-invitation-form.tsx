@@ -72,8 +72,8 @@ export function AcceptInvitationForm({ token }: { token: string }) {
     <form method="post" onSubmit={submit} className="flex w-full max-w-[420px] flex-col gap-5 rounded-xl border border-slate-300 bg-white p-8">
       <h1 className="text-[22px] font-semibold">{en.acceptInvitation.title}</h1>
       <p>{en.acceptInvitation.intro}</p>
-      <TextField label={en.acceptInvitation.password} hint={en.acceptInvitation.passwordHint} type="password" name="password" autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} />
-      <TextField ref={confirmInput} label={en.acceptInvitation.confirm} type="password" name="confirm" autoComplete="new-password" value={confirm} onChange={event => setConfirm(event.target.value)} />
+      <TextField label={en.acceptInvitation.password} hint={en.acceptInvitation.passwordHint} type="password" name="password" autoComplete="new-password" value={password} onChange={(event) => { setPassword(event.target.value); setProblem(null); }} />
+      <TextField ref={confirmInput} label={en.acceptInvitation.confirm} type="password" name="confirm" autoComplete="new-password" value={confirm} onChange={(event) => { setConfirm(event.target.value); setProblem(null); }} />
       {problem && <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-red-900">{problem}</p>}
       <button type="submit" disabled={pending} className="h-12 rounded-lg bg-slate-900 font-semibold text-white disabled:bg-slate-700">
         {pending ? en.acceptInvitation.submitting : en.acceptInvitation.submit}
