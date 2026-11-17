@@ -24,3 +24,4 @@ The API must be running (`pnpm dev` in `brixa-api`, port 9999) with its `APP_URL
 | `pnpm test` | Vitest, on the plain functions |
 | `pnpm build` | A production build |
 | `pnpm codegen` | Regenerates `src/lib/api/schema.d.ts` from the running API's `/doc` |
+| `pnpm screens --as <desk> /route` | Screenshots at desktop and tablet sizes, and an accessibility scan, signed in as a seeded member of staff (`CLAUDE.md` §7) |

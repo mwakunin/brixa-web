@@ -21,6 +21,8 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 
 **Design before build.** No role's screen is built before its sketch has been walked through with the pilot's staff. Sign-in and the facility picker are the exception: they are plumbing, and they prove the session, the facility header and the typed client end to end.
 
+**The mockup** of the outpatient journey: https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (the owner's claude.ai account; read it with the Artifact tool, never a web fetch). It is the reference for every outpatient screen.
+
 `docs/outpatient-journey.md` maps every sketched screen to the API calls behind it and lists what the sketch asks of the API that it cannot give yet. Settle those in `brixa-api` before building the screen that needs them.
 
 ---
@@ -90,6 +92,7 @@ pnpm typecheck    # route types, then tsc
 pnpm test
 pnpm build
 pnpm codegen      # regenerate src/lib/api/schema.d.ts from the API's /doc
+pnpm screens --as doctor /path   # screenshots and an accessibility scan (section 7)
 ```
 
 After an API change that touches a route, run `pnpm codegen` and fix what stops compiling.
@@ -99,3 +102,25 @@ After an API change that touches a route, run `pnpm codegen` and fix what stops 
 ## 6. Working here
 
 The workflow matches `brixa-api`'s: work is grouped into pull requests, each slice's open questions get a recommendation before code, CI is green before the next slice, and the user decides merges.
+
+---
+
+## 7. Seeing a screen
+
+A screen is checked by looking at it, not only by its tests. With the API seeded (`pnpm db:seed` in `brixa-api`, a made-up hospital) and both servers running:
+
+```sh
+pnpm screens --as <desk> /route [/another]
+```
+
+- **What it does:** it signs in as `<desk>@sample-hospital.test` (`frontdesk`, `triage`, `doctor`, `lab`, `labsupervisor`, `pharmacy`, `stores`, `cashier`, `finance`, `admin`), chooses that person's facility, and opens each route at desktop (1366×768) and tablet (1024×768, 768×1024) sizes.
+- **What it writes:** full-page screenshots in `screenshots/` (ignored by git), and an axe scan in `screenshots/report.json`. It exits 1 on a serious or critical accessibility violation.
+- **The browser:** it uses the machine's Chromium (`CHROMIUM_PATH`, else `/usr/bin/chromium`), so nothing is downloaded.
+
+**Before a screen is called done:**
+1. Look at each screenshot.
+2. Compare it with the mockup's screen for that desk.
+3. Fix what differs or reads badly.
+4. Show the owner the screenshots beside the mockup.
+
+Screenshots cannot show how a screen feels in use, or on a slow connection: that is the owner's review and the staff walkthrough.
