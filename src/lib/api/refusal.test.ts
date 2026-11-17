@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { refusalOf } from "./refusal";
+import { en } from "@/strings/en";
+
+import { ApiError, failureText, refusalOf, unwrap } from "./refusal";
 
 describe("what the API refused", () => {
   it("is a refusal with its own words and code, and whatever else it carried", () => {
@@ -30,5 +32,42 @@ describe("what the API refused", () => {
     expect(refusalOf(502, "<html>Bad gateway</html>")).toEqual({ kind: "failed", requestId: null });
     // A 4xx that is not shaped as a refusal is not shown as one.
     expect(refusalOf(409, { message: "odd" })).toEqual({ kind: "failed", requestId: null });
+  });
+});
+
+describe("what a failed call says", () => {
+  it("shows a refusal's own message, written for staff", () => {
+    expect(failureText(new ApiError(refusalOf(409, { message: "This visit is closed", code: "visit_closed" })))).toBe("This visit is closed");
+    expect(failureText(new ApiError(refusalOf(403, { message: "This facility's account is suspended. Please contact support." })))).toBe("This facility's account is suspended. Please contact support.");
+  });
+
+  it("uses a sentence of ours where the API said nothing for staff", () => {
+    expect(failureText(new ApiError(refusalOf(404, { message: "Not Found" })))).toBe(en.errors.notFound);
+    expect(failureText(new ApiError(refusalOf(422, { success: false, error: { issues: [] } })))).toBe(en.errors.invalid);
+    expect(failureText(new ApiError(refusalOf(401, { message: "Unauthorized" })))).toBe(en.errors.signedOut);
+  });
+
+  it("gives the reference to quote when there is one", () => {
+    expect(failureText(new ApiError(refusalOf(500, { message: "Internal Server Error", requestId: "req-1" })))).toBe(`${en.errors.failed} req-1`);
+    expect(failureText(new ApiError(refusalOf(502, "<html>Bad gateway</html>")))).toBe(en.errors.failedNoReference);
+  });
+
+  it("says when the request never reached the API", () => {
+    expect(failureText(new TypeError("Failed to fetch"))).toBe(en.errors.offline);
+  });
+
+  it("never shows a programming error's own words", () => {
+    expect(failureText(new Error("Cannot read properties of undefined"))).toBe(en.errors.failedNoReference);
+  });
+});
+
+describe("unwrapping a typed call", () => {
+  it("gives the data", async () => {
+    await expect(unwrap(Promise.resolve({ data: { facilities: [] }, response: new Response(null, { status: 200 }) }))).resolves.toEqual({ facilities: [] });
+  });
+
+  it("throws the refusal", async () => {
+    const call = Promise.resolve({ error: { message: "Unauthorized" }, response: new Response(null, { status: 401 }) });
+    await expect(unwrap(call)).rejects.toMatchObject({ refusal: { kind: "signed_out" } });
   });
 });

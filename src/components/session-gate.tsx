@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { CenteredPage } from "@/components/centered-page";
+import { PageFailed, PageLoading } from "@/components/page-states";
 import { useSession } from "@/lib/auth-client";
 import { signInHref } from "@/lib/navigation";
 import { en } from "@/strings/en";
@@ -29,22 +29,9 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
       router.replace(signInHref(window.location.pathname + window.location.search));
   }, [signedOut, router]);
 
-  if (error && !data) {
-    return (
-      <CenteredPage>
-        <p role="alert" className="max-w-md text-center">{en.errors.offline}</p>
-        <button type="button" onClick={() => void refetch()} className="h-12 rounded-lg bg-slate-900 px-6 font-semibold text-white">
-          {en.session.tryAgain}
-        </button>
-      </CenteredPage>
-    );
-  }
-  if (!data) {
-    return (
-      <CenteredPage>
-        <p role="status" className="text-slate-600">{en.session.checking}</p>
-      </CenteredPage>
-    );
-  }
+  if (error && !data)
+    return <PageFailed message={en.errors.offline} onRetry={() => void refetch()} />;
+  if (!data)
+    return <PageLoading message={en.session.checking} />;
   return children;
 }
