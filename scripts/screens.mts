@@ -13,6 +13,9 @@
  * Uses the machine's Chromium (`CHROMIUM_PATH`, else /usr/bin/chromium):
  * nothing is downloaded.
  *
+ * Reads the app's .env files as `next dev` does, so `NEXT_PUBLIC_API_URL`
+ * in `.env.local` is honoured; a value set in the shell wins.
+ *
  * Writes `screenshots/<n>-<page>-<size>.png` (n the route's place in the
  * command, so two routes never share a file) and `screenshots/report.json`.
  * Exits 1 if any page has a serious or critical accessibility violation.
@@ -33,6 +36,16 @@ const SIZES = [
   { name: "tablet-landscape", width: 1024, height: 768 },
   { name: "tablet-portrait", width: 768, height: 1024 },
 ] as const;
+
+// The app's own settings, as `next dev` reads them: the first file to set a value wins, and the shell wins over them all.
+for (const file of [".env.development.local", ".env.local", ".env.development", ".env"]) {
+  try {
+    process.loadEnvFile(path.resolve(import.meta.dirname, "..", file));
+  }
+  catch {
+    // Not there: each file is optional.
+  }
+}
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9999";
