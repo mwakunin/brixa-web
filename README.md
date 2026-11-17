@@ -1,6 +1,6 @@
 # brixa-web
 
-The staff web app for Brixa, a hospital management system for Kenyan Level 4 hospitals. The API and every domain rule live in [`brixa-api`](https://github.com/mwakunin/brixa-api); this app is its screens.
+The staff web app for Brixa HMIS, a hospital management system for Kenyan Level 4 hospitals. The API and every domain rule live in [`brixa-api`](https://github.com/mwakunin/brixa-api); this app is its screens.
 
 Read `CLAUDE.md` before changing anything. It holds the conventions the screens follow and where the work stands.
 
