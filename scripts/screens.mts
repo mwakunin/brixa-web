@@ -18,7 +18,9 @@
  *
  * Writes `screenshots/<n>-<page>-<size>.png` (n the route's place in the
  * command, so two routes never share a file) and `screenshots/report.json`.
- * Exits 1 if any page has a serious or critical accessibility violation.
+ * Exits 1 if any page answers with an HTTP error (a mistyped route shows a
+ * 404 page that would otherwise pass as the screen asked for) or has a
+ * serious or critical accessibility violation.
  */
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -71,25 +73,26 @@ if (values.as) {
 }
 
 await mkdir(OUT, { recursive: true });
-const report: { page: string; size: string; file: string; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
+const report: { page: string; size: string; file: string; status: number | null; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
 for (const [index, route] of pages.entries()) {
   const slug = route === "/" ? "home" : route.replace(/^\/|\/$/g, "").replace(/[^\w-]+/g, "_");
   for (const size of SIZES) {
     const page = await context.newPage();
     await page.setViewportSize({ width: size.width, height: size.height });
-    await page.goto(`${APP_URL}${route}`, { waitUntil: "networkidle" });
+    const response = await page.goto(`${APP_URL}${route}`, { waitUntil: "networkidle" });
     const file = `${index + 1}-${slug}-${size.name}.png`;
     await page.screenshot({ path: path.join(OUT, file), fullPage: true });
     const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
-    report.push({ page: route, size: size.name, file, violations: scan.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length })) });
+    report.push({ page: route, size: size.name, file, status: response?.status() ?? null, violations: scan.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length })) });
     await page.close();
   }
 }
 await browser.close();
 
 await writeFile(path.join(OUT, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
+const httpErrors = report.filter(r => r.status !== null && r.status >= 400).map(r => `${r.page} (${r.size}): HTTP ${r.status}`);
 const serious = report.flatMap(r => r.violations.filter(v => v.impact === "serious" || v.impact === "critical").map(v => `${r.page} (${r.size}): ${v.id}, ${v.help}`));
 console.log(`${report.length} screenshots in ${OUT}`);
-for (const line of serious)
+for (const line of [...httpErrors, ...serious])
   console.log(`  ${line}`);
-process.exit(serious.length > 0 ? 1 : 0);
+process.exit(httpErrors.length + serious.length > 0 ? 1 : 0);
