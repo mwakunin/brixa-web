@@ -20,7 +20,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Hospital API index */
+                /** @description Brixa HMIS API index */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -5059,7 +5059,7 @@ export interface paths {
         };
         /**
          * Who is waiting here
-         * @description The patients being seen, then those waiting, by arrival: each with name, OP number, sex and age. Audited, since it names patients and where they are.
+         * @description The patients being seen, then those waiting, by arrival: each with name, OP number, sex and age, whether they are back with results, and the time they were booked for. Audited, since it names patients and where they are.
          */
         get: {
             parameters: {
@@ -5110,6 +5110,10 @@ export interface paths {
                                 } | null;
                                 /** @enum {string|null} */
                                 priority: "emergency" | "urgent" | "routine" | null;
+                                returnedWithResults: boolean;
+                                appointment: {
+                                    time: string | null;
+                                } | null;
                                 patient: {
                                     /** Format: uuid */
                                     id: string;
@@ -5268,6 +5272,8 @@ export interface paths {
                             endedAt: string | null;
                             /** @enum {string|null} */
                             priority: "emergency" | "urgent" | "routine" | null;
+                            comeBackWithResults: boolean;
+                            returnedWithResults: boolean;
                         };
                     };
                 };
@@ -5418,6 +5424,8 @@ export interface paths {
                             endedAt: string | null;
                             /** @enum {string|null} */
                             priority: "emergency" | "urgent" | "routine" | null;
+                            comeBackWithResults: boolean;
+                            returnedWithResults: boolean;
                         };
                     };
                 };
@@ -5534,7 +5542,7 @@ export interface paths {
         put?: never;
         /**
          * Finish with a patient
-         * @description Optionally sends them on to the next queue in the same step. Triage also sets how soon they must be seen.
+         * @description Optionally sends them on to the next queue in the same step. Triage also sets how soon they must be seen. A clinic finishing with a patient whose lab tests still wait has them come back once every result is released or verified, unless `comeBackWithResults` is false.
          */
         post: {
             parameters: {
@@ -5556,6 +5564,7 @@ export interface paths {
                         nextServicePointId?: string;
                         /** @enum {string} */
                         priority?: "emergency" | "urgent" | "routine";
+                        comeBackWithResults?: boolean;
                     };
                 };
             };
@@ -5583,6 +5592,8 @@ export interface paths {
                                 endedAt: string | null;
                                 /** @enum {string|null} */
                                 priority: "emergency" | "urgent" | "routine" | null;
+                                comeBackWithResults: boolean;
+                                returnedWithResults: boolean;
                             };
                             next: {
                                 /** Format: uuid */
@@ -5600,6 +5611,8 @@ export interface paths {
                                 endedAt: string | null;
                                 /** @enum {string|null} */
                                 priority: "emergency" | "urgent" | "routine" | null;
+                                comeBackWithResults: boolean;
+                                returnedWithResults: boolean;
                             } | null;
                         };
                     };
@@ -5760,6 +5773,8 @@ export interface paths {
                             endedAt: string | null;
                             /** @enum {string|null} */
                             priority: "emergency" | "urgent" | "routine" | null;
+                            comeBackWithResults: boolean;
+                            returnedWithResults: boolean;
                         };
                     };
                 };
@@ -23388,6 +23403,309 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/results-to-review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Results to review
+         * @description Lab results released or verified and not yet marked reviewed: critical first, then abnormal, then the longest waiting, 100 at a time (`?offset=` for the next). A result marked reviewed leaves the list, by you or another clinician, so the ones after it move up: after marking one, read again from `?offset=0`. A walk-in's results, which go to the outside requester, are not listed. A sensitive result you may not see is left off and counted in `restricted`. Audited, since it names patients.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    scope?: "mine" | "all";
+                    offset?: number | null;
+                };
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Results to review */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            results: {
+                                /** Format: uuid */
+                                resultId: string;
+                                /** @enum {string} */
+                                status: "released" | "verified";
+                                hasCritical: boolean;
+                                abnormal: boolean;
+                                resultedAt: string;
+                                test: {
+                                    code: string;
+                                    name: string;
+                                };
+                                patient: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    opNumber: string | null;
+                                };
+                                /** Format: uuid */
+                                encounterId: string;
+                                visitOpen: boolean;
+                                orderedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                            }[];
+                            restricted: number;
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, role not allowed, or a lapsed licence (`licence_expired`) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "licence_expired";
+                        } | {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Invalid scope or offset */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "fieldName"
+                             *           ],
+                             *           "message": "Expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lab-results/{id}/reviewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a result reviewed
+         * @description Once per result: it leaves every results-to-review list. A corrected result is a new one, to review again. Refused for a result not yet released or verified (`not_reviewable`) and for one reviewed already (`already_reviewed`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Reviewed */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            resultId: string;
+                            reviewedBy: {
+                                /** Format: uuid */
+                                membershipId: string;
+                                name: string;
+                            };
+                            reviewedAt: string;
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, role not allowed, or a lapsed licence (`licence_expired`) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "licence_expired";
+                        } | {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not reviewable now */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+                /** @description Invalid id */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

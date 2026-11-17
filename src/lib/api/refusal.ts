@@ -1,3 +1,5 @@
+import { en } from "@/strings/en";
+
 /**
  * What the API said when it did not do what was asked, as the screen needs it.
  *
@@ -31,6 +33,41 @@ function issuesOf(body: Record<string, unknown>): { path: string; message: strin
     path: Array.isArray(issue.path) ? issue.path.join(".") : "",
     message: text(issue.message) ?? "",
   }));
+}
+
+/** A refusal, thrown, so a query or mutation holds it as its error. */
+export class ApiError extends Error {
+  constructor(readonly refusal: Refusal) {
+    super(`The API answered ${refusal.kind}`);
+    this.name = "ApiError";
+  }
+}
+
+/** The data of a typed call (`api.GET(...)`), or its refusal thrown as an `ApiError`. */
+export async function unwrap<T>(call: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
+  const { data, error, response } = await call;
+  if (error !== undefined || data === undefined)
+    throw new ApiError(refusalOf(response.status, error));
+  return data;
+}
+
+/**
+ * What a failed call says to the person at the desk. A refusal's own message
+ * is shown as it is; everything else gets a sentence of ours. `fetch` throws
+ * a TypeError when the request never reached the API.
+ */
+export function failureText(error: unknown): string {
+  if (!(error instanceof ApiError))
+    return error instanceof TypeError ? en.errors.offline : en.errors.failedNoReference;
+  const refusal = error.refusal;
+  switch (refusal.kind) {
+    case "signed_out": return en.errors.signedOut;
+    case "not_allowed": return refusal.message ?? en.errors.notAllowed;
+    case "not_found": return en.errors.notFound;
+    case "refused": return refusal.message;
+    case "invalid": return en.errors.invalid;
+    case "failed": return refusal.requestId ? `${en.errors.failed} ${refusal.requestId}` : en.errors.failedNoReference;
+  }
 }
 
 export function refusalOf(status: number, body: unknown): Refusal {

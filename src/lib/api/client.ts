@@ -20,7 +20,7 @@ import type { paths } from "./schema";
  */
 export const FACILITY_HEADER = "X-Facility-Id";
 
-/** Names the facility being worked in on every request that has not named one itself. */
+/** Names the facility this tab is working in on every request that has not named one itself. */
 export const facilityHeader: Middleware = {
   onRequest({ request }) {
     const facilityId = chosenFacilityId();
