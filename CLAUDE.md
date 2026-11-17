@@ -4,7 +4,7 @@
 
 Project context for AI assistants working in this repository. Read this before writing code.
 
-`brixa-web` is the staff web app for Brixa, a hospital management system for Kenyan Level 4 hospitals. The API lives in the sibling repository `../api` (`brixa-api`), and **every domain rule lives there**: its `CLAUDE.md`, `SPEC.md`, `SCHEMA.md` and `ROADMAP.md` are the source of truth. This app holds no business rules. The API decides and refuses; a screen shows the work and explains a refusal.
+`brixa-web` is the staff web app for **Brixa HMIS**, a hospital management system for Kenyan Level 4 hospitals. Call the product Brixa HMIS on every screen and document; the repositories keep their names. The API lives in the sibling repository `../api` (`brixa-api`), and **every domain rule lives there**: its `CLAUDE.md`, `SPEC.md`, `SCHEMA.md` and `ROADMAP.md` are the source of truth. This app holds no business rules. The API decides and refuses; a screen shows the work and explains a refusal.
 
 ---
 

@@ -7,7 +7,7 @@
  */
 export const en = {
   app: {
-    name: "Brixa",
+    name: "Brixa HMIS",
     description: "The hospital's daily work, one screen per job.",
   },
   home: {
