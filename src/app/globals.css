@@ -128,4 +128,9 @@
   html {
     @apply font-sans;
   }
+  /* Where the keyboard is, always visible. On a dark background, a control sets its own colour. */
+  :focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+  }
 }
