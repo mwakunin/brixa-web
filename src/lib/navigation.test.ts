@@ -21,6 +21,13 @@ describe("where to go after signing in", () => {
     expect(safeNext("javascript:alert(1)")).toBe("/");
   });
 
+  it("reads the path as the browser will, which drops tabs and newlines and takes a backslash for a slash", () => {
+    expect(safeNext("/\t/evil.example")).toBe("/");
+    expect(safeNext("/\n/evil.example")).toBe("/");
+    expect(safeNext("/\r/evil.example")).toBe("/");
+    expect(safeNext("/\t\\evil.example")).toBe("/");
+  });
+
   it("never comes back to the sign-in page", () => {
     expect(safeNext("/sign-in")).toBe("/");
     expect(safeNext("/sign-in?next=/facilities")).toBe("/");

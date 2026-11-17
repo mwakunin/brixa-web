@@ -10,13 +10,14 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { useMyFacilities } from "@/hooks/use-my-facilities";
 import { failureText } from "@/lib/api/refusal";
 import { useSession } from "@/lib/auth-client";
-import { canSwitch, chooseFacility, roleNames } from "@/lib/facility";
+import { canSwitch, chooseFacility, pickerOrder, roleNames } from "@/lib/facility";
 import { safeNext } from "@/lib/navigation";
 import { en } from "@/strings/en";
 
 /**
  * Every facility this person works at, with their roles there. An open one
- * is chosen with one press; a suspended one is shown locked, with why.
+ * is chosen with one press; a suspended one is shown locked, with why, after
+ * the open ones. The choice is this tab's, and the next tab starts from it.
  */
 export function FacilityPicker() {
   const { data: facilities, error, refetch } = useMyFacilities();
@@ -55,7 +56,7 @@ export function FacilityPicker() {
         <h1 className="text-[26px] font-semibold">{en.facilities.title}</h1>
       </div>
       <ul className="flex w-full max-w-[560px] flex-col gap-3">
-        {facilities.map(facility => (
+        {pickerOrder(facilities).map(facility => (
           <li key={facility.id}>
             {facility.status === "active"
               ? (

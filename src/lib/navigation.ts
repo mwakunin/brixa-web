@@ -10,12 +10,23 @@
 export const SIGN_IN_PATH = "/sign-in";
 export const FACILITIES_PATH = "/facilities";
 
+/** A stand-in origin: a path that resolves anywhere else leaves the app. */
+const HERE = "http://brixa.invalid";
+
 export function safeNext(next: string | null | undefined): string {
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\"))
+  if (!next || !next.startsWith("/"))
     return "/";
-  if (next === SIGN_IN_PATH || next.startsWith(`${SIGN_IN_PATH}?`))
+  // Parsed as the browser will parse it: tabs and newlines dropped, a backslash taken for a slash.
+  let url: URL;
+  try {
+    url = new URL(next, HERE);
+  }
+  catch {
     return "/";
-  return next;
+  }
+  if (url.origin !== HERE || url.pathname === SIGN_IN_PATH)
+    return "/";
+  return url.pathname + url.search + url.hash;
 }
 
 /** `target`, remembering the page that sent them there (a path: ids only, never patient data). */
