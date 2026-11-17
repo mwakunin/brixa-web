@@ -13,7 +13,8 @@
  * Uses the machine's Chromium (`CHROMIUM_PATH`, else /usr/bin/chromium):
  * nothing is downloaded.
  *
- * Writes `screenshots/<page>-<size>.png` and `screenshots/report.json`.
+ * Writes `screenshots/<n>-<page>-<size>.png` (n the route's place in the
+ * command, so two routes never share a file) and `screenshots/report.json`.
  * Exits 1 if any page has a serious or critical accessibility violation.
  */
 import AxeBuilder from "@axe-core/playwright";
@@ -21,6 +22,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
+
+import type { paths } from "../src/lib/api/schema";
+
+/** The facility picker's answer, as the API's own contract says. */
+type MyFacilities = paths["/me/facilities"]["get"]["responses"][200]["content"]["application/json"];
 
 const SIZES = [
   { name: "desktop", width: 1366, height: 768 },
@@ -44,7 +50,7 @@ if (values.as) {
   const signedIn = await context.request.post(`${API_URL}/api/auth/sign-in/email`, { data: { email, password: SEED_PASSWORD }, headers: { origin: APP_URL } });
   if (!signedIn.ok())
     throw new Error(`Signing in as ${email} answered ${signedIn.status()}: is the API running and seeded?`);
-  const { facilities } = await (await context.request.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string }[] };
+  const { facilities } = await (await context.request.get(`${API_URL}/me/facilities`)).json() as MyFacilities;
   // The facility is chosen as the picker would choose it: its id only, in this browser's storage.
   await context.addInitScript((id) => {
     globalThis.localStorage.setItem("brixa.facilityId", id);
@@ -53,14 +59,15 @@ if (values.as) {
 
 await mkdir(OUT, { recursive: true });
 const report: { page: string; size: string; file: string; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
-for (const route of pages) {
+for (const [index, route] of pages.entries()) {
+  const slug = route === "/" ? "home" : route.replace(/^\/|\/$/g, "").replace(/[^\w-]+/g, "_");
   for (const size of SIZES) {
     const page = await context.newPage();
     await page.setViewportSize({ width: size.width, height: size.height });
     await page.goto(`${APP_URL}${route}`, { waitUntil: "networkidle" });
-    const file = `${route === "/" ? "home" : route.replace(/^\/|\/$/g, "").replaceAll("/", "_")}-${size.name}.png`;
+    const file = `${index + 1}-${slug}-${size.name}.png`;
     await page.screenshot({ path: path.join(OUT, file), fullPage: true });
-    const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
     report.push({ page: route, size: size.name, file, violations: scan.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length })) });
     await page.close();
   }

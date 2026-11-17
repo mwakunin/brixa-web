@@ -114,7 +114,7 @@ pnpm screens --as <desk> /route [/another]
 ```
 
 - **What it does:** it signs in as `<desk>@sample-hospital.test` (`frontdesk`, `triage`, `doctor`, `lab`, `labsupervisor`, `pharmacy`, `stores`, `cashier`, `finance`, `admin`), chooses that person's facility, and opens each route at desktop (1366×768) and tablet (1024×768, 768×1024) sizes.
-- **What it writes:** full-page screenshots in `screenshots/` (ignored by git), and an axe scan in `screenshots/report.json`. It exits 1 on a serious or critical accessibility violation.
+- **What it writes:** full-page screenshots in `screenshots/` (ignored by git), each named for its route's place in the command, the route and the size, and an axe scan in `screenshots/report.json`. It exits 1 on a serious or critical accessibility violation.
 - **The browser:** it uses the machine's Chromium (`CHROMIUM_PATH`, else `/usr/bin/chromium`), so nothing is downloaded.
 
 **Before a screen is called done:**
