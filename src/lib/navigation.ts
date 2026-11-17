@@ -24,7 +24,8 @@ export function safeNext(next: string | null | undefined): string {
   catch {
     return "/";
   }
-  if (url.origin !== HERE || url.pathname === SIGN_IN_PATH)
+  // A resolved path can still begin `//` ("/.//host"), which a router reads as another site.
+  if (url.origin !== HERE || url.pathname.startsWith("//") || url.pathname === SIGN_IN_PATH)
     return "/";
   return url.pathname + url.search + url.hash;
 }

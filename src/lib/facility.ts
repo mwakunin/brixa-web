@@ -92,6 +92,18 @@ export function roleNames(roles: readonly MembershipRole[]): string {
   return roles.map(role => en.roles[role]).join(", ");
 }
 
+/**
+ * Where this tab works now (see `landing`), pinned to the tab when it is a
+ * facility. Pinned even when it came from storage: from then on another
+ * tab's choice does not move this one.
+ */
+export function settle(facilities: MyFacility[]): Landing {
+  const where = landing(facilities, chosenFacilityId());
+  if (where.kind === "in")
+    workIn(where.facility.id);
+  return where;
+}
+
 /** Whether there is anywhere else to switch to. */
 export function canSwitch(facilities: MyFacility[]): boolean {
   return facilities.filter(f => f.status === "active").length > 1;

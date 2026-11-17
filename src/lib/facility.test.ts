@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { canSwitch, chooseFacility, chosenFacilityId, landing, type MyFacility, pickerOrder, roleNames, workIn } from "./facility";
+import { canSwitch, chooseFacility, chosenFacilityId, landing, type MyFacility, pickerOrder, roleNames, settle, workIn } from "./facility";
 
 const main: MyFacility = { id: "f-main", name: "Sample Hospital", status: "active", roles: ["records_clerk"] };
 const westside: MyFacility = { id: "f-west", name: "Sample Hospital, Westside", status: "active", roles: ["records_clerk", "cashier"] };
@@ -70,6 +70,16 @@ describe("the facility a tab works in", () => {
     workIn("f-main");
     expect(chosenFacilityId()).toBe("f-main");
     expect(shared.get("brixa.facilityId")).toBe("f-west");
+  });
+
+  it("stays with the facility it started from, when another tab then chooses another", () => {
+    shared.set("brixa.facilityId", "f-west");
+    expect(settle([main, westside])).toEqual({ kind: "in", facility: westside });
+
+    shared.set("brixa.facilityId", "f-main");
+
+    expect(chosenFacilityId()).toBe("f-west");
+    expect(settle([main, westside])).toEqual({ kind: "in", facility: westside });
   });
 
   it("keeps a choice the browser's storage refused", () => {

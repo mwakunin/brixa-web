@@ -28,6 +28,16 @@ describe("where to go after signing in", () => {
     expect(safeNext("/\t\\evil.example")).toBe("/");
   });
 
+  it("never returns a path that the browser would read as another site once its dots are resolved", () => {
+    expect(safeNext("/.//evil.example")).toBe("/");
+    expect(safeNext("/..//evil.example")).toBe("/");
+    expect(safeNext("/foo/..//evil.example")).toBe("/");
+  });
+
+  it("keeps an ordinary path's query and fragment", () => {
+    expect(safeNext("/queue?servicePointId=abc#waiting")).toBe("/queue?servicePointId=abc#waiting");
+  });
+
   it("never comes back to the sign-in page", () => {
     expect(safeNext("/sign-in")).toBe("/");
     expect(safeNext("/sign-in?next=/facilities")).toBe("/");

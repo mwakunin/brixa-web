@@ -6,7 +6,7 @@ import { createContext, use, useEffect } from "react";
 import { PageFailed, PageLoading } from "@/components/page-states";
 import { useMyFacilities } from "@/hooks/use-my-facilities";
 import { failureText } from "@/lib/api/refusal";
-import { chosenFacilityId, landing, type MyFacility, workIn } from "@/lib/facility";
+import { type MyFacility, settle } from "@/lib/facility";
 import { facilitiesHref } from "@/lib/navigation";
 import { en } from "@/strings/en";
 
@@ -41,7 +41,8 @@ export function useWorking(): Working {
 export function FacilityGate({ children }: { children: React.ReactNode }) {
   const { data: facilities, error, refetch } = useMyFacilities();
   const router = useRouter();
-  const where = facilities ? landing(facilities, chosenFacilityId()) : null;
+  // Pinned to this tab before anything below renders, so the first request it makes already names the facility it shows.
+  const where = facilities ? settle(facilities) : null;
   const mustChoose = where !== null && where.kind !== "in";
 
   useEffect(() => {
@@ -49,12 +50,8 @@ export function FacilityGate({ children }: { children: React.ReactNode }) {
       router.replace(facilitiesHref(window.location.pathname + window.location.search));
   }, [mustChoose, router]);
 
-  if (facilities && where?.kind === "in") {
-    // Set before anything below renders, so the first request it makes already names the facility this tab shows.
-    if (chosenFacilityId() !== where.facility.id)
-      workIn(where.facility.id);
+  if (facilities && where?.kind === "in")
     return <WorkingContext value={{ facility: where.facility, facilities }}>{children}</WorkingContext>;
-  }
   if (error && !facilities)
     return <PageFailed message={failureText(error)} onRetry={() => void refetch()} />;
   return <PageLoading message={en.facilities.loading} />;
