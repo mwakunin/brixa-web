@@ -15,6 +15,15 @@ export function Problem({ children }: { children: React.ReactNode }) {
   return <div role="alert" className="flex flex-col gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-red-900">{children}</div>;
 }
 
+/**
+ * Says what is happening while a request runs ("Sending…"), for a screen
+ * reader, which would not otherwise hear the disabled button's new name. The
+ * region is always there, so a change is announced; it is empty at rest.
+ */
+export function PendingStatus({ message }: { message: string | null }) {
+  return <p role="status" className="sr-only">{message ?? ""}</p>;
+}
+
 /** The heading of an outcome, focused when it appears so a screen reader reads it rather than nothing. */
 export function OutcomeTitle({ children }: { children: React.ReactNode }) {
   return <h1 ref={heading => heading?.focus()} tabIndex={-1} className="text-[22px] font-semibold">{children}</h1>;

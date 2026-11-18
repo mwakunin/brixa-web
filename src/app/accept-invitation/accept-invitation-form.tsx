@@ -65,7 +65,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
     <form method="post" onSubmit={submit} className={formCard}>
       <h1 className="text-[22px] font-semibold">{en.acceptInvitation.title}</h1>
       <p>{en.acceptInvitation.intro}</p>
-      <NewPasswordFields label={en.acceptInvitation.password} {...newPassword.fields} />
+      <NewPasswordFields label={en.acceptInvitation.password} readOnly={pending} {...newPassword.fields} />
       {problem && <Problem><p>{problem}</p></Problem>}
       <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.acceptInvitation.submitting : en.acceptInvitation.submit}

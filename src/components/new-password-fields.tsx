@@ -48,6 +48,8 @@ interface NewPasswordFieldsProps {
   /** What the first field asks for: "Choose a password", "New password". */
   label: string;
   required?: boolean;
+  /** While a request runs: what was sent stays what the page shows. */
+  readOnly?: boolean;
   password: string;
   confirm: string;
   confirmRef: React.Ref<HTMLInputElement>;
@@ -55,11 +57,11 @@ interface NewPasswordFieldsProps {
   onConfirmChange: (value: string) => void;
 }
 
-export function NewPasswordFields({ label, required, password, confirm, confirmRef, onPasswordChange, onConfirmChange }: NewPasswordFieldsProps) {
+export function NewPasswordFields({ label, required, readOnly, password, confirm, confirmRef, onPasswordChange, onConfirmChange }: NewPasswordFieldsProps) {
   return (
     <>
-      <TextField label={label} hint={en.newPassword.hint} type="password" name="password" autoComplete="new-password" required={required} value={password} onChange={event => onPasswordChange(event.target.value)} />
-      <TextField ref={confirmRef} label={en.newPassword.confirm} type="password" name="confirm" autoComplete="new-password" required={required} value={confirm} onChange={event => onConfirmChange(event.target.value)} />
+      <TextField label={label} hint={en.newPassword.hint} type="password" name="password" autoComplete="new-password" required={required} readOnly={readOnly} value={password} onChange={event => onPasswordChange(event.target.value)} />
+      <TextField ref={confirmRef} label={en.newPassword.confirm} type="password" name="confirm" autoComplete="new-password" required={required} readOnly={readOnly} value={confirm} onChange={event => onConfirmChange(event.target.value)} />
     </>
   );
 }

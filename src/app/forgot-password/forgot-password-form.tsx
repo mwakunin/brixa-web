@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { formCard, OutcomeTitle, primaryAction, Problem } from "@/components/form-card";
+import { formCard, OutcomeTitle, PendingStatus, primaryAction, Problem } from "@/components/form-card";
 import { TextField } from "@/components/text-field";
 import { requestPasswordReset } from "@/lib/auth-client";
-import { SIGN_IN_PATH } from "@/lib/navigation";
+import { signInHref } from "@/lib/navigation";
 import { resetRequestFailureText } from "@/lib/password-reset";
 import type { SignInFailure } from "@/lib/sign-in";
 import { en } from "@/strings/en";
@@ -14,13 +14,16 @@ import { en } from "@/strings/en";
 /**
  * Asks the API to email a reset link. The answer is the same whether or not
  * the address has an account, and so is the time it takes (the API holds it
- * for a fixed 1.5 s), so the page says the same thing either way.
+ * for a fixed 1.5 s), so the page says the same thing either way. The address
+ * cannot be changed while it is being sent, so what the page shows is what
+ * was asked for.
  */
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ next }: { next: string }) {
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const backToSignIn = signInHref(next);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,7 +50,7 @@ export function ForgotPasswordForm() {
       <div className={formCard}>
         <OutcomeTitle>{en.passwordReset.sentTitle}</OutcomeTitle>
         <p>{en.passwordReset.sent}</p>
-        <Link href={SIGN_IN_PATH} className={primaryAction}>{en.passwordReset.backToSignIn}</Link>
+        <Link href={backToSignIn} className={primaryAction}>{en.passwordReset.backToSignIn}</Link>
       </div>
     );
   }
@@ -56,12 +59,13 @@ export function ForgotPasswordForm() {
     <form method="post" onSubmit={submit} className={formCard}>
       <h1 className="text-[22px] font-semibold">{en.passwordReset.requestTitle}</h1>
       <p>{en.passwordReset.requestIntro}</p>
-      <TextField label={en.passwordReset.email} type="email" name="email" autoComplete="username" required value={email} onChange={(event) => { setEmail(event.target.value); setProblem(null); }} />
+      <TextField label={en.passwordReset.email} type="email" name="email" autoComplete="username" required readOnly={pending} value={email} onChange={(event) => { setEmail(event.target.value); setProblem(null); }} />
       {problem && <Problem><p>{problem}</p></Problem>}
+      <PendingStatus message={pending ? en.passwordReset.requesting : null} />
       <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.passwordReset.requesting : en.passwordReset.request}
       </button>
-      <Link href={SIGN_IN_PATH} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.passwordReset.backToSignIn}</Link>
+      <Link href={backToSignIn} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.passwordReset.backToSignIn}</Link>
     </form>
   );
 }

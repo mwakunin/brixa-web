@@ -7,23 +7,20 @@ import { useEffect, useRef, useState } from "react";
 import { formCard, primaryAction, Problem } from "@/components/form-card";
 import { TextField } from "@/components/text-field";
 import { signIn, useSession } from "@/lib/auth-client";
-import { FORGOT_PASSWORD_PATH, safeNext } from "@/lib/navigation";
+import { forgotPasswordHref } from "@/lib/navigation";
 import { type SignInFailure, signInFailureText } from "@/lib/sign-in";
 import { en } from "@/strings/en";
-
-/** The page that sent them here, read when it is needed: the form renders without waiting for the URL. */
-function nextPath(): string {
-  return safeNext(new URLSearchParams(window.location.search).get("next"));
-}
 
 /**
  * Email and password, and nothing else: accounts are by invitation.
  *
  * The session ends when the browser closes (`rememberMe: false`): the
  * computers at a desk are shared. A failed attempt keeps the email, clears the
- * password and puts the cursor back in it.
+ * password and puts the cursor back in it. `next` is the page that sent them
+ * here, already checked (`safeNext`); a detour through a forgotten password
+ * keeps it.
  */
-export function SignInForm() {
+export function SignInForm({ next }: { next: string }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [email, setEmail] = useState("");
@@ -35,8 +32,8 @@ export function SignInForm() {
   // Signed in already, in another tab or before pressing Back: carry on.
   useEffect(() => {
     if (session)
-      router.replace(nextPath());
-  }, [session, router]);
+      router.replace(next);
+  }, [session, router, next]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,7 +43,7 @@ export function SignInForm() {
     try {
       const { error } = await signIn.email({ email, password, rememberMe: false });
       if (!error) {
-        router.replace(nextPath());
+        router.replace(next);
         return;
       }
       failure = error;
@@ -70,7 +67,7 @@ export function SignInForm() {
       <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.signIn.submitting : en.signIn.submit}
       </button>
-      <Link href={FORGOT_PASSWORD_PATH} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.signIn.forgot}</Link>
+      <Link href={forgotPasswordHref(next)} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.signIn.forgot}</Link>
     </form>
   );
 }

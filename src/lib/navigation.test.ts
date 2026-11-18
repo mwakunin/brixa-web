@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { facilitiesHref, safeNext, signInHref } from "./navigation";
+import { facilitiesHref, forgotPasswordHref, safeNext, signInHref } from "./navigation";
 
 describe("where to go after signing in", () => {
   it("goes back to a page of this app", () => {
@@ -59,5 +59,13 @@ describe("asking someone to choose a facility", () => {
   it("remembers the page they were on, as signing in does", () => {
     expect(facilitiesHref("/queue?servicePointId=abc")).toBe("/facilities?next=%2Fqueue%3FservicePointId%3Dabc");
     expect(facilitiesHref("/")).toBe("/facilities");
+  });
+});
+
+describe("going to a forgotten password and back", () => {
+  it("carries the page they were heading to, so signing in afterwards still lands there", () => {
+    expect(forgotPasswordHref("/facilities")).toBe("/forgot-password?next=%2Ffacilities");
+    expect(forgotPasswordHref(null)).toBe("/forgot-password");
+    expect(forgotPasswordHref("//example.com")).toBe("/forgot-password");
   });
 });
