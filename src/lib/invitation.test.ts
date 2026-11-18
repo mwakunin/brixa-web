@@ -14,7 +14,7 @@ describe("what a refused invitation says", () => {
   });
 
   it("explains a password the API's schema refused, which carries no message", () => {
-    expect(acceptFailureText(422, { success: false, error: { issues: [{ path: ["password"], message: "Too small: expected string to have >=10 characters" }] } })).toBe(en.acceptInvitation.passwordRules);
+    expect(acceptFailureText(422, { success: false, error: { issues: [{ path: ["password"], message: "Too small: expected string to have >=10 characters" }] } })).toBe(en.newPassword.rules);
   });
 
   it("never shows a server error's own words", () => {

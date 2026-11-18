@@ -43,7 +43,10 @@ Found while drawing each screen against the API. None is decided: they are quest
 4. **The pharmacy has to look up what can fill each medicine.** The worklist names the drug prescribed, not the facility's products for it. Showing "Coartem, 216 on the shelf, KES 25 a tablet" takes `GET /stock-items?drugCode=`, the store's stock and the price list, for every medicine. The worklist could carry the choices.
 5. **A clinic's fee is not on the service point.** Triage shows "General clinic, fee KES 500" before sending a patient there. `GET /service-points` gives `consultationItemId` only, so the price needs `GET /billable-items` as well.
 6. **The quantity a prescription will give is worked out by the API, after it is written.** The sketch shows "24 tablets" as the doctor types the dose, which means repeating the API's rule in the browser, or asking the API for a preview.
-7. **Nobody can reset a forgotten password.** The sketch's sign-in screen has a "Forgot your password?" link, but the API has no way to reset one. Better Auth's reset by email is not configured, and no administrator route sets a password. A new invitation does not help either, because accepting one keeps an existing account's password. The sign-in screen leaves the link out until the API can do this. It must be settled before go-live, because staff will forget their passwords.
+7. ~~**Nobody can reset a forgotten password.**~~ Fixed in brixa-api #27 (decided 2026-11-17).
+   - Better Auth's reset by email is on. The link goes to the staff app's `/reset-password` page and works once, for an hour. A reset signs the person out everywhere.
+   - The sign-in screen has its "Forgot your password?" link again, leading to `/forgot-password`.
+   - Still open, for the staff walkthrough: whether an administrator needs a way to help staff who cannot open their email at work.
 
 ## Left out of the sketch, on purpose
 
