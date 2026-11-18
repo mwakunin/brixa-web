@@ -12,24 +12,28 @@
  * `next dev` does; a value set in the shell wins.
  *
  * Emails: the development API keeps each email it would have sent as a file
- * in its `.dev-mail/` folder; flows read invitation links from there
- * (`DEV_MAIL_DIR`, else ../api/.dev-mail beside this repository).
+ * in its `.dev-mail/` folder; flows read invitation and reset links from
+ * there (`DEV_MAIL_DIR`, else ../api/.dev-mail beside this repository).
  *
  * Data: flows sign in as seeded staff without changing them, and invite
- * made-up people (`flows-…@sample-hospital.test`) into the dev database. A
- * re-seed clears them.
+ * made-up people (`flows-…@sample-hospital.test`) into the dev database,
+ * whose passwords the reset flow changes. A re-seed clears them.
  *
  * Rate limits: the development API counts every browser request as one
- * address, and allows 10 sign-ins per account every 15 minutes and 10
- * invitation answers per address every 15 minutes. One run stays well
- * inside them; a run that meets a limit stops that flow and says how long to
- * wait.
+ * address. It allows 10 sign-in and password requests a minute, which a full
+ * run exceeds, so the run keeps count, across runs too, and waits for room
+ * before a step that needs it, saying so. It also allows 10 sign-ins per account and 10
+ * invitation answers every 15 minutes; one run uses half of the second, so
+ * two runs fit in 15 minutes. A step that still meets a limit says how long
+ * to wait.
  *
  * Exits 1 if any step of any flow fails, naming the flow and the step.
  */
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
+import { readFileSync, writeFileSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import nextEnv from "@next/env";
 import path from "node:path";
 import { chromium, request } from "playwright-core";
@@ -56,6 +60,50 @@ let rateLimited: string | null | undefined;
 
 const limitMessage = (retryAfter: string | null) => `the API's rate limit was reached: wait ${retryAfter ? `${retryAfter} s` : "a few minutes"} and run again`;
 
+/** The API's own limit on sign-in and password requests from one address, less one in hand. */
+const AUTH_POSTS_PER_MINUTE = 9;
+
+/**
+ * The sign-in and password requests of the last minute. They are kept between
+ * runs, in the system's temp folder, so a run started straight after another
+ * waits for room rather than meeting the limit. Requests made by hand in a
+ * browser are not counted.
+ */
+const AUTH_POSTS_FILE = path.join(tmpdir(), "brixa-flows-auth-posts.json");
+const authPosts: number[] = (() => {
+  try {
+    return (JSON.parse(readFileSync(AUTH_POSTS_FILE, "utf8")) as number[]).filter(at => Date.now() - at < 60_000).sort((a, b) => a - b);
+  }
+  catch {
+    return [];
+  }
+})();
+
+/** Notes a sign-in or password request sent to the API, by any browser or request in this run. */
+function noteAuthPost(): void {
+  authPosts.push(Date.now());
+  try {
+    writeFileSync(AUTH_POSTS_FILE, JSON.stringify(authPosts));
+  }
+  catch {
+    // Not kept: a run straight after this one may meet the limit, and will say so.
+  }
+}
+
+/** Waits, if need be, until `needed` more sign-in or password requests fit in the API's minute. */
+async function authRoom(needed: number): Promise<void> {
+  for (;;) {
+    const now = Date.now();
+    while (authPosts.length > 0 && now - authPosts[0] >= 60_000)
+      authPosts.shift();
+    if (authPosts.length + needed <= AUTH_POSTS_PER_MINUTE)
+      return;
+    const wait = 60_000 - (now - authPosts[authPosts.length + needed - AUTH_POSTS_PER_MINUTE - 1]) + 250;
+    console.log(`      … waiting ${Math.ceil(wait / 1000)} s for room under the API's rate limit`);
+    await new Promise(resolve => setTimeout(resolve, wait));
+  }
+}
+
 interface Flow {
   name: string;
   about: string;
@@ -68,6 +116,10 @@ type Step = (label: string, check: () => Promise<void>) => Promise<void>;
 async function freshContext(browser: Browser): Promise<{ context: BrowserContext }> {
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   context.setDefaultTimeout(15_000);
+  context.on("request", (sent) => {
+    if (sent.method() === "POST" && sent.url().startsWith(`${API_URL}/api/auth/`))
+      noteAuthPost();
+  });
   context.on("response", (response) => {
     if (response.status() === 429 && response.url().startsWith(API_URL))
       rateLimited = response.headers()["retry-after"] ?? null;
@@ -120,6 +172,33 @@ async function signInAs(page: Page, email: string, password: string): Promise<vo
     throw new Error(`signing in as ${email} was refused: ${await said.textContent()}`);
 }
 
+/**
+ * Has the seeded administrator invite `email`, from another computer whose
+ * session never reaches the browser, and returns the invitation link.
+ */
+async function invite(email: string): Promise<string> {
+  const since = Date.now();
+  const admin = await request.newContext();
+  try {
+    await authRoom(1);
+    noteAuthPost();
+    const signedIn = await admin.post(`${API_URL}/api/auth/sign-in/email`, { data: { email: seeded("admin"), password: SEED_PASSWORD }, headers: { origin: APP_URL } });
+    if (signedIn.status() === 429)
+      rateLimited = signedIn.headers()["retry-after"] ?? null;
+    expect("the administrator's sign-in", signedIn.status(), 200);
+    const { facilities } = await (await admin.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string }[] };
+    const invited = await admin.post(`${API_URL}/staff/invitations`, { data: { name: "Flows Newcomer", email, roles: ["records_clerk"] }, headers: { "x-facility-id": facilities[0].id, "origin": APP_URL } });
+    expect("the invitation", invited.status(), 201);
+    return await emailedLink(email, "/accept-invitation", since);
+  }
+  finally {
+    await admin.dispose();
+  }
+}
+
+/** The account the invitation flow made in this run, for the reset flow to use rather than invite another. */
+let invitedAccount: { email: string; password: string } | null = null;
+
 const alert = (page: Page, text: string) => page.getByRole("alert").filter({ hasText: text });
 const heading = (page: Page) => page.getByRole("heading", { level: 1 });
 
@@ -140,6 +219,7 @@ const signInFlow: Flow = {
     });
 
     await step("a wrong password keeps the email, clears the password and says so", async () => {
+      await authRoom(1);
       await fillSignIn(page, seeded("frontdesk"), "not-the-password");
       await alert(page, "do not match").waitFor();
       expect("the email", await page.getByLabel("Email").inputValue(), seeded("frontdesk"));
@@ -147,6 +227,7 @@ const signInFlow: Flow = {
     });
 
     await step("the right password lands on the desk, with the facility and the person in the header", async () => {
+      await authRoom(1);
       await signInAs(page, seeded("frontdesk"), SEED_PASSWORD);
       await page.waitForURL(`${APP_URL}/`);
       await heading(page).waitFor();
@@ -167,6 +248,7 @@ const signInFlow: Flow = {
       await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
       if (await page.evaluate(() => localStorage.getItem("brixa.facilityId")) === null)
         throw new Error("choosing at the picker stored no facility, so sign-out has nothing to forget");
+      await authRoom(1);
       await page.getByRole("button", { name: "Sign out" }).click();
       await page.waitForURL("**/sign-in");
       expect("the stored facility", await page.evaluate(() => localStorage.getItem("brixa.facilityId")), null);
@@ -186,6 +268,7 @@ const pickerFlow: Flow = {
     const page = await context.newPage();
 
     await step("someone at several open facilities is asked where they are working", async () => {
+      await authRoom(1);
       await signInAs(page, seeded("relief"), SEED_PASSWORD);
       await page.waitForURL("**/facilities");
     });
@@ -243,18 +326,7 @@ const invitationFlow: Flow = {
     let link = "";
 
     await step("the administrator invites someone new, and the email reaches the mail folder", async () => {
-      const since = Date.now();
-      // The administrator works from another computer: their session never reaches this browser.
-      const admin = await request.newContext();
-      const signedIn = await admin.post(`${API_URL}/api/auth/sign-in/email`, { data: { email: seeded("admin"), password: SEED_PASSWORD }, headers: { origin: APP_URL } });
-      if (signedIn.status() === 429)
-        rateLimited = signedIn.headers()["retry-after"] ?? null;
-      expect("the administrator's sign-in", signedIn.status(), 200);
-      const { facilities } = await (await admin.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string }[] };
-      const invited = await admin.post(`${API_URL}/staff/invitations`, { data: { name: "Flows Newcomer", email: newcomer, roles: ["records_clerk"] }, headers: { "x-facility-id": facilities[0].id, "origin": APP_URL } });
-      expect("the invitation", invited.status(), 201);
-      link = await emailedLink(newcomer, "/accept-invitation", since);
-      await admin.dispose();
+      link = await invite(newcomer);
     });
 
     await step("two different passwords are caught before anything is sent", async () => {
@@ -301,16 +373,116 @@ const invitationFlow: Flow = {
     });
 
     await step("the newcomer signs in with the chosen password", async () => {
+      await authRoom(1);
       await signInAs(page, newcomer, password);
       await page.waitForURL(`${APP_URL}/`);
       await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
+      invitedAccount = { email: newcomer, password };
     });
 
     await context.close();
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow];
+const resetFlow: Flow = {
+  name: "reset",
+  about: "someone who forgot their password asks for a link and chooses a new one",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    const elsewhere = await (await freshContext(browser)).context.newPage();
+    let account = invitedAccount;
+    const newPassword = "reset-password-1";
+    let link = "";
+
+    await step("someone to reset: the newcomer from the invitation flow, or one invited now", async () => {
+      if (account)
+        return;
+      const email = madeUp("reset");
+      const password = "chosen-password-1";
+      const token = new URL(await invite(email)).searchParams.get("token");
+      const accepting = await request.newContext();
+      try {
+        const answer = await accepting.post(`${API_URL}/invitations/accept`, { data: { token, password }, headers: { origin: APP_URL } });
+        if (answer.status() === 429)
+          rateLimited = answer.headers()["retry-after"] ?? null;
+        expect("accepting the invitation", answer.status(), 200);
+      }
+      finally {
+        await accepting.dispose();
+      }
+      account = { email, password };
+    });
+    if (!account)
+      return;
+    const { email, password } = account;
+
+    await step("asking for a link says the same for an address with no account", async () => {
+      await authRoom(1);
+      await page.goto(`${APP_URL}/forgot-password`);
+      await page.getByLabel("Email").fill(madeUp("nobody"));
+      await page.getByRole("button", { name: "Email me a link" }).click();
+      await page.getByRole("heading", { name: "Check your email" }).waitFor();
+    });
+
+    await step("they are signed in on another device before the reset", async () => {
+      await authRoom(1);
+      await signInAs(elsewhere, email, password);
+      await elsewhere.waitForURL(`${APP_URL}/`);
+    });
+
+    await step("asking for a link for their address emails one", async () => {
+      await authRoom(1);
+      const since = Date.now();
+      await page.goto(`${APP_URL}/forgot-password`);
+      await page.getByLabel("Email").fill(email);
+      await page.getByRole("button", { name: "Email me a link" }).click();
+      await page.getByRole("heading", { name: "Check your email" }).waitFor();
+      link = await emailedLink(email, "/reset-password", since);
+    });
+
+    await step("two different passwords are caught before anything is sent", async () => {
+      await page.goto(link);
+      await page.getByLabel("New password").fill(newPassword);
+      await page.getByLabel("Type it again").fill("something-else-1");
+      await page.getByRole("button", { name: "Change my password" }).click();
+      await alert(page, "not the same").waitFor();
+    });
+
+    await step("the new password is set, and the other device is signed out", async () => {
+      await authRoom(1);
+      await page.getByLabel("New password").fill(newPassword);
+      await page.getByLabel("Type it again").fill(newPassword);
+      await page.getByRole("button", { name: "Change my password" }).click();
+      await page.getByRole("heading", { name: "Your password is changed" }).waitFor();
+      await elsewhere.reload();
+      await elsewhere.waitForURL("**/sign-in");
+    });
+
+    await step("the used link cannot be used again, and offers a new one", async () => {
+      await authRoom(1);
+      await page.goto(link);
+      await page.getByLabel("New password").fill("another-password-1");
+      await page.getByLabel("Type it again").fill("another-password-1");
+      await page.getByRole("button", { name: "Change my password" }).click();
+      await page.getByRole("heading", { name: "This link cannot be used" }).waitFor();
+      await page.getByRole("link", { name: "Ask for a new link" }).waitFor();
+    });
+
+    await step("the old password is refused, and the new one signs in", async () => {
+      await authRoom(2);
+      await fillSignIn(page, email, password);
+      await alert(page, "do not match").waitFor();
+      await signInAs(page, email, newPassword);
+      await page.waitForURL(`${APP_URL}/`);
+    });
+
+    await context.close();
+    await elsewhere.context().close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, resetFlow];
 
 // ---------------------------------------------------------------------------
 // The run

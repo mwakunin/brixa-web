@@ -14,12 +14,13 @@ type Failure = SignInFailure | null;
 
 /**
  * Asking for a reset link. Whether the address has an account is never said,
- * so only these can fail. A 400 is the API failing to read the address as
+ * so only these can fail, and none of them says it either. A 400 is the API failing to read the address as
  * one: the browser accepts some it does not, such as `alex@hospital`.
  */
 export function resetRequestFailureText(failure: Failure): string {
+  // No answer: the API may have taken the request before the connection went, so a link may be on its way.
   if (failure === null)
-    return en.errors.offline;
+    return en.passwordReset.unconfirmed;
   if (failure.status === 400)
     return en.passwordReset.checkEmail;
   if (failure.status === 429)

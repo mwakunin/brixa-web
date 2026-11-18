@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { facilitiesHref, forgotPasswordHref, safeNext, signInHref } from "./navigation";
+import { facilitiesHref, firstParam, forgotPasswordHref, safeNext, signInHref } from "./navigation";
 
 describe("where to go after signing in", () => {
   it("goes back to a page of this app", () => {
@@ -67,5 +67,14 @@ describe("going to a forgotten password and back", () => {
     expect(forgotPasswordHref("/facilities")).toBe("/forgot-password?next=%2Ffacilities");
     expect(forgotPasswordHref(null)).toBe("/forgot-password");
     expect(forgotPasswordHref("//example.com")).toBe("/forgot-password");
+  });
+});
+
+describe("reading a query parameter that may repeat", () => {
+  it("takes the first of several, as the browser's own URLSearchParams.get does", () => {
+    expect(firstParam(["/facilities", "/elsewhere"])).toBe("/facilities");
+    expect(firstParam("/facilities")).toBe("/facilities");
+    expect(firstParam(undefined)).toBeNull();
+    expect(firstParam([])).toBeNull();
   });
 });

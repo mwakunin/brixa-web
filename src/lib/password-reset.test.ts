@@ -14,8 +14,8 @@ describe("what a failed request for a reset link says", () => {
     expect(resetRequestFailureText({ status: 400, code: "VALIDATION_ERROR", message: "[body.email] Invalid email address" })).toBe(en.passwordReset.checkEmail);
   });
 
-  it("says when the request never reached the API", () => {
-    expect(resetRequestFailureText(null)).toBe(en.errors.offline);
+  it("says it could not be confirmed when no answer came, since the email may still be on its way", () => {
+    expect(resetRequestFailureText(null)).toBe(en.passwordReset.unconfirmed);
   });
 
   it("never shows Better Auth's own English", () => {

@@ -135,8 +135,11 @@ pnpm flows                  # every flow
 pnpm flows sign-in picker   # some, by name
 ```
 
-- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker` and `invitation`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
+- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker`, `invitation` and `reset`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
 - **Emails:** in development, the API keeps every email it would have sent in its `.dev-mail/` folder. Flows read invitation and reset links from there (`DEV_MAIL_DIR`, else `../api/.dev-mail`).
-- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), whom a re-seed clears.
-- **Rate limits:** the development API counts the browser as one address. One run stays inside its limits, and two runs fit in 15 minutes. A flow that meets a limit stops and says how long to wait.
+- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), whose passwords the `reset` flow changes, and whom a re-seed clears.
+- **Rate limits:** the development API counts the browser as one address.
+  - It allows 10 sign-in and password requests a minute, which a full run exceeds. So a run keeps count, across runs too, and waits for room, printing "waiting N s".
+  - A run uses half of the 15-minute allowance of invitation answers, so two runs fit in 15 minutes.
+  - A flow that still meets a limit stops and says how long to wait. That happens, for example, after signing in by hand in a browser.
 - **When:** run it after any change to a flow's screens, and before calling a desk done. Each desk adds its own flow as it is built.

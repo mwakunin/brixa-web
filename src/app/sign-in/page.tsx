@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { Brand } from "@/components/brand";
 import { CenteredPage } from "@/components/centered-page";
-import { safeNext } from "@/lib/navigation";
+import { firstParam, safeNext } from "@/lib/navigation";
 import { en } from "@/strings/en";
 
 import { SignInForm } from "./sign-in-form";
@@ -19,7 +19,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   return (
     <CenteredPage>
       <Brand />
-      <SignInForm next={safeNext(typeof next === "string" ? next : null)} />
+      <SignInForm next={safeNext(firstParam(next))} />
       <p className="max-w-[420px] text-center text-[15px] text-slate-600">{en.signIn.byInvitation}</p>
     </CenteredPage>
   );
