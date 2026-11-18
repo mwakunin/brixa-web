@@ -23,19 +23,30 @@ The app and the API must be two hosts under **one registrable domain**, for exam
 
 ## 3. Checking it on this machine
 
-Use this before a first deployment, or after changing anything about cookies, CORS or hosts. The browser sends any `*.localhost` name to this machine, so two hostnames need no set-up. Run it beside the usual servers, with the API seeded:
+Use this before a first deployment, or after changing anything about cookies, CORS or hosts. The browser sends any `*.localhost` name to this machine, so two hostnames need no set-up. Run it beside the usual servers, with the API seeded.
 
-```sh
-# brixa-api: a second API for the two hostnames, on 9998
-PORT=9998 APP_URL=http://app.brixa.localhost:3001 BETTER_AUTH_URL=http://api.brixa.localhost:9998 pnpm exec tsx src/index.ts
+It needs **three terminals**: the first two start servers that keep running until stopped with Ctrl+C.
 
-# brixa-web: a production build that calls it, on 3001
-NEXT_PUBLIC_API_URL=http://api.brixa.localhost:9998 pnpm build
-pnpm start -p 3001
+1. **brixa-api:** a second API for the two hostnames, on 9998.
 
-# brixa-web: the flows, across the two hostnames
-APP_URL=http://app.brixa.localhost:3001 NEXT_PUBLIC_API_URL=http://api.brixa.localhost:9998 pnpm flows
-```
+   ```sh
+   PORT=9998 APP_URL=http://app.brixa.localhost:3001 BETTER_AUTH_URL=http://api.brixa.localhost:9998 pnpm exec tsx src/index.ts
+   ```
+
+2. **brixa-web:** a production build that calls it, served on 3001.
+
+   ```sh
+   NEXT_PUBLIC_API_URL=http://api.brixa.localhost:9998 pnpm build
+   pnpm start -p 3001
+   ```
+
+3. **brixa-web, once both answer:** the flows, across the two hostnames.
+
+   ```sh
+   APP_URL=http://app.brixa.localhost:3001 NEXT_PUBLIC_API_URL=http://api.brixa.localhost:9998 pnpm flows
+   ```
+
+When it is done, stop the first two terminals with Ctrl+C.
 
 A production build is used because `next dev` adds cross-origin checks of its own. The usual dev servers on 3000 and 9999 can keep running.
 
