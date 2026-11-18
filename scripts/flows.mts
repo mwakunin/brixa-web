@@ -30,18 +30,13 @@
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
 import { readdir, readFile } from "node:fs/promises";
+import nextEnv from "@next/env";
 import path from "node:path";
 import { chromium, request } from "playwright-core";
 
-// The app's own settings, as `next dev` reads them: the first file to set a value wins, and the shell wins over them all.
-for (const file of [".env.development.local", ".env.local", ".env.development", ".env"]) {
-  try {
-    process.loadEnvFile(path.resolve(import.meta.dirname, "..", file));
-  }
-  catch {
-    // Not there: each file is optional.
-  }
-}
+// The app's own settings, read by Next's own loader as `next dev` reads them: the same files in the same
+// order, `$NAME` references expanded, and a value set in the shell winning over them all.
+nextEnv.loadEnvConfig(path.resolve(import.meta.dirname, ".."), true, { info: () => {}, error: console.error });
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9999";
@@ -152,8 +147,7 @@ const signInFlow: Flow = {
     });
 
     await step("the right password lands on the desk, with the facility and the person in the header", async () => {
-      await page.getByLabel("Password").fill(SEED_PASSWORD);
-      await page.getByRole("button", { name: "Sign in" }).click();
+      await signInAs(page, seeded("frontdesk"), SEED_PASSWORD);
       await page.waitForURL(`${APP_URL}/`);
       await heading(page).waitFor();
       const header = await page.locator("header").innerText();
@@ -166,7 +160,13 @@ const signInFlow: Flow = {
       await page.waitForURL(`${APP_URL}/`);
     });
 
-    await step("signing out returns to sign in and forgets the facility", async () => {
+    await step("signing out returns to sign in and forgets the facility chosen at the picker", async () => {
+      // Landing at a single facility does not store it, so it is chosen at the picker first, as a returning clerk might.
+      await page.goto(`${APP_URL}/facilities`);
+      await page.getByRole("button", { name: /^Sample Hospital/ }).click();
+      await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
+      if (await page.evaluate(() => localStorage.getItem("brixa.facilityId")) === null)
+        throw new Error("choosing at the picker stored no facility, so sign-out has nothing to forget");
       await page.getByRole("button", { name: "Sign out" }).click();
       await page.waitForURL("**/sign-in");
       expect("the stored facility", await page.evaluate(() => localStorage.getItem("brixa.facilityId")), null);

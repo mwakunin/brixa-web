@@ -24,6 +24,7 @@
  */
 import AxeBuilder from "@axe-core/playwright";
 import { mkdir, writeFile } from "node:fs/promises";
+import nextEnv from "@next/env";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
@@ -39,15 +40,9 @@ const SIZES = [
   { name: "tablet-portrait", width: 768, height: 1024 },
 ] as const;
 
-// The app's own settings, as `next dev` reads them: the first file to set a value wins, and the shell wins over them all.
-for (const file of [".env.development.local", ".env.local", ".env.development", ".env"]) {
-  try {
-    process.loadEnvFile(path.resolve(import.meta.dirname, "..", file));
-  }
-  catch {
-    // Not there: each file is optional.
-  }
-}
+// The app's own settings, read by Next's own loader as `next dev` reads them: the same files in the same
+// order, `$NAME` references expanded, and a value set in the shell winning over them all.
+nextEnv.loadEnvConfig(path.resolve(import.meta.dirname, ".."), true, { info: () => {}, error: console.error });
 
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:9999";
