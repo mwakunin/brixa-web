@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { formCard, primaryAction, Problem } from "@/components/form-card";
 import { TextField } from "@/components/text-field";
 import { signIn, useSession } from "@/lib/auth-client";
-import { safeNext } from "@/lib/navigation";
+import { FORGOT_PASSWORD_PATH, safeNext } from "@/lib/navigation";
 import { type SignInFailure, signInFailureText } from "@/lib/sign-in";
 import { en } from "@/strings/en";
 
@@ -60,14 +62,15 @@ export function SignInForm() {
 
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
-    <form method="post" onSubmit={submit} className="flex w-full max-w-[420px] flex-col gap-5 rounded-xl border border-slate-300 bg-white p-8">
+    <form method="post" onSubmit={submit} className={formCard}>
       <h1 className="text-[22px] font-semibold">{en.signIn.title}</h1>
       <TextField label={en.signIn.email} type="email" name="email" autoComplete="username" required value={email} onChange={(event) => { setEmail(event.target.value); setProblem(null); }} />
       <TextField ref={passwordInput} label={en.signIn.password} type="password" name="password" autoComplete="current-password" required value={password} onChange={(event) => { setPassword(event.target.value); setProblem(null); }} />
-      {problem && <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-red-900">{problem}</p>}
-      <button type="submit" disabled={pending} className="h-12 rounded-lg bg-slate-900 font-semibold text-white disabled:bg-slate-700">
+      {problem && <Problem><p>{problem}</p></Problem>}
+      <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.signIn.submitting : en.signIn.submit}
       </button>
+      <Link href={FORGOT_PASSWORD_PATH} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.signIn.forgot}</Link>
     </form>
   );
 }

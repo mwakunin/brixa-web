@@ -16,6 +16,6 @@ export function acceptFailureText(status: number, body: unknown): string {
   if (status < 500 && typeof message === "string" && message.length > 0)
     return message;
   if (status === 422)
-    return en.acceptInvitation.passwordRules;
+    return en.newPassword.rules;
   return failureText(new ApiError(refusalOf(status, body)));
 }

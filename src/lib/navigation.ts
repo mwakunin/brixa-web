@@ -9,6 +9,7 @@
  */
 export const SIGN_IN_PATH = "/sign-in";
 export const FACILITIES_PATH = "/facilities";
+export const FORGOT_PASSWORD_PATH = "/forgot-password";
 
 /** A stand-in origin: a path that resolves anywhere else leaves the app. */
 const HERE = "http://brixa.invalid";

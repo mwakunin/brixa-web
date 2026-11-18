@@ -8,10 +8,7 @@ import { SignInForm } from "./sign-in-form";
 
 export const metadata: Metadata = { title: en.signIn.title };
 
-/**
- * Sign in (the journey's screen 1). There is no "forgot your password" link:
- * the API cannot reset one yet (docs/outpatient-journey.md, gap 7).
- */
+/** Sign in (the journey's screen 1), with the way to a forgotten password under the button. */
 export default function SignInPage() {
   return (
     <CenteredPage>
