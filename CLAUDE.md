@@ -45,7 +45,7 @@ Devices: **desktop and tablet**, not phones. Language: **English**, with every s
 
 ## 3. Talking to the API
 
-- The **browser calls the API directly**, with the session cookie. The API answers credentialed CORS for this app's origin only (its `APP_URL`), and Better Auth trusts that origin alone. Nothing is proxied through Next.
+- The **browser calls the API directly**, with the session cookie. The API answers credentialed CORS for this app's origin only (its `APP_URL`), and Better Auth trusts that origin alone. Nothing is proxied through Next. Online, the app and the API must therefore be on **one site** (`app.<domain>`, `api.<domain>`), or sign-in fails without a message. See `docs/deployment.md`.
 - `NEXT_PUBLIC_API_URL` says where the API is (`http://localhost:9999` in development).
 - **`src/lib/api/client.ts` is the one way to call it.** `api.GET("/patients/{id}", { params: { path: { id } } })` is typed from `schema.d.ts`, which `pnpm codegen` generates from the API's `/doc`. Never edit `schema.d.ts` by hand, and never restate a response shape: read it off `paths`.
 - **Every tenant request names its facility** in `X-Facility-Id`. The client adds it from `src/lib/facility.ts`. `GET /me/facilities` lists where the person works and their roles there; one membership goes straight in, several show the picker.
