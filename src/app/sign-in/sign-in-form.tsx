@@ -28,6 +28,16 @@ export function SignInForm({ next }: { next: string }) {
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const passwordInput = useRef<HTMLInputElement>(null);
+  // Whether this form is still on screen: a slow sign-in that finishes after
+  // they went to "Forgot your password?" must not pull them away from it.
+  const here = useRef(true);
+
+  useEffect(() => {
+    here.current = true;
+    return () => {
+      here.current = false;
+    };
+  }, []);
 
   // Signed in already, in another tab or before pressing Back: carry on.
   useEffect(() => {
@@ -42,6 +52,8 @@ export function SignInForm({ next }: { next: string }) {
     let failure: SignInFailure | null;
     try {
       const { error } = await signIn.email({ email, password, rememberMe: false });
+      if (!here.current)
+        return;
       if (!error) {
         router.replace(next);
         return;

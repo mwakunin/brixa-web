@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { formCard, OutcomeTitle, PendingStatus, primaryAction, Problem } from "@/components/form-card";
 import { TextField } from "@/components/text-field";
-import { requestPasswordReset } from "@/lib/auth-client";
+import { deadline, requestPasswordReset } from "@/lib/auth-client";
 import { signInHref } from "@/lib/navigation";
 import { resetRequestFailureText } from "@/lib/password-reset";
 import type { SignInFailure } from "@/lib/sign-in";
@@ -13,8 +13,9 @@ import { en } from "@/strings/en";
 
 /**
  * Asks the API to email a reset link. The answer is the same whether or not
- * the address has an account, and so is the time it takes (the API holds it
- * for a fixed 1.5 s), so the page says the same thing either way. The address
+ * the address has an account, and the API holds it for at least 1.5 s either
+ * way (longer only if its own work runs longer), so the page says the same
+ * thing either way. The address
  * cannot be changed while it is being sent, so what the page shows is what
  * was asked for.
  */
@@ -31,7 +32,7 @@ export function ForgotPasswordForm({ next }: { next: string }) {
     setProblem(null);
     let failure: SignInFailure | null;
     try {
-      const { error } = await requestPasswordReset({ email });
+      const { error } = await requestPasswordReset({ email, fetchOptions: deadline() });
       if (!error) {
         setSent(true);
         return;

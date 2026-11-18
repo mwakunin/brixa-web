@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "@/strings/en";
 
-import { resetFailure, resetRequestFailureText } from "./password-reset";
+import { answerMayBeLost, resetFailure, resetRequestFailureText } from "./password-reset";
 
 describe("what a failed request for a reset link says", () => {
   it("shows the rate limiter's own message, or a plain one when it has none", () => {
@@ -46,5 +46,19 @@ describe("what a failed reset says", () => {
   it("says when the request never reached the API, and never shows Better Auth's own English", () => {
     expect(resetFailure(null)).toEqual({ text: en.errors.offline, askAgain: false, mayHaveChanged: false });
     expect(resetFailure({ status: 500, message: "Internal Server Error" })).toEqual({ text: en.passwordReset.failed, askAgain: false, mayHaveChanged: false });
+  });
+});
+
+describe("whether a reset's answer may have been lost", () => {
+  it("is so when the request never got an answer, or the server failed after it may have saved", () => {
+    expect(answerMayBeLost(null)).toBe(true);
+    expect(answerMayBeLost({ status: 500, message: "Internal Server Error" })).toBe(true);
+    expect(answerMayBeLost({ status: 503 })).toBe(true);
+  });
+
+  it("is not so for an answer that says what was refused", () => {
+    expect(answerMayBeLost({ status: 400, code: "INVALID_TOKEN" })).toBe(false);
+    expect(answerMayBeLost({ status: 400, code: "PASSWORD_TOO_SHORT" })).toBe(false);
+    expect(answerMayBeLost({ status: 429 })).toBe(false);
   });
 });

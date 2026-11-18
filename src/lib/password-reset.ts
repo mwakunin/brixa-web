@@ -27,6 +27,15 @@ export function resetRequestFailureText(failure: Failure): string {
   return en.passwordReset.failed;
 }
 
+/**
+ * Whether a reset may have been saved though its answer said otherwise: no
+ * answer came, or the server failed (a 5xx can come after the change was
+ * committed). A link refused after that may have been spent by this try.
+ */
+export function answerMayBeLost(failure: Failure): boolean {
+  return failure === null || failure.status >= 500;
+}
+
 export interface ResetFailure {
   text: string;
   /** The link itself is the problem (expired, or used): offer to send a new one. */
