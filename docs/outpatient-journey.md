@@ -44,7 +44,8 @@ Found while drawing each screen against the API. None is decided: they are quest
 5. **A clinic's fee is not on the service point.** Triage shows "General clinic, fee KES 500" before sending a patient there. `GET /service-points` gives `consultationItemId` only, so the price needs `GET /billable-items` as well.
 6. **The quantity a prescription will give is worked out by the API, after it is written.** The sketch shows "24 tablets" as the doctor types the dose, which means repeating the API's rule in the browser, or asking the API for a preview.
 7. ~~**Nobody can reset a forgotten password.**~~ Fixed in brixa-api #27 (decided 2026-11-17).
-   - Better Auth's reset by email is on. The link goes to the staff app's `/reset-password` page and works once, for an hour. A reset signs the person out everywhere.
+   - Better Auth's reset by email is on. The link goes to the staff app's `/reset-password` page and works once, for an hour.
+   - A reset ends every session the person had. A sign-in with the old password that is already under way at that instant can still finish: a narrow race inside Better Auth. brixa-api #27 narrows it but cannot close it, and closing it needs a change in Better Auth, to be reported to them privately. The confirmation screen says devices "that were signed in" have been signed out, which is exact.
    - The sign-in screen has its "Forgot your password?" link again, leading to `/forgot-password`.
    - Still open, for the staff walkthrough: whether an administrator needs a way to help staff who cannot open their email at work.
 

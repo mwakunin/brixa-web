@@ -76,6 +76,7 @@ export const en = {
     request: "Email me a link",
     requesting: "Sending…",
     checkEmail: "That is not an email address we can use. Check it and try again.",
+    unconfirmed: "We could not confirm your request: the connection may have dropped. If that address has an account, a link may still arrive, so check your email before asking again.",
     sentTitle: "Check your email",
     sent: "If that address has an account, you may receive an email with a link to choose a new password. The link works once, for one hour. If nothing arrives within a few minutes, check the address and ask again.",
     backToSignIn: "Back to sign in",

@@ -31,6 +31,14 @@ export function safeNext(next: string | null | undefined): string {
   return url.pathname + url.search + url.hash;
 }
 
+/**
+ * A query parameter as the server gives it: one value, several when it
+ * repeats, or none. The first wins, as `URLSearchParams.get` decides.
+ */
+export function firstParam(value: string | string[] | undefined): string | null {
+  return (Array.isArray(value) ? value[0] : value) ?? null;
+}
+
 /** `target`, remembering the page that sent them there (a path: ids only, never patient data). */
 function withNext(target: string, from: string | null | undefined): string {
   const next = safeNext(from);
