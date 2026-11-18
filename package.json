@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.107.1",
-    "better-auth": "1.7.15",
+    "better-auth": "1.7.25",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
     "lucide-react": "^1.73.0",
