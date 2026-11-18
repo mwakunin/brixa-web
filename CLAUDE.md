@@ -16,7 +16,7 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 |---|---|---|
 | F1 Foundation | This repository, its stack and CI, the typed API client | Done |
 | F2 The journey, sketched | A clickable mockup of one outpatient visit, walked through with the pilot's staff | Sketched; the walkthrough is still to do. See `docs/outpatient-journey.md` |
-| F3 The outpatient screens | Sign-in and the facility picker; then front desk, triage, consultation, lab, pharmacy, cashier; then stores and administration | Begun: sign-in, the facility picker and accepting an invitation (#4). The desks wait for the walkthrough |
+| F3 The outpatient screens | Sign-in and the facility picker; then front desk, triage, consultation, lab, pharmacy, cashier; then stores and administration | Begun: sign-in, the facility picker and accepting an invitation (#4), resetting a password (#5), two-step sign-in (#10). The desks wait for the walkthrough |
 | P6 | Reports, offline support, the timed simplicity test | Later |
 
 **Design before build.** No role's screen is built before its sketch has been walked through with the pilot's staff. Sign-in and the facility picker are the exception: they are plumbing, and they prove the session, the facility header and the typed client end to end.
@@ -34,7 +34,7 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 | Framework | Next.js 16 (App Router), React 19. **Read `node_modules/next/dist/docs/` before using a Next API**: this version differs from what you remember |
 | Server state | TanStack Query, in memory only (section 4) |
 | API client | `openapi-fetch`, typed from `src/lib/api/schema.d.ts` |
-| Auth | Better Auth's React client. Invite-only: sign-in and accepting an invitation, no sign-up |
+| Auth | Better Auth's React client, with its two-factor plugin. Invite-only: sign-in and accepting an invitation, no sign-up. Every sign-in asks for a code from an authenticator app after the password |
 | Styling | Tailwind 4, shadcn/ui (`radix-nova`, neutral). System fonts: nothing to download on a slow connection |
 | Tests | Vitest, on plain functions (`src/**/*.test.ts`) |
 | PWA | A manifest now. The service worker and offline support come with P6 |
@@ -114,7 +114,7 @@ A screen is checked by looking at it, not only by its tests. With the API seeded
 pnpm screens --as <desk> /route [/another]
 ```
 
-- **What it does:** it signs in as `<desk>@sample-hospital.test` (`frontdesk`, `triage`, `doctor`, `lab`, `labsupervisor`, `pharmacy`, `stores`, `cashier`, `finance`, `admin`), chooses that person's facility, and opens each route at desktop (1366×768) and tablet (1024×768, 768×1024) sizes.
+- **What it does:** it signs in as `<desk>@sample-hospital.test` (`frontdesk`, `triage`, `doctor`, `lab`, `labsupervisor`, `pharmacy`, `stores`, `cashier`, `finance`, `admin`), with the code described under "Codes" below, chooses that person's facility, and opens each route at desktop (1366×768) and tablet (1024×768, 768×1024) sizes.
 - **What it writes:** full-page screenshots in `screenshots/` (ignored by git), each named for its route's place in the command, the route and the size, and an axe scan in `screenshots/report.json`. It exits 1 when a page answers with an HTTP error (a mistyped route) or has a serious or critical accessibility violation.
 - **The browser:** it uses the machine's Chromium (`CHROMIUM_PATH`, else `/usr/bin/chromium`), so nothing is downloaded.
 
@@ -135,11 +135,12 @@ pnpm flows                  # every flow
 pnpm flows sign-in picker   # some, by name
 ```
 
-- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker`, `invitation` and `reset`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
+- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker`, `invitation` (which sets up two-step sign-in), `two-step` (backup codes) and `reset`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
 - **Emails:** in development, the API keeps every email it would have sent in its `.dev-mail/` folder. Flows read invitation and reset links from there (`DEV_MAIL_DIR`, else `../api/.dev-mail`).
-- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), whose passwords the `reset` flow changes, and whom a re-seed clears.
+- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), who set up two-step sign-in, whose passwords the `reset` flow changes, and whom a re-seed clears.
+- **Codes:** every sign-in asks for a code after the password. Seeded staff share one development authenticator, whose code `scripts/dev-code.mts` works out from the secret in brixa-api's `src/dev/two-factor.ts` (the two must match). To sign in by hand, `pnpm dev:code` in brixa-api prints it. A made-up person's code comes from the setup key their setup page showed.
 - **Rate limits:** the development API counts the browser as one address.
-  - It allows 10 sign-in and password requests a minute, which a full run exceeds. So a run keeps count, across runs too, and waits for room, printing "waiting N s".
+  - It allows 10 sign-in and password requests a minute, which a full run exceeds. So a run keeps count, across runs too, and waits for room, printing "waiting N s". Codes have their own, looser limit, and are not counted.
   - A run uses half of the 15-minute allowance of invitation answers, so two runs fit in 15 minutes.
   - A flow that still meets a limit stops and says how long to wait. That happens, for example, after signing in by hand in a browser.
 - **When:** run it after any change to a flow's screens, and before calling a desk done. Each desk adds its own flow as it is built.

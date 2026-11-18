@@ -11,8 +11,13 @@ import { forgotPasswordHref } from "@/lib/navigation";
 import { type SignInFailure, signInFailureText } from "@/lib/sign-in";
 import { en } from "@/strings/en";
 
+import { CodeForm } from "./code-form";
+
 /**
- * Email and password, and nothing else: accounts are by invitation.
+ * Email and password, and nothing else: accounts are by invitation. Then the
+ * code from the person's authenticator app, on the same page (`CodeForm`);
+ * someone who has not set one up yet is signed in by the password alone and
+ * taken to set it up (SessionGate).
  *
  * The session ends when the browser closes (`rememberMe: false`): the
  * computers at a desk are shared. A failed attempt keeps the email, clears the
@@ -27,6 +32,7 @@ export function SignInForm({ next }: { next: string }) {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [askingForCode, setAskingForCode] = useState(false);
   const passwordInput = useRef<HTMLInputElement>(null);
   // Whether this form is still on screen: a slow sign-in that finishes after
   // they went to "Forgot your password?" must not pull them away from it.
@@ -51,10 +57,16 @@ export function SignInForm({ next }: { next: string }) {
     setProblem(null);
     let failure: SignInFailure | null;
     try {
-      const { error } = await signIn.email({ email, password, rememberMe: false });
+      const { data, error } = await signIn.email({ email, password, rememberMe: false });
       if (!here.current)
         return;
       if (!error) {
+        setPassword("");
+        if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+          setPending(false);
+          setAskingForCode(true);
+          return;
+        }
         router.replace(next);
         return;
       }
@@ -68,6 +80,17 @@ export function SignInForm({ next }: { next: string }) {
     setPending(false);
     passwordInput.current?.focus();
   }
+
+  // Back from the code, with why if there is a reason: the email kept, the password to type again.
+  function startAgain(reason: string | null) {
+    setAskingForCode(false);
+    setProblem(reason);
+    setPending(false);
+    requestAnimationFrame(() => passwordInput.current?.focus());
+  }
+
+  if (askingForCode)
+    return <CodeForm next={next} onStartAgain={startAgain} />;
 
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
