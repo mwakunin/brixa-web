@@ -93,6 +93,7 @@ pnpm test
 pnpm build
 pnpm codegen      # regenerate src/lib/api/schema.d.ts from the API's /doc
 pnpm screens --as doctor /path   # screenshots and an accessibility scan (section 7)
+pnpm flows [name…]               # each flow walked in a browser against the running API (section 7)
 ```
 
 After an API change that touches a route, run `pnpm codegen` and fix what stops compiling.
@@ -124,3 +125,18 @@ pnpm screens --as <desk> /route [/another]
 4. Show the owner the screenshots beside the mockup.
 
 Screenshots cannot show how a screen feels in use, or on a slow connection: that is the owner's review and the staff walkthrough.
+
+### Walking a flow
+
+`pnpm screens` shows how a screen looks; `pnpm flows` checks how it behaves. With the same two servers running:
+
+```sh
+pnpm flows                  # every flow
+pnpm flows sign-in picker   # some, by name
+```
+
+- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker` and `invitation`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
+- **Emails:** in development, the API keeps every email it would have sent in its `.dev-mail/` folder. Flows read invitation and reset links from there (`DEV_MAIL_DIR`, else `../api/.dev-mail`).
+- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), whom a re-seed clears.
+- **Rate limits:** the development API counts the browser as one address. One run stays inside its limits, and two runs fit in 15 minutes. A flow that meets a limit stops and says how long to wait.
+- **When:** run it after any change to a flow's screens, and before calling a desk done. Each desk adds its own flow as it is built.
