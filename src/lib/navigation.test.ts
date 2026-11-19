@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { facilitiesHref, firstParam, forgotPasswordHref, safeNext, signInHref } from "./navigation";
+import { facilitiesHref, firstParam, forgotPasswordHref, safeNext, setUpSignInHref, signInHref } from "./navigation";
 
 describe("where to go after signing in", () => {
   it("goes back to a page of this app", () => {
@@ -38,9 +38,10 @@ describe("where to go after signing in", () => {
     expect(safeNext("/queue?servicePointId=abc#waiting")).toBe("/queue?servicePointId=abc#waiting");
   });
 
-  it("never comes back to the sign-in page", () => {
+  it("never comes back to the sign-in page, or to setting up two-step sign-in", () => {
     expect(safeNext("/sign-in")).toBe("/");
     expect(safeNext("/sign-in?next=/facilities")).toBe("/");
+    expect(safeNext("/set-up-sign-in?next=/facilities")).toBe("/");
   });
 });
 
@@ -59,6 +60,13 @@ describe("asking someone to choose a facility", () => {
   it("remembers the page they were on, as signing in does", () => {
     expect(facilitiesHref("/queue?servicePointId=abc")).toBe("/facilities?next=%2Fqueue%3FservicePointId%3Dabc");
     expect(facilitiesHref("/")).toBe("/facilities");
+  });
+});
+
+describe("asking someone to set up two-step sign-in", () => {
+  it("carries the page they were heading to, to go on to once it is set up", () => {
+    expect(setUpSignInHref("/facilities")).toBe("/set-up-sign-in?next=%2Ffacilities");
+    expect(setUpSignInHref("/")).toBe("/set-up-sign-in");
   });
 });
 

@@ -10,6 +10,7 @@
 export const SIGN_IN_PATH = "/sign-in";
 export const FACILITIES_PATH = "/facilities";
 export const FORGOT_PASSWORD_PATH = "/forgot-password";
+export const SET_UP_SIGN_IN_PATH = "/set-up-sign-in";
 
 /** A stand-in origin: a path that resolves anywhere else leaves the app. */
 const HERE = "http://brixa.invalid";
@@ -25,8 +26,9 @@ export function safeNext(next: string | null | undefined): string {
   catch {
     return "/";
   }
-  // A resolved path can still begin `//` ("/.//host"), which a router reads as another site.
-  if (url.origin !== HERE || url.pathname.startsWith("//") || url.pathname === SIGN_IN_PATH)
+  // A resolved path can still begin `//` ("/.//host"), which a router reads as another site. Sign-in
+  // and its setup are steps on the way, never where someone is heading.
+  if (url.origin !== HERE || url.pathname.startsWith("//") || url.pathname === SIGN_IN_PATH || url.pathname === SET_UP_SIGN_IN_PATH)
     return "/";
   return url.pathname + url.search + url.hash;
 }
@@ -52,6 +54,11 @@ export function signInHref(from: string | null | undefined): string {
 /** The way to a forgotten password and back keeps where they were heading. */
 export function forgotPasswordHref(from: string | null | undefined): string {
   return withNext(FORGOT_PASSWORD_PATH, from);
+}
+
+/** Setting up two-step sign-in, then on to where they were heading. */
+export function setUpSignInHref(from: string | null | undefined): string {
+  return withNext(SET_UP_SIGN_IN_PATH, from);
 }
 
 export function facilitiesHref(from: string): string {

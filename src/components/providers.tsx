@@ -4,16 +4,23 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@ta
 import { useState } from "react";
 
 import { ApiError } from "@/lib/api/refusal";
-import { signInHref } from "@/lib/navigation";
+import { setUpSignInHref, signInHref } from "@/lib/navigation";
 
 /**
  * A call answered "not signed in": the session ended mid-shift. The sign-in
  * page is loaded afresh, not navigated to, so what the API returned leaves
- * memory with it; it brings them back to this page afterwards.
+ * memory with it; it brings them back to this page afterwards. A call
+ * answered "set up two-step sign-in first" goes to that page the same way.
  */
-function whenSignedOut(error: Error) {
-  if (error instanceof ApiError && error.refusal.kind === "signed_out")
-    window.location.assign(signInHref(window.location.pathname + window.location.search));
+function whenNotSignedIn(error: Error) {
+  if (!(error instanceof ApiError))
+    return;
+  const here = window.location.pathname + window.location.search;
+  const { refusal } = error;
+  if (refusal.kind === "signed_out")
+    window.location.assign(signInHref(here));
+  else if (refusal.kind === "not_allowed" && refusal.code === "two_factor_setup_required")
+    window.location.assign(setUpSignInHref(here));
 }
 
 /**
@@ -26,8 +33,8 @@ function whenSignedOut(error: Error) {
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [client] = useState(() => new QueryClient({
-    queryCache: new QueryCache({ onError: whenSignedOut }),
-    mutationCache: new MutationCache({ onError: whenSignedOut }),
+    queryCache: new QueryCache({ onError: whenNotSignedIn }),
+    mutationCache: new MutationCache({ onError: whenNotSignedIn }),
     defaultOptions: {
       queries: {
         staleTime: 15_000,

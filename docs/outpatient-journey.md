@@ -22,7 +22,8 @@ Paths are `brixa-api`'s. Each read that names a patient is audited by the API, s
 
 | # | Screen | Who | Reads | Writes |
 |---|---|---|---|---|
-| 1 | Sign in | Everyone | | Better Auth `sign-in/email` |
+| 1 | Sign in | Everyone | | Better Auth `sign-in/email`, then the code: `two-factor/verify-totp`, or `two-factor/verify-backup-code` |
+| 1b | Set up two-step sign-in | Everyone, once, before any desk | | `two-factor/enable` (the password again; the app's QR code and the backup codes), then `two-factor/verify-totp` (the app's first code) |
 | 2 | Where are you working | Staff at more than one facility | `GET /me/facilities` | Keeps the facility id for `X-Facility-Id` |
 | 3 | Front desk | Records clerk | `GET /patients?q=`, `GET /appointments?date=`, `GET /service-points`, `GET /encounters?patientId=` | `POST /encounters` (joins triage), `POST /appointments/{id}/check-in` |
 | 3b | A new patient | Records clerk | | `POST /patients` (409 with `candidates` for a likely duplicate; again with `confirmNotDuplicate`), then `POST /encounters` |

@@ -9,7 +9,8 @@
  *
  * Needs the app running (`pnpm dev`) and, to sign in, the API with its
  * development seed (`pnpm db:seed` in brixa-api): `--as <desk>` signs in as
- * `<desk>@sample-hospital.test` and chooses that person's first facility.
+ * `<desk>@sample-hospital.test`, with the development authenticator's code
+ * (`dev-code.mts`), and chooses that person's first facility.
  * Uses the machine's Chromium (`CHROMIUM_PATH`, else /usr/bin/chromium):
  * nothing is downloaded.
  *
@@ -30,6 +31,8 @@ import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
 
 import type { paths } from "../src/lib/api/schema";
+
+import { DEV_TOTP_SECRET, totp } from "./dev-code.mts";
 
 /** The facility picker's answer, as the API's own contract says. */
 type MyFacilities = paths["/me/facilities"]["get"]["responses"][200]["content"]["application/json"];
@@ -60,6 +63,11 @@ if (values.as) {
   const signedIn = await context.request.post(`${API_URL}/api/auth/sign-in/email`, { data: { email, password: SEED_PASSWORD }, headers: { origin: APP_URL } });
   if (!signedIn.ok())
     throw new Error(`Signing in as ${email} answered ${signedIn.status()}: is the API running and seeded?`);
+  if ((await signedIn.json() as { twoFactorRedirect?: boolean }).twoFactorRedirect) {
+    const verified = await context.request.post(`${API_URL}/api/auth/two-factor/verify-totp`, { data: { code: totp(DEV_TOTP_SECRET) }, headers: { origin: APP_URL } });
+    if (!verified.ok())
+      throw new Error(`The code for ${email} answered ${verified.status()}: was the API seeded before two-step sign-in?`);
+  }
   const { facilities } = await (await context.request.get(`${API_URL}/me/facilities`)).json() as MyFacilities;
   // The facility is chosen as the picker would choose it: its id only, in this browser's storage.
   await context.addInitScript((id) => {
