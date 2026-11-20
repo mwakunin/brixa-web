@@ -2653,6 +2653,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                             }[];
                         };
                     };
@@ -2789,6 +2795,17 @@ export interface paths {
                         noIdReason?: "none_held" | "not_carried" | "unidentified";
                         /** @default false */
                         unidentified?: boolean;
+                        /** @default [] */
+                        contacts?: {
+                            name: string;
+                            relationship?: string;
+                            phone?: string;
+                            idDocument?: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                value: string;
+                            };
+                        }[];
                         /** @default false */
                         confirmNotDuplicate?: boolean;
                     };
@@ -2830,6 +2847,19 @@ export interface paths {
                                 /** @enum {string} */
                                 type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
                                 value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 addedAt: string;
                             }[];
                         };
@@ -2901,6 +2931,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
                         };
@@ -3022,6 +3058,19 @@ export interface paths {
                                 /** @enum {string} */
                                 type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
                                 value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 addedAt: string;
                             }[];
                         };
@@ -3188,6 +3237,19 @@ export interface paths {
                                 value: string;
                                 addedAt: string;
                             }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -3346,6 +3408,19 @@ export interface paths {
                                 value: string;
                                 addedAt: string;
                             }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -3415,6 +3490,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
                         };
@@ -3467,6 +3548,365 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/patients/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a contact, such as a child's guardian
+         * @description A contact's ID number is not the patient's: it is never searched or checked for duplicates.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description The contact */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        relationship?: string;
+                        phone?: string;
+                        idDocument?: {
+                            /** @enum {string} */
+                            type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                            value: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Added */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            givenName: string;
+                            middleNames: string | null;
+                            familyName: string;
+                            /** @enum {string|null} */
+                            sex: "male" | "female" | "intersex" | null;
+                            dateOfBirth: string;
+                            age: number;
+                            phone: string | null;
+                            dobIsEstimated: boolean;
+                            /** @enum {string|null} */
+                            noPhoneReason: "no_phone" | "unidentified" | null;
+                            /** @enum {string|null} */
+                            noIdReason: "none_held" | "not_carried" | "unidentified" | null;
+                            unidentified: boolean;
+                            smsReminders: boolean | null;
+                            registeredAt: string;
+                            numbers: {
+                                /** @enum {string} */
+                                kind: "outpatient" | "inpatient";
+                                number: string;
+                                issuedAt: string;
+                            }[];
+                            identifiers: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
+                                value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Invalid contact */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "name"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/patients/{id}/contacts/{contactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct a patient's contact
+         * @description Each changed field's old and new value is recorded in the audit log. Null clears a field other than the name.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                    contactId: string;
+                };
+                cookie?: never;
+            };
+            /** @description The fields to change */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        relationship?: string | null;
+                        phone?: string | null;
+                        idDocument?: {
+                            /** @enum {string} */
+                            type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                            value: string;
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Corrected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            givenName: string;
+                            middleNames: string | null;
+                            familyName: string;
+                            /** @enum {string|null} */
+                            sex: "male" | "female" | "intersex" | null;
+                            dateOfBirth: string;
+                            age: number;
+                            phone: string | null;
+                            dobIsEstimated: boolean;
+                            /** @enum {string|null} */
+                            noPhoneReason: "no_phone" | "unidentified" | null;
+                            /** @enum {string|null} */
+                            noIdReason: "none_held" | "not_carried" | "unidentified" | null;
+                            unidentified: boolean;
+                            smsReminders: boolean | null;
+                            registeredAt: string;
+                            numbers: {
+                                /** @enum {string} */
+                                kind: "outpatient" | "inpatient";
+                                number: string;
+                                issuedAt: string;
+                            }[];
+                            identifiers: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
+                                value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Invalid change */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "custom",
+                             *           "path": [],
+                             *           "message": "Nothing to change"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/encounters": {
