@@ -31615,6 +31615,10 @@ export interface paths {
                                     validation: string;
                                     stk: string;
                                 };
+                                callbackTokenRotatedAt: string | null;
+                                previousToken: {
+                                    until: string | null;
+                                } | null;
                             } | null;
                         };
                     };
@@ -31667,7 +31671,7 @@ export interface paths {
         };
         /**
          * Set the M-Pesa paybill and its Daraja credentials
-         * @description Stored encrypted. The callback URLs are then registered with Safaricom in the background.
+         * @description Stored encrypted. The callback URLs are then registered with Safaricom in the background. A paybill another facility has is refused (`paybill_taken`): Safaricom sends a paybill's payments to one set of URLs.
          */
         put: {
             parameters: {
@@ -31707,6 +31711,10 @@ export interface paths {
                                     validation: string;
                                     stk: string;
                                 };
+                                callbackTokenRotatedAt: string | null;
+                                previousToken: {
+                                    until: string | null;
+                                } | null;
                             };
                         };
                     };
@@ -31752,6 +31760,18 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description The paybill is another facility's */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
                         };
                     };
                 };
@@ -31813,6 +31833,464 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mpesa/settings/callback-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replace the secret in the M-Pesa callback URLs
+         * @description For a callback token that may have leaked. Prompts sent from now carry the new one, and the new URLs are registered with Safaricom in the background. In production Safaricom takes a paybill's URLs once: delete the old registration on the Daraja portal, then ask again (`POST /mpesa/settings/registration`). Until the new URLs are registered, and an hour after, the old token still takes the outcome of a prompt sent before the replacement, and keeps a paybill payment for a person to check, never placing it by itself.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Replaced */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            settings: {
+                                shortcode: string;
+                                urlsRegisteredAt: string | null;
+                                lastRegistrationError: string | null;
+                                callbackUrls: {
+                                    confirmation: string;
+                                    validation: string;
+                                    stk: string;
+                                };
+                                callbackTokenRotatedAt: string | null;
+                                previousToken: {
+                                    until: string | null;
+                                } | null;
+                            };
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description M-Pesa is not set up */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mpesa/settings/registration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register the M-Pesa callback URLs with Safaricom again
+         * @description In the background, for a registration Safaricom refused: for example once the old one is deleted on the Daraja portal.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Asked */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            settings: {
+                                shortcode: string;
+                                urlsRegisteredAt: string | null;
+                                lastRegistrationError: string | null;
+                                callbackUrls: {
+                                    confirmation: string;
+                                    validation: string;
+                                    stk: string;
+                                };
+                                callbackTokenRotatedAt: string | null;
+                                previousToken: {
+                                    until: string | null;
+                                } | null;
+                            };
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description M-Pesa is not set up */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mpesa/unrecorded-callbacks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * M-Pesa prompt callbacks that could not be recorded
+         * @description Safaricom does not call back again, so each is kept for finance to replay. Oldest first, up to 200. Receipt numbers and amounts only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Waiting to be replayed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            callbacks: {
+                                /** Format: uuid */
+                                id: string;
+                                receivedAt: string;
+                                paid: boolean;
+                                receiptNumber: string | null;
+                                amountCents: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mpesa/unrecorded-callbacks/{id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replay an M-Pesa prompt callback that could not be recorded
+         * @description Through the same steps as when it came, once: a receipt already on file is never booked twice. `paid`: placed towards its prompt; `queued`: waiting in the queue for a person; `failed`: the payer did not pay, and the prompt is closed; `unusable`: Safaricom sent nothing that could be booked.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Replayed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            outcome: "paid" | "queued" | "failed" | "unusable";
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Replayed already */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+                /** @description Not an id */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
