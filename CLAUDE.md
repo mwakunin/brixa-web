@@ -21,7 +21,7 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 
 **Design before build.** No role's screen is built before its sketch has been walked through with the pilot's staff. Sign-in and the facility picker are the exception: they are plumbing, and they prove the session, the facility header and the typed client end to end.
 
-**The mockup** of the outpatient journey: https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (the owner's claude.ai account; read it with the Artifact tool, never a web fetch). It is the reference for every outpatient screen.
+**The mockup** of the outpatient journey: https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (the owner's claude.ai account; read it with the Artifact tool, never a web fetch). It is the reference for every outpatient screen. Where it and the walkthrough's decisions in `docs/outpatient-journey.md` differ, the decisions win.
 
 `docs/outpatient-journey.md` maps every sketched screen to the API calls behind it and lists what the sketch asks of the API that it cannot give yet. Settle those in `brixa-api` before building the screen that needs them.
 
@@ -120,7 +120,7 @@ pnpm screens --as <desk> /route [/another]
 
 **Before a screen is called done:**
 1. Look at each screenshot.
-2. Compare it with the mockup's screen for that desk.
+2. Compare it with the mockup's screen for that desk, and with what `docs/outpatient-journey.md` decided for it.
 3. Fix what differs or reads badly.
 4. Show the owner the screenshots beside the mockup.
 

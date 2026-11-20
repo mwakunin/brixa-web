@@ -2,7 +2,7 @@
 
 A clickable mockup of one patient's visit, from the front desk to the cashier. It was made on 2026-11-17 and walked through with the pilot's staff on 2026-11-20 (`CLAUDE.md` §1, step F2). What staff said, desk by desk, is in `docs/staff-walkthrough.md`. This page holds what the walkthrough decided.
 
-**The mockup:** https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (private to its owner until shared from its Share menu). It still shows the screens as first sketched: the changes below are not drawn on it yet.
+**The mockup:** https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (private to its owner until shared from its Share menu). It was redrawn on 2026-11-20 to show what the walkthrough decided. Where it and this page differ, this page decides.
 
 Every name, number and price in it is made up.
 
@@ -125,7 +125,7 @@ Found while drawing each screen against the API, and settled by the walkthrough.
 **New from the walkthrough:**
 
 8. **A patient search does not return the ID number.** Clerks confirm a patient by names and the phone or ID number. Without the number in the results, they would open each record to check, and each opening is audited.
-9. **A child's record has no guardian.** Clerks sometimes record the guardian's ID. A guardian needs a name, relationship, phone and ID number. `patient_contacts` is planned in `SCHEMA.md` and not built.
+9. **A child's record has no guardian.** Clerks sometimes record the guardian's ID. A guardian has a name, relationship, phone and ID number. Settled on 2026-11-20: brixa-api #35 adds a patient's contacts, and only the name is required. The relationship, phone and ID are recorded when known, so a child is registered whether or not the guardian's ID is at hand.
 10. **Triage has nowhere to record today's complaint.** The nurse writes it today, and the doctor looks at it first. It is recorded as triage finishes, and the consultation read returns it.
 11. **The pharmacy cannot quote a price before preparing.** Patients ask the price first, then decide how much to buy. The quote gives each line's price and the total, for the products and quantities chosen, with nothing taken or charged.
 12. **The receipt lacks three things staff expect:** the facility's address (it prints the name, KMHFR code and county), the services or items paid for with their amounts (it prints the bill's number), and the cashier's name.

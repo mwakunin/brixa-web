@@ -138,8 +138,8 @@ Staff are named by their role only. No staff member, patient or hospital is name
   - **Pay first:**
     1. The pharmacy quotes the price.
     2. The patient decides how much to take.
-    3. The pharmacy prepares that much, which sets the stock aside and puts it on the bill.
-    4. The patient pays at the cashier.
+    3. The pharmacy prepares that much, which sets the stock aside and raises its charge.
+    4. The patient pays at the cashier, who puts the charge on a bill as they pay.
     5. The pharmacy hands over.
     - A patient who never comes to pay has the preparation cancelled, which puts the stock back and cancels the charge. The API does this only while the preparation is not on a bill yet.
     - Once it is on a bill, cancelling is refused. Today the medicine would have to be handed over and taken back as a return, credited with a credit note (and refunded, if paid). Which path the screens offer is still open.
