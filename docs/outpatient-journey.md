@@ -37,7 +37,7 @@ None of the screens is dropped. A waivers list for the in-charge is added. Gap n
 | 3b | A new patient | A child's record takes a guardian, with the guardian's ID (gap 9). "Not carrying it today", the unidentified patient and the likely-duplicate warning stay as drawn |
 | 4 | Triage | The nurse records today's complaint (gap 10). The fee comes off the clinic buttons (gap 5). The vital signs and the three levels of how soon stay as drawn, with no scoring |
 | 5 | Consultation | One read brings the patient (gap 3). The doctor can record an allergy as well as see one. Diagnoses are found by name, with no codes shown. Each test shows its price, and the total goes |
-| 6 | Lab | **Release** is an ordinary button, at any time, with the reason filled in as "Alone on duty". A second lab member verifies later when there is one, and nothing waits on it. The lab number shows large, for writing on the tube. A critical result asks who was told, how and when. The lab report prints as the result slip |
+| 6 | Lab | **Release** is an ordinary button, at any time. The person gives the reason each time, with one press for "Alone on duty" or by typing another; it is never filled in for them. A second lab member verifies later when there is one, and nothing waits on it. The lab number shows large, for writing on the tube. A critical result asks who was told, how and when. The lab report prints as the result slip |
 | 7 | Back with results | The quantity comes off the doctor's screen (gap 6). The results and a short last-visit summary come from the consultation read |
 | 8 | Pharmacy | The waiting list flags a medicine that is low or out of stock (gap 4). Products, stock and price show once a prescription is opened. The API gives a quote before preparing (gap 11). Giving part, with the rest marked not supplied, works as built |
 | 9 | Cashier | M-Pesa comes first among the ways to pay, the paybill before the prompt. The receipt adds the facility's address, the items paid for and the cashier's name (gap 12) |
@@ -48,7 +48,8 @@ None of the screens is dropped. A waivers list for the in-charge is added. Gap n
 - **When patients pay:** both, at each point or once at the end, as the API already allows with no setting.
   - The lab and the pharmacy warn when a patient has not paid, and never block.
   - A cash patient usually pays before the pharmacy hands over. The pharmacy quotes and prepares, the patient pays at the front desk, then the pharmacy hands over.
-  - A preparation the patient never comes back for is cancelled, which puts the stock back.
+  - A preparation the patient never comes to pay for is cancelled, which puts the stock back, while it is not on a bill yet.
+  - Once it is on a bill, cancelling is refused. Today it would be handed over and taken back as a return, with a credit note. Which path the screens offer is still open.
 - **Consumables billed item by item:** staff asked for both, item by item or not. The owner left this for later (2026-11-20). Until then, a consumable is charged by a manual posting with a reason (`../api/ROADMAP.md` P6).
 - **Helping staff who cannot open their email at work:** not needed. Everyone can open their email at work, so reset by email stays the only way.
 
@@ -129,7 +130,9 @@ Found while drawing each screen against the API, and settled by the walkthrough.
 11. **The pharmacy cannot quote a price before preparing.** Patients ask the price first, then decide how much to buy. The quote gives each line's price and the total, for the products and quantities chosen, with nothing taken or charged.
 12. **The receipt lacks three things staff expect:** the facility's address (it prints the name, KMHFR code and county), the services or items paid for with their amounts (it prints the bill's number), and the cashier's name.
 
-**Still open:** whether a patient who buys the rest of a medicine elsewhere needs a printed note of what is left.
+**Still open:**
+- whether a patient who buys the rest of a medicine elsewhere needs a printed note of what is left;
+- what the pharmacy does with a preparation that is already on a bill when the patient never collects it. The API refuses to cancel it, and a return applies only to medicine handed over.
 
 ## Left out of the sketch, on purpose
 

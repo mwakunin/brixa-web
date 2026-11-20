@@ -97,7 +97,7 @@ Staff are named by their role only. No staff member, patient or hospital is name
   - Results go back mostly on paper, as a result slip or on the request form, carried back by the patient. "The system should be able to let the doctor see."
   - Yes, they get patients sent by an outside doctor, with that doctor's request.
 - **Decision:** keep, with these changes, none of which needs the API to change:
-  - **One person finishes a result.** Releasing a result alone, with a reason, is allowed at any time, not only at night. The person, the time and the reason are recorded and printed on the report as "released unverified". The result reaches the clinician, and the patient rejoins the clinic's queue, as soon as it is released. The screen makes releasing an ordinary button, not a night-duty exception. The reason is filled in for the person as "Alone on duty", and they can change it.
+  - **One person finishes a result.** Releasing a result alone, with a reason, is allowed at any time, not only at night. The person, the time and the reason are recorded and printed on the report as "released unverified". The result reaches the clinician, and the patient rejoins the clinic's queue, as soon as it is released. The screen makes releasing an ordinary button, not a night-duty exception. The person gives the reason each time, with one press for "Alone on duty" or by typing another. It is never filled in for them, so the report never prints a reason that was not so.
   - **The lab in-charge reviews later.** A second lab member verifies a released result when one is there, which is the in-charge's review. Nothing waits on it. Verifying your own result stays refused, so "verified" always means a second person checked.
   - **Labels:** the lab number is shown large when the specimen is taken, for writing on the tube. No label printing.
   - **Critical results:** as the API already works, a critical result is not released until who was told, how and when is recorded. The mockup does not draw this step yet.
@@ -141,7 +141,8 @@ Staff are named by their role only. No staff member, patient or hospital is name
     3. The pharmacy prepares that much, which sets the stock aside and puts it on the bill.
     4. The patient pays at the cashier.
     5. The pharmacy hands over.
-    - A patient who does not come back has the preparation cancelled, which puts the stock back and cancels the charge. The API already does this.
+    - A patient who never comes to pay has the preparation cancelled, which puts the stock back and cancels the charge. The API does this only while the preparation is not on a bill yet.
+    - Once it is on a bill, cancelling is refused. Today the medicine would have to be handed over and taken back as a return, credited with a credit note (and refunded, if paid). Which path the screens offer is still open.
     - Handing over unpaid stays a warning, not a block, as at the lab.
   - Whether the patient needs a printed note of the balance to buy elsewhere is still open.
 
