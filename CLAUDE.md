@@ -15,8 +15,8 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 | Step | Work | State |
 |---|---|---|
 | F1 Foundation | This repository, its stack and CI, the typed API client | Done |
-| F2 The journey, sketched | A clickable mockup of one outpatient visit, walked through with the pilot's staff | Sketched; the walkthrough is still to do. See `docs/outpatient-journey.md` |
-| F3 The outpatient screens | Sign-in and the facility picker; then front desk, triage, consultation, lab, pharmacy, cashier; then stores and administration | Begun: sign-in, the facility picker and accepting an invitation (#4), resetting a password (#5), two-step sign-in (#10). The desks wait for the walkthrough |
+| F2 The journey, sketched | A clickable mockup of one outpatient visit, walked through with the pilot's staff | Done: walked through with the pilot's staff on 2026-11-20. Every screen survives, with changes. See `docs/outpatient-journey.md` and `docs/staff-walkthrough.md` |
+| F3 The outpatient screens | Sign-in and the facility picker; then front desk, triage, consultation, lab, pharmacy, cashier; then stores and administration | Begun: sign-in, the facility picker and accepting an invitation (#4), resetting a password (#5), two-step sign-in (#10). Each desk waits for the API gaps it needs (`docs/outpatient-journey.md`) |
 | P6 | Reports, offline support, the timed simplicity test | Later |
 
 **Design before build.** No role's screen is built before its sketch has been walked through with the pilot's staff. Sign-in and the facility picker are the exception: they are plumbing, and they prove the session, the facility header and the typed client end to end.
