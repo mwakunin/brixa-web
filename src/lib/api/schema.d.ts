@@ -1331,6 +1331,7 @@ export interface paths {
                             kephLevel: number;
                             county: string | null;
                             phone: string | null;
+                            address: string | null;
                             smsSenderId: string | null;
                         };
                     };
@@ -1388,7 +1389,7 @@ export interface paths {
         head?: never;
         /**
          * Change the facility's details
-         * @description The phone number appointment reminders tell patients to call. Facility admin only; audited with the old and new.
+         * @description The phone number appointment reminders tell patients to call, and the address printed at the head of every document issued from now on. Either or both; null clears one. Facility admin only; audited with the old and new.
          */
         patch: {
             parameters: {
@@ -1404,7 +1405,8 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        phone: string | null;
+                        phone?: string | null;
+                        address?: string | null;
                     };
                 };
             };
@@ -1426,6 +1428,7 @@ export interface paths {
                             kephLevel: number;
                             county: string | null;
                             phone: string | null;
+                            address: string | null;
                             smsSenderId: string | null;
                         };
                     };
@@ -1488,11 +1491,9 @@ export interface paths {
                              *       "name": "ZodError",
                              *       "issues": [
                              *         {
-                             *           "code": "invalid_type",
-                             *           "path": [
-                             *             "phone"
-                             *           ],
-                             *           "message": "Invalid input: expected string, received undefined"
+                             *           "code": "custom",
+                             *           "path": [],
+                             *           "message": "Give the phone, the address, or both"
                              *         }
                              *       ]
                              *     }
@@ -2653,6 +2654,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                             }[];
                         };
                     };
@@ -2789,6 +2796,20 @@ export interface paths {
                         noIdReason?: "none_held" | "not_carried" | "unidentified";
                         /** @default false */
                         unidentified?: boolean;
+                        /**
+                         * @description At most three at registration; add more afterwards with `POST /patients/{id}/contacts`.
+                         * @default []
+                         */
+                        contacts?: {
+                            name: string;
+                            relationship?: string;
+                            phone?: string;
+                            idDocument?: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                value: string;
+                            };
+                        }[];
                         /** @default false */
                         confirmNotDuplicate?: boolean;
                     };
@@ -2830,6 +2851,19 @@ export interface paths {
                                 /** @enum {string} */
                                 type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
                                 value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 addedAt: string;
                             }[];
                         };
@@ -2901,6 +2935,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
                         };
@@ -3022,6 +3062,19 @@ export interface paths {
                                 /** @enum {string} */
                                 type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
                                 value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 addedAt: string;
                             }[];
                         };
@@ -3188,6 +3241,19 @@ export interface paths {
                                 value: string;
                                 addedAt: string;
                             }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -3346,6 +3412,19 @@ export interface paths {
                                 value: string;
                                 addedAt: string;
                             }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -3415,6 +3494,12 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
                         };
@@ -3467,6 +3552,365 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/patients/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a contact, such as a child's guardian
+         * @description A contact's ID number is not the patient's: it is never searched or checked for duplicates.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description The contact */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        relationship?: string;
+                        phone?: string;
+                        idDocument?: {
+                            /** @enum {string} */
+                            type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                            value: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Added */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            givenName: string;
+                            middleNames: string | null;
+                            familyName: string;
+                            /** @enum {string|null} */
+                            sex: "male" | "female" | "intersex" | null;
+                            dateOfBirth: string;
+                            age: number;
+                            phone: string | null;
+                            dobIsEstimated: boolean;
+                            /** @enum {string|null} */
+                            noPhoneReason: "no_phone" | "unidentified" | null;
+                            /** @enum {string|null} */
+                            noIdReason: "none_held" | "not_carried" | "unidentified" | null;
+                            unidentified: boolean;
+                            smsReminders: boolean | null;
+                            registeredAt: string;
+                            numbers: {
+                                /** @enum {string} */
+                                kind: "outpatient" | "inpatient";
+                                number: string;
+                                issuedAt: string;
+                            }[];
+                            identifiers: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
+                                value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Invalid contact */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "name"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/patients/{id}/contacts/{contactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct a patient's contact
+         * @description Each changed field's old and new value is recorded in the audit log. Null clears a field other than the name.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                    contactId: string;
+                };
+                cookie?: never;
+            };
+            /** @description The fields to change */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        relationship?: string | null;
+                        phone?: string | null;
+                        idDocument?: {
+                            /** @enum {string} */
+                            type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                            value: string;
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Corrected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            givenName: string;
+                            middleNames: string | null;
+                            familyName: string;
+                            /** @enum {string|null} */
+                            sex: "male" | "female" | "intersex" | null;
+                            dateOfBirth: string;
+                            age: number;
+                            phone: string | null;
+                            dobIsEstimated: boolean;
+                            /** @enum {string|null} */
+                            noPhoneReason: "no_phone" | "unidentified" | null;
+                            /** @enum {string|null} */
+                            noIdReason: "none_held" | "not_carried" | "unidentified" | null;
+                            unidentified: boolean;
+                            smsReminders: boolean | null;
+                            registeredAt: string;
+                            numbers: {
+                                /** @enum {string} */
+                                kind: "outpatient" | "inpatient";
+                                number: string;
+                                issuedAt: string;
+                            }[];
+                            identifiers: {
+                                /** @enum {string} */
+                                type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id" | "sha_number" | "client_registry_id" | "other";
+                                value: string;
+                                addedAt: string;
+                            }[];
+                            contacts: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relationship: string | null;
+                                phone: string | null;
+                                idDocument: {
+                                    /** @enum {string} */
+                                    type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
+                                    value: string;
+                                } | null;
+                                addedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Invalid change */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "custom",
+                             *           "path": [],
+                             *           "message": "Nothing to change"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         trace?: never;
     };
     "/encounters": {
@@ -8582,6 +9026,564 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{id}/consultation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The patient in front of the doctor
+         * @description Who they are; today's vital signs, allergies and complaint; this visit's notes (signed, and your own drafts), diagnoses, orders and results; and the last visit in short. Each part is withheld as its own read withholds it (rule 27), listed under `restricted` by date only. Audited once. Earlier visits and old results are behind their own reads.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The consultation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            encounter: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "opd" | "emergency" | "ipd";
+                                /** @enum {string} */
+                                status: "open" | "closed" | "cancelled";
+                                startedAt: string;
+                            };
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                opNumber: string | null;
+                                givenName: string;
+                                middleNames: string | null;
+                                familyName: string;
+                                /** @enum {string|null} */
+                                sex: "male" | "female" | "intersex" | null;
+                                dateOfBirth: string;
+                                age: number;
+                            };
+                            complaint: {
+                                text: string;
+                                recordedAt: string;
+                                recordedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                            } | null;
+                            vitals: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                code: "temperature" | "pulse" | "respiratory_rate" | "bp_systolic" | "bp_diastolic" | "spo2" | "weight" | "height" | "muac" | "blood_glucose" | "pain_score";
+                                label: string;
+                                value: number;
+                                unit: string;
+                                observedAt: string;
+                                recordedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                enteredInError: {
+                                    at: string;
+                                    reason: string;
+                                } | null;
+                            }[];
+                            allergies: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                category: "drug" | "food" | "environment" | "other" | "none_known";
+                                allergen: string | null;
+                                drugCode: string | null;
+                                reaction: string | null;
+                                /** @enum {string|null} */
+                                severity: "mild" | "moderate" | "severe" | null;
+                                recordedAt: string;
+                                recordedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                removedAt: string | null;
+                                /** @enum {string|null} */
+                                removalReason: "entered_in_error" | "no_longer_applies" | null;
+                            }[];
+                            notes: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "consultation" | "nursing";
+                                /** @enum {string} */
+                                status: "draft" | "signed";
+                                presentingComplaint: string | null;
+                                history: string | null;
+                                examination: string | null;
+                                plan: string | null;
+                                text: string | null;
+                                writtenBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                createdAt: string;
+                                updatedAt: string;
+                                signedAt: string | null;
+                                enteredInError: {
+                                    at: string;
+                                    reason: string;
+                                } | null;
+                                /** @enum {string|null} */
+                                sensitiveCategory: "hiv" | "mental_health" | "gbv" | null;
+                                addenda: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    text: string;
+                                    writtenBy: {
+                                        /** Format: uuid */
+                                        membershipId: string;
+                                        name: string;
+                                    };
+                                    signedAt: string;
+                                    enteredInError: {
+                                        at: string;
+                                        reason: string;
+                                    } | null;
+                                }[];
+                            }[];
+                            diagnoses: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                title: string;
+                                uri: string;
+                                release: string;
+                                /** @enum {string} */
+                                certainty: "provisional" | "confirmed";
+                                /** @enum {string} */
+                                rank: "principal" | "secondary";
+                                diagnosedAt: string;
+                                diagnosedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                confirmedAt: string | null;
+                                endedAt: string | null;
+                                /** @enum {string|null} */
+                                endReason: "ruled_out" | "entered_in_error" | null;
+                            }[];
+                            orders: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                encounterId: string;
+                                /** @enum {string} */
+                                urgency: "routine" | "urgent";
+                                indication: string | null;
+                                orderedAt: string;
+                                orderedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                } | null;
+                                requester: {
+                                    name: string;
+                                    facility: string;
+                                    licenceNumber: string | null;
+                                } | null;
+                                selfRequested: boolean;
+                                enteredBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                prescription: {
+                                    /** Format: uuid */
+                                    documentId: string;
+                                    number: string;
+                                    voided: boolean;
+                                } | null;
+                                items: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    kind: "lab" | "service" | "medication";
+                                    /** Format: uuid */
+                                    labTestId: string | null;
+                                    /** Format: uuid */
+                                    billableItemId: string | null;
+                                    code: string;
+                                    name: string;
+                                    /** @enum {string} */
+                                    status: "ordered" | "done" | "cancelled";
+                                    doneAt: string | null;
+                                    cancelledAt: string | null;
+                                    cancellationReason: string | null;
+                                    amountCents: number | null;
+                                    medication: {
+                                        drugCode: string;
+                                        doseAmount: string;
+                                        doseUnit: string;
+                                        /** @enum {string} */
+                                        route: "oral" | "sublingual" | "iv" | "im" | "sc" | "intradermal" | "topical" | "rectal" | "vaginal" | "inhaled" | "nasal" | "ophthalmic" | "otic";
+                                        /** @enum {string} */
+                                        frequency: "od" | "bd" | "tds" | "qid" | "nocte" | "prn" | "stat";
+                                        durationDays: number | null;
+                                        quantity: string;
+                                        instructions: string | null;
+                                        allergyOverrideReason: string | null;
+                                    } | null;
+                                }[];
+                            }[];
+                            results: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                orderId: string;
+                                /** Format: uuid */
+                                encounterId: string;
+                                patient: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    opNumber: string | null;
+                                    /** @enum {string|null} */
+                                    sex: "male" | "female" | "intersex" | null;
+                                    ageYears: number;
+                                };
+                                /** Format: uuid */
+                                orderItemId: string;
+                                /** Format: uuid */
+                                specimenId: string;
+                                accessionNumber: string;
+                                code: string;
+                                name: string;
+                                version: number;
+                                correctionReason: string | null;
+                                /** @enum {string} */
+                                status: "entered" | "released" | "verified" | "superseded";
+                                enteredAt: string;
+                                enteredBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                                releasedAt: string | null;
+                                releaseReason: string | null;
+                                verifiedAt: string | null;
+                                verifiedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                } | null;
+                                hasCritical: boolean;
+                                told: {
+                                    name: string;
+                                    /** @enum {string} */
+                                    how: "in_person" | "phone";
+                                    at: string;
+                                } | null;
+                                values: {
+                                    /** Format: uuid */
+                                    analyteId: string;
+                                    code: string;
+                                    name: string;
+                                    /** @enum {string} */
+                                    resultType: "numeric" | "choice" | "text";
+                                    value: number | string;
+                                    unit: string | null;
+                                    range: {
+                                        low: number | null;
+                                        high: number | null;
+                                    } | null;
+                                    /** @enum {string|null} */
+                                    flag: "low" | "high" | "critical_low" | "critical_high" | "abnormal" | null;
+                                }[];
+                            }[];
+                            reports: {
+                                /** Format: uuid */
+                                orderId: string;
+                                /** Format: uuid */
+                                documentId: string;
+                                number: string;
+                            }[];
+                            restricted: {
+                                recordedAt: string;
+                            }[];
+                            lastVisit: {
+                                /** Format: uuid */
+                                encounterId: string;
+                                startedAt: string;
+                                restricted: boolean;
+                                clinic: string | null;
+                                diagnoses: string[];
+                                medicines: string[];
+                            } | null;
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, or role not allowed */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not an encounter id */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/encounters/{id}/complaint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Record today's complaint
+         * @description Why the patient came today, in a few words, while the visit is open. Sending it again corrects it; each change is audited with the old text.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description The complaint */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        text: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            complaint: {
+                                text: string;
+                                recordedAt: string;
+                                recordedBy: {
+                                    /** Format: uuid */
+                                    membershipId: string;
+                                    name: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, role not allowed, or a lapsed licence (`licence_expired`) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "licence_expired";
+                        } | {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description The visit is no longer open */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+                /** @description Invalid complaint */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "text"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -19560,11 +20562,13 @@ export interface paths {
         };
         /**
          * The pharmacy's list
-         * @description Prescriptions on open visits with a medicine still to give, oldest first, and dispenses prepared and not collected. Audited.
+         * @description Prescriptions on open visits with a medicine still to give, oldest first, and dispenses prepared and not collected. Each medicine is flagged when the pharmacy is low on it or out of it, measured against that medicine alone. Audited.
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    storeId?: string;
+                };
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
@@ -19609,6 +20613,8 @@ export interface paths {
                                     givenOtherUnits: boolean;
                                     prepared: boolean;
                                     controlledSchedule: string | null;
+                                    /** @enum {string|null} */
+                                    stockFlag: "low" | "out" | null;
                                 }[];
                             }[];
                             prepared: {
@@ -19672,6 +20678,11 @@ export interface paths {
                                     }[];
                                 }[];
                             }[];
+                            stockIn: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
                         };
                     };
                 };
@@ -19720,6 +20731,53 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description The store named is not an open pharmacy of this facility (`not_a_pharmacy`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                            line?: number;
+                        };
+                    };
+                };
+                /** @description Not a store id */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "fieldName"
+                             *           ],
+                             *           "message": "Expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
                         };
                     };
                 };
@@ -20033,6 +21091,188 @@ export interface paths {
                                     quantity: number;
                                 }[];
                             }[];
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Role not allowed, a lapsed licence (`licence_expired`), or a controlled drug from anyone but a pharmacist with a pharmacy licence (`controlled_dispenser`) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "licence_expired" | "controlled_dispenser";
+                        } | {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description No such facility, or no membership there */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not possible as the prescription, visit or stock are */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                            line?: number;
+                        };
+                    };
+                };
+                /** @description Invalid dispense */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "orderId"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         },
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "lines"
+                             *           ],
+                             *           "message": "Invalid input: expected array, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dispenses/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Quote a prescription before preparing it
+         * @description Each line's charge and the total, for the items and quantities given, so the patient can decide how much to buy. Checked and refused exactly as preparing would be, with the same body; nothing is taken, charged or recorded.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            /** @description What would be given */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        orderId: string;
+                        /** Format: uuid */
+                        storeId?: string;
+                        lines: {
+                            /** Format: uuid */
+                            orderItemId: string;
+                            /** Format: uuid */
+                            stockItemId: string;
+                            quantity?: number;
+                            batches?: {
+                                /** Format: uuid */
+                                batchId: string;
+                                quantity: number;
+                            }[];
+                            complete?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description The quote */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            lines: {
+                                /** Format: uuid */
+                                orderItemId: string;
+                                /** Format: uuid */
+                                stockItemId: string;
+                                code: string;
+                                name: string;
+                                baseUnit: string;
+                                quantity: number;
+                                completes: boolean;
+                                unitPriceCents: number;
+                                amountCents: number;
+                            }[];
+                            totalCents: number;
                         };
                     };
                 };
