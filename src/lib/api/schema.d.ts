@@ -2654,7 +2654,7 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
-                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
                                 idDocument: {
                                     /** @enum {string} */
                                     type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
@@ -2796,7 +2796,10 @@ export interface paths {
                         noIdReason?: "none_held" | "not_carried" | "unidentified";
                         /** @default false */
                         unidentified?: boolean;
-                        /** @default [] */
+                        /**
+                         * @description At most three at registration; add more afterwards with `POST /patients/{id}/contacts`.
+                         * @default []
+                         */
                         contacts?: {
                             name: string;
                             relationship?: string;
@@ -2932,7 +2935,7 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
-                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
                                 idDocument: {
                                     /** @enum {string} */
                                     type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
@@ -3491,7 +3494,7 @@ export interface paths {
                                 dateOfBirth: string;
                                 age: number;
                                 phone: string | null;
-                                /** @description The identity document added most recently. An SHA or registry number does not count. */
+                                /** @description The identity document added most recently; of several added together, as at one registration, the first of national ID, passport, birth certificate, alien ID and refugee ID. An SHA or registry number does not count. */
                                 idDocument: {
                                     /** @enum {string} */
                                     type: "national_id" | "passport" | "birth_certificate" | "alien_id" | "refugee_id";
