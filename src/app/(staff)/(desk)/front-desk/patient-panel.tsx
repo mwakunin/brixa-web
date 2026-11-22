@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { servicePointsKey } from "@/hooks/use-desk";
 import { usePatient, usePatientVisits, visitsKey } from "@/hooks/use-patients";
-import { useRepeatSafe } from "@/hooks/use-repeat-safe";
+import { useRepeatSafe, waitingBody } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
@@ -54,31 +54,39 @@ function startedText(name: string, visit: Visit): string {
  * "Tests only, from an outside doctor's request" fills the panel with that
  * form until the tests are entered, or the clerk goes back.
  */
-export function PatientPanel({ id, found, arrival, onNext }: { id: string; found: FoundPatient | null; arrival: Arrival | null; onNext: () => void }) {
+export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
+  id: string;
+  found: FoundPatient | null;
+  arrival: Arrival | null;
+  /** The visit asked for on registering has been sent: it is not to be sent again if the panel is shown again. */
+  onArrivalSent: () => void;
+  onNext: () => void;
+}) {
   const record = usePatient(id);
   const visits = usePatientVisits(id);
   const queryClient = useQueryClient();
   const main = useRef<HTMLButtonElement>(null);
   const today = businessDate();
-  const [mode, setMode] = useState<"record" | "outside-tests">("record");
+  // An outside request still waiting for its answer opens again where it was left, with Try again.
+  const [mode, setMode] = useState<"record" | "outside-tests">(() => (waitingBody(`outside-tests:${id}`) ? "outside-tests" : "record"));
   // The tests entered from an outside request, for the Done message.
   const [entered, setEntered] = useState<WalkInOrder | null>(null);
 
-  const start = useRepeatSafe<Start, Visit>(async ({ key, body }, signal) => {
+  const start = useRepeatSafe<Start, Visit>(`start:${id}`, async ({ key, body }, signal) => {
     const opened = await unwrap(api.POST("/encounters", { body, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
-    queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => known && [opened, ...known.filter(visit => visit.id !== opened.id)]);
+    // Kept even when the list was never read: an outside request goes on this visit rather than opening another.
+    queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
     void queryClient.invalidateQueries({ queryKey: servicePointsKey });
     return opened;
   });
   const { state } = start;
 
-  const startAsked = useRef(false);
   useEffect(() => {
-    if (!arrival?.then || startAsked.current)
+    if (!arrival?.then)
       return;
-    startAsked.current = true;
+    onArrivalSent();
     void start.press({ patientId: id, kind: arrival.then });
-  }, [arrival, id, start]);
+  }, [arrival, id, start, onArrivalSent]);
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {

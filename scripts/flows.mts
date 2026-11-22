@@ -119,7 +119,8 @@ interface Flow {
   run: (browser: Browser, step: Step) => Promise<void>;
 }
 
-type Step = (label: string, check: () => Promise<void>) => Promise<void>;
+/** One step of a flow. Once a step has failed the rest are skipped, except clean-up, marked `always`. */
+type Step = (label: string, check: () => Promise<void>, options?: { always?: boolean }) => Promise<void>;
 
 /** A fresh browser, as a new person at a new desk would have, that notices the API's rate limit. */
 async function freshContext(browser: Browser): Promise<{ context: BrowserContext }> {
@@ -644,10 +645,16 @@ const frontDeskFlow: Flow = {
     const visitsOf = async (id: string) => (await (await context.request.get(`${API_URL}/encounters?patientId=${id}`, { headers: { "x-facility-id": facilityId } })).json() as { encounters: { id: string; kind: string; status: string }[] }).encounters;
     // Opening a record, or the list of a patient's visits, is an audited read: the page makes none until asked.
     const recordReads: string[] = [];
+    // Every write the page sends to the API.
+    const writes: string[] = [];
     page.on("request", (sent) => {
       const url = new URL(sent.url());
-      if (sent.method() === "GET" && url.origin === new URL(API_URL).origin && (/^\/patients\/[\w-]+$/.test(url.pathname) || url.pathname === "/encounters"))
+      if (url.origin !== new URL(API_URL).origin)
+        return;
+      if (sent.method() === "GET" && (/^\/patients\/[\w-]+$/.test(url.pathname) || url.pathname === "/encounters"))
         recordReads.push(url.pathname + url.search);
+      if (sent.method() === "POST" && !url.pathname.startsWith("/api/auth/"))
+        writes.push(url.pathname);
     });
 
     await step("the clerk lands on the front desk, named in the header, with nobody chosen", async () => {
@@ -704,6 +711,13 @@ const frontDeskFlow: Flow = {
       });
       await page.getByRole("button", { name: "Start today's visit" }).click();
       await alert(page, "No answer: the connection dropped").waitFor();
+      // Another patient chosen meanwhile, and this one again: the visit still waits for its answer, with only Try again.
+      await search.fill("Amina Njeri");
+      await page.getByRole("button", { name: /^Amina Njeri/ }).click();
+      await heading(page).filter({ hasText: "Amina Njeri" }).waitFor();
+      await search.fill(familyName);
+      await match.click();
+      await alert(page, "No answer: the connection dropped").waitFor();
       expect("the Emergency button, while an answer is awaited", await page.getByRole("button", { name: "Emergency" }).count(), 0);
       const second = page.waitForResponse(response => response.url() === `${API_URL}/encounters` && response.request().method() === "POST");
       await page.getByRole("button", { name: "Try again: start today's visit" }).click();
@@ -747,6 +761,8 @@ const frontDeskFlow: Flow = {
     });
 
     const cancelOpenVisits = async (id: string) => {
+      if (!id)
+        return;
       for (const visit of (await visitsOf(id)).filter(visit => visit.status === "open")) {
         const cancelled = await context.request.post(`${API_URL}/encounters/${visit.id}/cancel`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { reason: "Opened by pnpm flows" } });
         expect(`cancelling the ${visit.kind} visit`, cancelled.status(), 200);
@@ -765,11 +781,11 @@ const frontDeskFlow: Flow = {
       await page.getByText("Not here before").waitFor();
       await page.getByRole("button", { name: "Tests only, from an outside doctor's request" }).click();
       await page.getByRole("heading", { name: "Tests from an outside request" }).waitFor();
-      const sent = recordReads.length;
+      const sent = writes.length;
       await page.getByRole("button", { name: `Send ${name} to the lab` }).click();
       await page.getByText("Give the doctor's name, or tick that the patient asks for the tests.").waitFor();
       await page.getByText("Choose at least one test.").waitFor();
-      expect("visits read or opened meanwhile", recordReads.length, sent);
+      expect("writes sent meanwhile", writes.slice(sent), []);
     });
 
     await step("a lost answer is tried again under the one key, and the patient goes to the lab in no queue", async () => {
@@ -833,9 +849,8 @@ const frontDeskFlow: Flow = {
         expect("cancelling a test", cancelled.status(), 200);
       }
       await cancelOpenVisits(patientId);
-      if (bookedId)
-        await cancelOpenVisits(bookedId);
-    });
+      await cancelOpenVisits(bookedId);
+    }, { always: true });
 
     await context.close();
   },
@@ -918,7 +933,11 @@ const registerFlow: Flow = {
       });
       await page.getByRole("button", { name: "Register and start today's visit" }).click();
       await alert(page, "No answer: the connection dropped").waitFor();
-      expect("the form, held as sent", await page.getByLabel("First name").isDisabled(), true);
+      // Left with the browser's Back and opened again: the registration still waits, held as it was sent.
+      await page.goBack();
+      await register.click();
+      await alert(page, "No answer: the connection dropped").waitFor();
+      expect("the form, held as sent", [await page.getByLabel("First name").isDisabled(), await page.getByLabel("Family name").inputValue()], [true, familyName]);
       const second = page.waitForResponse(response => response.url() === `${API_URL}/patients` && response.request().method() === "POST");
       await page.getByRole("button", { name: "Try again: register and start today's visit" }).click();
       expect("the answer, replayed", (await second).headers()["idempotent-replayed"], "true");
@@ -976,7 +995,10 @@ const registerFlow: Flow = {
     });
 
     await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
-      const ids = [...(await found()).map(patient => patient.id), unidentified];
+      // Signing in failed: nothing was made.
+      if (!facilityId)
+        return;
+      const ids = [...(await found()).map(patient => patient.id), unidentified].filter(Boolean);
       for (const id of ids) {
         const { encounters } = await (await api(`/encounters?patientId=${id}`)).json() as { encounters: { id: string; status: string }[] };
         for (const visit of encounters.filter(visit => visit.status === "open")) {
@@ -984,7 +1006,7 @@ const registerFlow: Flow = {
           expect("cancelling a visit", cancelled.status(), 200);
         }
       }
-    });
+    }, { always: true });
 
     await context.close();
   },
@@ -1010,8 +1032,8 @@ const failed: string[] = [];
 for (const flow of chosen) {
   console.log(`\n${flow.name}: ${flow.about}`);
   let stopped = false;
-  const step: Step = async (label, check) => {
-    if (stopped)
+  const step: Step = async (label, check, options) => {
+    if (stopped && !options?.always)
       return;
     const started = Date.now();
     rateLimited = undefined;

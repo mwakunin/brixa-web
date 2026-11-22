@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useLabTests, usePriceList } from "@/hooks/use-desk";
 import { visitsKey } from "@/hooks/use-patients";
-import { useRepeatSafe } from "@/hooks/use-repeat-safe";
+import { useRepeatSafe, waitingBody } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { ApiError, failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
@@ -37,6 +37,8 @@ interface Entry {
   /** The outpatient visit open now, which the tests go on; null to open one, in no queue. */
   visitId: string | null;
   request: WalkInBody;
+  /** The form as it was when sent: shown again as it was if the panel is left and opened again before an answer. */
+  draft: WalkInDraft;
 }
 
 const words = en.walkIn;
@@ -65,18 +67,19 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
   const id = useId();
   const tests = useLabTests();
   const prices = usePriceList();
-  const [draft, setDraft] = useState<WalkInDraft>(emptyWalkIn);
+  const action = `outside-tests:${patientId}`;
+  const [draft, setDraft] = useState<WalkInDraft>(() => waitingBody<Entry>(action)?.draft ?? emptyWalkIn);
   const [problems, setProblems] = useState<WalkInProblems>({});
   const [refused, setRefused] = useState<string | null>(null);
   const [find, setFind] = useState("");
   const main = useRef<HTMLButtonElement>(null);
 
-  const enter = useRepeatSafe<Entry, WalkInOrder>(async ({ key, body }, signal) => {
+  const enter = useRepeatSafe<Entry, WalkInOrder>(action, async ({ key, body }, signal) => {
     let visitId = body.visitId;
     if (!visitId) {
       const opened = await unwrap(api.POST("/encounters", { body: { patientId: body.patientId, kind: "opd", queueAt: null }, headers: { [IDEMPOTENCY_HEADER]: `${key}.visit` }, signal }));
       // Known from here on, so a refused entry pressed again goes on this visit rather than opening another.
-      queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => known && [opened, ...known.filter(visit => visit.id !== opened.id)]);
+      queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
       visitId = opened.id;
     }
     return unwrap(api.POST("/encounters/{id}/walk-in-orders", { params: { path: { id: visitId } }, body: body.request, headers: { [IDEMPOTENCY_HEADER]: `${key}.tests` }, signal }));
@@ -109,7 +112,7 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
         return;
       }
       setProblems({});
-      entry = { patientId, visitId: openVisitId, request: built.body };
+      entry = { patientId, visitId: openVisitId, request: built.body, draft };
     }
     const ended = await enter.press(entry);
     if (ended.kind === "done") {

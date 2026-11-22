@@ -33,10 +33,12 @@ export function toSend<Body>(waiting: Action<Body> | null, body: Body): Action<B
 /**
  * Whether a write's failure means that no answer came, so the write may or
  * may not have been done: the request did not get through (`fetch` throws a
- * TypeError), or its answer did not come back in time.
+ * TypeError), its answer did not come back in time, or a success's body
+ * could not be read (a `SyntaxError`: the write went through, but what it
+ * returned is unknown). Only an answer the API gave ends the action.
  */
 export function noAnswer(error: unknown): boolean {
-  if (error instanceof TypeError)
+  if (error instanceof TypeError || error instanceof SyntaxError)
     return true;
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }
@@ -59,4 +61,46 @@ export function settle<Body, Result>(action: Action<Body>, outcome: { ok: true; 
 /** The action that is still waiting for its answer in `state`, if any. */
 export function waitingIn<Body, Result>(state: WriteState<Body, Result>): Action<Body> | null {
   return state.kind === "sending" || state.kind === "no_answer" ? state.action : null;
+}
+
+export const READY: WriteState<never, never> = { kind: "ready" };
+
+/**
+ * A tab's actions by name ("start:<patient id>", "register"), kept apart
+ * from the screens that send them. A screen left while its action waits for
+ * an answer (another patient chosen, the browser's Back) finds it again when
+ * shown again, with its key and what it sent, and offers Try again. An action
+ * that has ended is kept only while a screen shows it: its Done goes with
+ * the patient it was for.
+ */
+export class ActionStore {
+  private readonly states = new Map<string, WriteState<unknown, unknown>>();
+  private readonly watchers = new Map<string, Set<() => void>>();
+
+  get(name: string): WriteState<unknown, unknown> {
+    return this.states.get(name) ?? READY;
+  }
+
+  set(name: string, state: WriteState<unknown, unknown>): void {
+    if (waitingIn(state) === null && !this.watchers.has(name))
+      this.states.delete(name);
+    else
+      this.states.set(name, state);
+    this.watchers.get(name)?.forEach(changed => changed());
+  }
+
+  /** Tells `changed` of each change to the action `name`, until the returned function is called. */
+  watch(name: string, changed: () => void): () => void {
+    const watching = this.watchers.get(name) ?? new Set();
+    watching.add(changed);
+    this.watchers.set(name, watching);
+    return () => {
+      watching.delete(changed);
+      if (watching.size > 0)
+        return;
+      this.watchers.delete(name);
+      if (waitingIn(this.get(name)) === null)
+        this.states.delete(name);
+    };
+  }
 }

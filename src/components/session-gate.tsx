@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { PageFailed, PageLoading } from "@/components/page-states";
-import { signingOut } from "@/hooks/use-sign-out";
+import { useSigningOut } from "@/hooks/use-sign-out";
 import { useSession } from "@/lib/auth-client";
 import { setUpSignInHref, signInHref } from "@/lib/navigation";
 import { en } from "@/strings/en";
@@ -29,15 +29,16 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
   const { data, isPending, error, refetch } = useSession();
   const signedOut = !isPending && !error && !data;
   const notSetUp = data !== null && data !== undefined && data.user.twoFactorEnabled !== true;
+  const leaving = useSigningOut();
 
   useEffect(() => {
     const here = window.location.pathname + window.location.search;
-    // Signing out goes to the sign-in page by itself, remembering nothing.
-    if (signedOut && !signingOut())
+    // Signing out goes to the sign-in page by itself, remembering nothing; if it fails, this looks again.
+    if (signedOut && !leaving)
       window.location.replace(signInHref(here));
     else if (notSetUp)
       window.location.replace(setUpSignInHref(here));
-  }, [signedOut, notSetUp]);
+  }, [signedOut, notSetUp, leaving]);
 
   if (error && !data)
     return <PageFailed message={en.errors.offline} onRetry={() => void refetch()} />;

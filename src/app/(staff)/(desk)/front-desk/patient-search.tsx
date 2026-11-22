@@ -37,6 +37,10 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
   const search = usePatientSearch(q);
   const asking = typed.length >= SEARCH_MIN_LENGTH;
   const found = asking ? search.data : undefined;
+  // The matches shown are for what is typed only once the typing has paused and its answer has come:
+  // until then they are an earlier search's, shown but not to be chosen.
+  const current = typed === q && !search.isPlaceholderData;
+  const searching = asking && (search.isFetching || typed !== q);
 
   return (
     <section aria-label={en.frontDesk.find} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
@@ -54,8 +58,8 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
           className="h-[52px] rounded-lg border-2 border-foreground bg-card px-3.5 text-lg text-foreground"
         />
         <p id={`${id}-hint`} className="text-sm text-muted-foreground">{en.frontDesk.findHint}</p>
-        <p role="status" className={cn("text-sm text-muted-foreground", !(asking && search.isFetching) && "sr-only")}>
-          {asking && search.isFetching ? en.frontDesk.searching : ""}
+        <p role="status" className={cn("text-sm text-muted-foreground", !searching && "sr-only")}>
+          {searching ? en.frontDesk.searching : ""}
         </p>
         {asking && search.isError && !search.isFetching && (
           <Alert variant="problem">
@@ -75,9 +79,10 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
                   <button
                     type="button"
                     aria-pressed={pressed}
+                    disabled={!current}
                     onClick={() => onChoose(patient)}
                     className={cn(
-                      "flex min-h-16 w-full flex-col gap-0.5 rounded-lg border px-3.5 py-2.5 text-left",
+                      "flex min-h-16 w-full flex-col gap-0.5 rounded-lg border px-3.5 py-2.5 text-left disabled:cursor-wait disabled:opacity-60",
                       pressed ? "border-selected bg-selected-tint shadow-[inset_0_0_0_1px_var(--selected)]" : "border-border bg-card hover:border-border-strong",
                     )}
                   >

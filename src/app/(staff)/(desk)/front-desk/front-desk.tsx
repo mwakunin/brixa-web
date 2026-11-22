@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { patientKey } from "@/hooks/use-patients";
 import { type FoundPatient, opNumberOf, type PatientRecord } from "@/lib/patients";
@@ -72,6 +72,9 @@ export function FrontDesk() {
     window.history.replaceState(null, "", `?patient=${record.id}`);
   }
 
+  // Once sent, the visit asked for on registering is not sent again, whatever is shown again.
+  const arrivalSent = useCallback(() => setArrival(known => known && { ...known, then: null }), []);
+
   function openFound(patient: FoundPatient) {
     setDraft(emptyDraft);
     choose(patient);
@@ -103,6 +106,7 @@ export function FrontDesk() {
               id={patientId}
               found={chosen?.id === patientId ? chosen : null}
               arrival={arrival?.patientId === patientId ? arrival : null}
+              onArrivalSent={arrivalSent}
               onNext={findNext}
             />
           )

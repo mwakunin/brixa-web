@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { TextField } from "@/components/text-field";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { patientKey, visitsKey } from "@/hooks/use-patients";
+import { patientKey } from "@/hooks/use-patients";
 import { useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { ApiError, failureText, unwrap } from "@/lib/api/refusal";
@@ -103,11 +103,10 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
       body.current?.querySelector("[data-problem]")?.scrollIntoView({ block: "center" });
   }, [checked]);
 
-  const register = useRepeatSafe<{ request: RegisterBody; then: Then }, PatientRecord>(async ({ key, body }, signal) => {
+  const register = useRepeatSafe<{ request: RegisterBody; then: Then }, PatientRecord>("register", async ({ key, body }, signal) => {
     const record = await unwrap(api.POST("/patients", { body: body.request, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
-    // The answer is the whole record, and a patient registered a moment ago has no visits: neither is read again.
+    // The answer is the whole record, which is not read again. Their visits are read as the record opens.
     queryClient.setQueryData(patientKey(record.id), record);
-    queryClient.setQueryData(visitsKey(record.id), []);
     return record;
   });
   const { state } = register;
@@ -333,6 +332,7 @@ function SexChoice({ value, notKnown = false, onChange, problem }: { value: Regi
             key={label}
             type="button"
             aria-pressed={value === sex}
+            aria-describedby={problem ? `${id}-problem` : undefined}
             onClick={() => onChange(sex)}
             className={cn(
               "min-h-12 rounded-lg border px-[22px]",
@@ -357,15 +357,17 @@ function SexChoice({ value, notKnown = false, onChange, problem }: { value: Regi
 function BirthAndAge({ draft, change, problems }: { draft: RegistrationDraft; change: (patch: Partial<RegistrationDraft>) => void; problems: Problems }) {
   const id = useId();
   const small = (label: string) => <span className="text-sm font-normal text-secondary-foreground">{label}</span>;
+  // A date that is not possible is the three parts together: each says so, and where.
+  const dateInvalid = problems.dateOfBirth ? { "aria-invalid": true, "aria-describedby": `${id}-date` } : {};
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
         <fieldset aria-describedby={problems.dateOfBirth ? `${id}-date` : undefined} className="flex flex-col">
           <legend className="pb-1.5 font-semibold">{words.dateOfBirth}</legend>
           <div className="flex gap-3">
-            <TextField label={small(words.day)} inputMode="numeric" maxLength={2} value={draft.day} onChange={event => change({ day: event.target.value })} className="w-16" />
-            <TextField label={small(words.month)} inputMode="numeric" maxLength={2} value={draft.month} onChange={event => change({ month: event.target.value })} className="w-16" />
-            <TextField label={small(words.year)} inputMode="numeric" maxLength={4} value={draft.year} onChange={event => change({ year: event.target.value })} className="w-24" />
+            <TextField label={small(words.day)} inputMode="numeric" maxLength={2} value={draft.day} onChange={event => change({ day: event.target.value })} {...dateInvalid} className="w-16" />
+            <TextField label={small(words.month)} inputMode="numeric" maxLength={2} value={draft.month} onChange={event => change({ month: event.target.value })} {...dateInvalid} className="w-16" />
+            <TextField label={small(words.year)} inputMode="numeric" maxLength={4} value={draft.year} onChange={event => change({ year: event.target.value })} {...dateInvalid} className="w-24" />
           </div>
         </fieldset>
         <TextField

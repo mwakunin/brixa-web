@@ -1,13 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { signOut } from "@/lib/auth-client";
 import { chooseFacility } from "@/lib/facility";
 import { SIGN_IN_PATH } from "@/lib/navigation";
 
-/** True while this tab signs out on purpose. */
+/** True while this tab signs out on purpose, with whoever watches it. */
 let leaving = false;
+const watchers = new Set<() => void>();
+
+function setLeaving(now: boolean): void {
+  leaving = now;
+  watchers.forEach(changed => changed());
+}
+
+function watchLeaving(changed: () => void): () => void {
+  watchers.add(changed);
+  return () => watchers.delete(changed);
+}
 
 /**
  * Whether this tab is signing out on purpose. The session empties before
@@ -17,6 +28,11 @@ let leaving = false;
  */
 export function signingOut(): boolean {
   return leaving;
+}
+
+/** `signingOut()`, for a component to show again when it changes: a sign-out that failed hands the page back. */
+export function useSigningOut(): boolean {
+  return useSyncExternalStore(watchLeaving, signingOut, () => false);
 }
 
 /**
@@ -31,7 +47,7 @@ export function useSignOut() {
 
   async function run() {
     setState("pending");
-    leaving = true;
+    setLeaving(true);
     try {
       const { error } = await signOut();
       // 401: the session had already ended, which is what was asked.
@@ -39,7 +55,7 @@ export function useSignOut() {
         throw error;
     }
     catch {
-      leaving = false;
+      setLeaving(false);
       setState("failed");
       return;
     }

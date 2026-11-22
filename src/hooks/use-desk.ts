@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import type { paths } from "@/lib/api/schema";
+
 import { api } from "@/lib/api/client";
 import { unwrap } from "@/lib/api/refusal";
 
@@ -9,6 +11,8 @@ import { unwrap } from "@/lib/api/refusal";
  * What the front desk reads besides patients: where people wait, the day's
  * bookings, and the lab's tests with their prices.
  */
+
+type Appointment = paths["/appointments"]["get"]["responses"][200]["content"]["application/json"]["appointments"][number];
 
 export const servicePointsKey = ["service-points"] as const;
 export const appointmentsKey = (date: string) => ["appointments", date] as const;
@@ -24,12 +28,21 @@ export function useServicePoints() {
 /**
  * A day's appointments, by time (`GET /appointments?date=`): the desk's own
  * list, like a queue, so it is read when the desk opens and again when the
- * window is looked at. The first page of 200 is a day's bookings and more.
+ * window is looked at. The API gives 200 a page; a busier day is read page
+ * by page until all are in.
  */
 export function useAppointments(date: string) {
   return useQuery({
     queryKey: appointmentsKey(date),
-    queryFn: async () => (await unwrap(api.GET("/appointments", { params: { query: { date } } }))).appointments,
+    queryFn: async () => {
+      const all: Appointment[] = [];
+      for (;;) {
+        const page = await unwrap(api.GET("/appointments", { params: { query: { date, offset: all.length } } }));
+        all.push(...page.appointments);
+        if (page.appointments.length === 0 || all.length >= page.total)
+          return all;
+      }
+    },
   });
 }
 
