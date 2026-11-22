@@ -58,7 +58,7 @@ export function ForgotPasswordForm({ next }: { next: string }) {
 
   return (
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.passwordReset.requestTitle}</h1>
+      <h1 className="text-title font-semibold">{en.passwordReset.requestTitle}</h1>
       <p>{en.passwordReset.requestIntro}</p>
       <TextField label={en.passwordReset.email} type="email" name="email" autoComplete="username" required readOnly={pending} value={email} onChange={(event) => { setEmail(event.target.value); setProblem(null); }} />
       {problem && <Problem><p>{problem}</p></Problem>}
@@ -66,7 +66,7 @@ export function ForgotPasswordForm({ next }: { next: string }) {
       <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.passwordReset.requesting : en.passwordReset.request}
       </button>
-      <Link href={backToSignIn} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.passwordReset.backToSignIn}</Link>
+      <Link href={backToSignIn} className="-mt-2 self-start py-3 text-link underline underline-offset-2">{en.passwordReset.backToSignIn}</Link>
     </form>
   );
 }

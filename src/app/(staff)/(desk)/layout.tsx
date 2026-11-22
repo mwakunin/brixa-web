@@ -5,7 +5,7 @@ import { FacilityGate } from "@/components/facility-gate";
 export default function DeskLayout({ children }: { children: React.ReactNode }) {
   return (
     <FacilityGate>
-      <div className="flex flex-1 flex-col bg-slate-100 text-slate-900">
+      <div className="flex flex-1 flex-col bg-background text-foreground">
         <AppHeader />
         {children}
       </div>

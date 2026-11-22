@@ -63,7 +63,7 @@ export function AcceptInvitationForm({ token }: { token: string }) {
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.acceptInvitation.title}</h1>
+      <h1 className="text-title font-semibold">{en.acceptInvitation.title}</h1>
       <p>{en.acceptInvitation.intro}</p>
       <NewPasswordFields label={en.acceptInvitation.password} readOnly={pending} {...newPassword.fields} />
       {problem && <Problem><p>{problem}</p></Problem>}

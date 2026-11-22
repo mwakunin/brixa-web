@@ -95,14 +95,14 @@ export function SignInForm({ next }: { next: string }) {
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.signIn.title}</h1>
+      <h1 className="text-title font-semibold">{en.signIn.title}</h1>
       <TextField label={en.signIn.email} type="email" name="email" autoComplete="username" required value={email} onChange={(event) => { setEmail(event.target.value); setProblem(null); }} />
       <TextField ref={passwordInput} label={en.signIn.password} type="password" name="password" autoComplete="current-password" required value={password} onChange={(event) => { setPassword(event.target.value); setProblem(null); }} />
       {problem && <Problem><p>{problem}</p></Problem>}
       <button type="submit" disabled={pending} className={primaryAction}>
         {pending ? en.signIn.submitting : en.signIn.submit}
       </button>
-      <Link href={forgotPasswordHref(next)} className="-mt-2 self-start py-3 text-[15px] text-blue-700 underline underline-offset-2">{en.signIn.forgot}</Link>
+      <Link href={forgotPasswordHref(next)} className="-mt-2 self-start py-3 text-link underline underline-offset-2">{en.signIn.forgot}</Link>
     </form>
   );
 }

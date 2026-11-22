@@ -22,7 +22,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps<"/re
         : (
             <div role="alert" className="flex max-w-[420px] flex-col items-center gap-2 text-center">
               <p>{en.passwordReset.noToken}</p>
-              <Link href={FORGOT_PASSWORD_PATH} className="py-3 text-blue-700 underline underline-offset-2">{en.passwordReset.askAgain}</Link>
+              <Link href={FORGOT_PASSWORD_PATH} className="py-3 text-link underline underline-offset-2">{en.passwordReset.askAgain}</Link>
             </div>
           )}
     </CenteredPage>
