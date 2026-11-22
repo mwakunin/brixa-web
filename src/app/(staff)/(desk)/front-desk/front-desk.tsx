@@ -1,12 +1,15 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 
+import { patientKey } from "@/hooks/use-patients";
 import { type FoundPatient, opNumberOf, type PatientRecord } from "@/lib/patients";
 import { emptyDraft, namesFromSearch, type RegistrationDraft } from "@/lib/registration";
 import { en } from "@/strings/en";
 
+import { BookedToday } from "./booked-today";
 import { type Arrival, PatientPanel } from "./patient-panel";
 import { PatientSearch } from "./patient-search";
 import { RegisterPatient, type Then } from "./register-patient";
@@ -36,8 +39,11 @@ export function FrontDesk() {
   // A patient just registered, with what the clerk asked to follow.
   const [arrival, setArrival] = useState<(Arrival & { patientId: string }) | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   function choose(patient: FoundPatient) {
+    // Choosing a patient is asking to see them now: what was read before shows while their record and visits are read again.
+    void queryClient.invalidateQueries({ queryKey: patientKey(patient.id) });
     setChosen(patient);
     setArrival(null);
     window.history.replaceState(null, "", `?patient=${patient.id}`);
@@ -85,7 +91,11 @@ export function FrontDesk() {
 
   return (
     <main className="flex min-h-0 w-full flex-1 gap-5 px-6 py-4">
-      <PatientSearch inputRef={searchInput} term={term} onTerm={setTerm} chosenId={patientId} onChoose={choose} onRegister={startRegistering} />
+      {/* Who to find, and who is booked: a column that scrolls on its own. */}
+      <div className="flex min-h-0 w-[300px] shrink-0 flex-col gap-4 overflow-y-auto lg:w-[340px] xl:w-[380px] 2xl:w-[440px]">
+        <PatientSearch inputRef={searchInput} term={term} onTerm={setTerm} chosenId={patientId} onChoose={choose} onRegister={startRegistering} />
+        <BookedToday />
+      </div>
       {patientId
         ? (
             <PatientPanel

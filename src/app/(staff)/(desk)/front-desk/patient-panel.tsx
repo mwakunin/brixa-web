@@ -1,10 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { servicePointsKey } from "@/hooks/use-desk";
 import { usePatient, usePatientVisits, visitsKey } from "@/hooks/use-patients";
 import { useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
@@ -14,6 +15,9 @@ import { businessDate, clockTime } from "@/lib/dates";
 import { type Fact, type FoundPatient, fullName, opNumberOf, recordFacts } from "@/lib/patients";
 import { hasOpenOutpatientVisit, type Visit, visitFact } from "@/lib/visits";
 import { en } from "@/strings/en";
+
+import { OutsideTests, type WalkInOrder } from "./outside-tests";
+import { WaitingNow } from "./waiting-now";
 
 interface Start {
   patientId: string;
@@ -46,6 +50,9 @@ function startedText(name: string, visit: Visit): string {
  * A patient just registered arrives with their new number, and with the
  * visit started for them when "Register and start today's visit" (or
  * "Register as an emergency") was pressed: the same press, carried on.
+ *
+ * "Tests only, from an outside doctor's request" fills the panel with that
+ * form until the tests are entered, or the clerk goes back.
  */
 export function PatientPanel({ id, found, arrival, onNext }: { id: string; found: FoundPatient | null; arrival: Arrival | null; onNext: () => void }) {
   const record = usePatient(id);
@@ -53,10 +60,14 @@ export function PatientPanel({ id, found, arrival, onNext }: { id: string; found
   const queryClient = useQueryClient();
   const main = useRef<HTMLButtonElement>(null);
   const today = businessDate();
+  const [mode, setMode] = useState<"record" | "outside-tests">("record");
+  // The tests entered from an outside request, for the Done message.
+  const [entered, setEntered] = useState<WalkInOrder | null>(null);
 
   const start = useRepeatSafe<Start, Visit>(async ({ key, body }, signal) => {
     const opened = await unwrap(api.POST("/encounters", { body, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
     queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => known && [opened, ...known.filter(visit => visit.id !== opened.id)]);
+    void queryClient.invalidateQueries({ queryKey: servicePointsKey });
     return opened;
   });
   const { state } = start;
@@ -71,9 +82,9 @@ export function PatientPanel({ id, found, arrival, onNext }: { id: string; found
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {
-    if (state.kind === "done" || state.kind === "no_answer")
+    if (state.kind === "done" || state.kind === "no_answer" || entered)
       main.current?.focus();
-  }, [state.kind]);
+  }, [state.kind, entered]);
 
   const name = found ? fullName(found) : record.data ? fullName(record.data) : null;
   const opNumber = found?.opNumber ?? (record.data ? opNumberOf(record.data) : null);
@@ -81,11 +92,12 @@ export function PatientPanel({ id, found, arrival, onNext }: { id: string; found
     ? visitFact(visits.data, today)
     : { label: en.visits.lastHere, value: visits.isError ? en.visits.notChecked : en.visits.checking };
   const alreadyHere = visits.data !== undefined && hasOpenOutpatientVisit(visits.data);
+  const openVisitId = visits.data?.find(known => known.status === "open" && known.kind === "opd")?.id ?? null;
   const sending = state.kind === "sending" ? state.action.body.kind : null;
 
   function footer() {
     const words = en.frontDesk;
-    if (state.kind === "done")
+    if (state.kind === "done" || entered)
       return <Button ref={main} onClick={onNext}>{words.next}</Button>;
     if (state.kind === "no_answer") {
       return (
@@ -132,8 +144,29 @@ export function PatientPanel({ id, found, arrival, onNext }: { id: string; found
         <h1 className="text-name font-bold">{name ?? en.frontDesk.opening}</h1>
         {opNumber && <span className="text-lg font-semibold text-secondary-foreground">{opNumber}</span>}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
-        {state.kind === "done"
+      {mode === "outside-tests"
+        ? (
+            <OutsideTests
+              patientId={id}
+              name={name ?? en.frontDesk.patient}
+              openVisitId={openVisitId}
+              onEntered={(order) => {
+                setEntered(order);
+                setMode("record");
+              }}
+              onBack={() => setMode("record")}
+            />
+          )
+        : (
+            <>
+              <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
+                {entered && (
+                  <Alert variant="done">
+                    <AlertTitle>{en.walkIn.entered(name ?? en.frontDesk.patient, entered.items.length)}</AlertTitle>
+                    <AlertDescription>{en.walkIn.enteredTests(entered.items.map(item => item.name).join(", "))}</AlertDescription>
+                  </Alert>
+                )}
+                {state.kind === "done"
           ? (
               <Alert variant="done">
                 <AlertTitle>{startedText(name ?? en.frontDesk.patient, state.result)}</AlertTitle>
@@ -172,10 +205,19 @@ export function PatientPanel({ id, found, arrival, onNext }: { id: string; found
         {record.data && visits.isError && (
           <Button variant="link" className="self-start" onClick={() => void visits.refetch()}>{en.errors.tryAgain}</Button>
         )}
-      </div>
-      <div className="flex flex-none flex-col gap-2 border-t border-border bg-card px-6 py-3.5 shadow-[0_-6px_16px_rgba(15,23,42,0.06)]">
-        {footer()}
-      </div>
+        {/* While a visit waits for its answer, the only way on is Try again. */}
+        {state.kind !== "sending" && state.kind !== "no_answer" && (
+          <div className="flex flex-wrap gap-x-6 border-t border-secondary pt-2">
+            <Button variant="link" onClick={() => setMode("outside-tests")}>{en.frontDesk.outsideTests}</Button>
+          </div>
+        )}
+        <WaitingNow />
+              </div>
+              <div className="flex flex-none flex-col gap-2 border-t border-border bg-card px-6 py-3.5 shadow-[0_-6px_16px_rgba(15,23,42,0.06)]">
+                {footer()}
+              </div>
+            </>
+          )}
     </section>
   );
 }

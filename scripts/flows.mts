@@ -627,7 +627,7 @@ const resetFlow: Flow = {
 
 const frontDeskFlow: Flow = {
   name: "front-desk",
-  about: "the clerk finds a patient, starts their visit through a dropped answer, sends them on as an emergency, and is refused a second",
+  about: "the clerk finds a patient, starts their visit through a dropped answer, sends them on as an emergency, enters an outside request's tests, and checks in a booking",
   async run(browser, step) {
     const { context } = await freshContext(browser);
     const page = await context.newPage();
@@ -639,6 +639,7 @@ const frontDeskFlow: Flow = {
     const match = page.getByRole("button", { name: new RegExp(`^${name}`) });
     let facilityId = "";
     let patientId = "";
+    let bookedId = "";
 
     const visitsOf = async (id: string) => (await (await context.request.get(`${API_URL}/encounters?patientId=${id}`, { headers: { "x-facility-id": facilityId } })).json() as { encounters: { id: string; kind: string; status: string }[] }).encounters;
     // Opening a record, or the list of a patient's visits, is an audited read: the page makes none until asked.
@@ -745,11 +746,95 @@ const frontDeskFlow: Flow = {
       expect("visits opened", (await visitsOf(patientId)).map(visit => visit.kind).sort(), ["emergency", "opd"]);
     });
 
-    await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
-      for (const visit of (await visitsOf(patientId)).filter(visit => visit.status === "open")) {
+    const cancelOpenVisits = async (id: string) => {
+      for (const visit of (await visitsOf(id)).filter(visit => visit.status === "open")) {
         const cancelled = await context.request.post(`${API_URL}/encounters/${visit.id}/cancel`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { reason: "Opened by pnpm flows" } });
         expect(`cancelling the ${visit.kind} visit`, cancelled.status(), 200);
       }
+    };
+
+    await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
+      await cancelOpenVisits(patientId);
+    });
+
+    let testItems: string[] = [];
+    await step("an outside request's tests: what is missing is marked, and nothing is sent", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await search.fill(familyName);
+      await match.click();
+      await page.getByText("Not here before").waitFor();
+      await page.getByRole("button", { name: "Tests only, from an outside doctor's request" }).click();
+      await page.getByRole("heading", { name: "Tests from an outside request" }).waitFor();
+      const sent = recordReads.length;
+      await page.getByRole("button", { name: `Send ${name} to the lab` }).click();
+      await page.getByText("Give the doctor's name, or tick that the patient asks for the tests.").waitFor();
+      await page.getByText("Choose at least one test.").waitFor();
+      expect("visits read or opened meanwhile", recordReads.length, sent);
+    });
+
+    await step("a lost answer is tried again under the one key, and the patient goes to the lab in no queue", async () => {
+      await page.getByLabel("Doctor's name").fill("Dr Flows");
+      await page.getByLabel("Their hospital or clinic").fill("Riverside Clinic");
+      await page.getByRole("checkbox", { name: /^Malaria rapid test/ }).check();
+      const keys: Record<string, string[]> = { visit: [], tests: [] };
+      let answerLost = false;
+      await page.route(url => url.href === `${API_URL}/encounters` || /\/encounters\/[\w-]+\/walk-in-orders$/.test(url.pathname), async (route) => {
+        if (route.request().method() !== "POST")
+          return route.continue();
+        const tests = route.request().url().endsWith("/walk-in-orders");
+        keys[tests ? "tests" : "visit"].push(route.request().headers()["idempotency-key"] ?? "");
+        if (!tests || answerLost)
+          return route.continue();
+        answerLost = true;
+        // The visit is opened and the tests entered, but the answer never reaches the page.
+        await route.fetch();
+        await route.abort("connectionreset");
+      });
+      await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
+      await alert(page, "No answer: the connection dropped").waitFor();
+      const replayed = page.waitForResponse(response => response.url().endsWith("/walk-in-orders") && response.request().method() === "POST");
+      await page.getByRole("button", { name: "Try again: enter the tests" }).click();
+      const answer = await replayed;
+      expect("the tests' answer, replayed", answer.headers()["idempotent-replayed"], "true");
+      testItems = (await answer.json() as { items: { id: string }[] }).items.map(item => item.id);
+      await page.unroute(url => url.href === `${API_URL}/encounters` || url.pathname.endsWith("/walk-in-orders"));
+      const [first] = keys.visit;
+      expect("one key for the action, sent twice for each request", [keys.visit.length, keys.tests.length, keys.visit[1] === first, keys.tests[1] === keys.tests[0], first.endsWith(".visit"), keys.tests[0] === `${first.slice(0, -".visit".length)}.tests`], [2, 2, true, true, true, true]);
+      await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
+      await page.getByText(/^Outpatient visit, open since \d\d:\d\d, in no queue$/).waitFor();
+      expect("visits open", (await visitsOf(patientId)).filter(visit => visit.status === "open").length, 1);
+    });
+
+    await step("a booking for today is checked in with one press, and says so", async () => {
+      const { servicePoints } = await (await context.request.get(`${API_URL}/service-points`, { headers: { "x-facility-id": facilityId } })).json() as { servicePoints: { id: string; kind: string }[] };
+      const clinic = servicePoints.find(point => point.kind === "consultation")?.id;
+      const booked = await context.request.post(`${API_URL}/patients`, {
+        headers: { "x-facility-id": facilityId, "origin": APP_URL },
+        data: { givenName: "Zawadi", familyName, sex: "female", dateOfBirth: "1985-08-02", noPhoneReason: "no_phone", noIdReason: "not_carried" },
+      });
+      expect("registering the booked patient", booked.status(), 201);
+      bookedId = (await booked.json() as { id: string }).id;
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi" }).format(new Date());
+      const appointment = await context.request.post(`${API_URL}/appointments`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { patientId: bookedId, servicePointId: clinic, date: today, time: "23:59" } });
+      expect("booking for today", appointment.status(), 201);
+      await page.goto(`${APP_URL}/front-desk`);
+      const row = page.getByRole("listitem").filter({ hasText: `Zawadi ${familyName}` });
+      await row.getByText("23:59 · ").waitFor();
+      await row.getByRole("button", { name: "Check in" }).click();
+      await row.getByText("Checked in").waitFor();
+      const { appointments } = await (await context.request.get(`${API_URL}/appointments?date=${today}`, { headers: { "x-facility-id": facilityId } })).json() as { appointments: { patient: { id: string }; status: string; encounterId: string | null }[] };
+      const checked = appointments.find(listed => listed.patient.id === bookedId);
+      expect("the booking, checked in with a visit", [checked?.status, Boolean(checked?.encounterId)], ["checked_in", true]);
+    });
+
+    await step("the tests and the visits opened are cancelled, so no list keeps a made-up patient", async () => {
+      for (const item of testItems) {
+        const cancelled = await context.request.post(`${API_URL}/order-items/${item}/cancel`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { reason: "Entered by pnpm flows" } });
+        expect("cancelling a test", cancelled.status(), 200);
+      }
+      await cancelOpenVisits(patientId);
+      if (bookedId)
+        await cancelOpenVisits(bookedId);
     });
 
     await context.close();

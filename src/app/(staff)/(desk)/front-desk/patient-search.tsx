@@ -39,8 +39,7 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
   const found = asking ? search.data : undefined;
 
   return (
-    <section aria-label={en.frontDesk.find} className="flex min-h-0 w-[300px] shrink-0 flex-col gap-4 overflow-y-auto lg:w-[340px] xl:w-[380px] 2xl:w-[440px]">
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
+    <section aria-label={en.frontDesk.find} className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5">
         <label htmlFor={id} className="text-lg font-semibold">{en.frontDesk.find}</label>
         <input
           id={id}
@@ -91,7 +90,6 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
           </ul>
         )}
         <Button variant="second" onClick={onRegister} className="min-h-12 text-base">{en.register.link}</Button>
-      </div>
     </section>
   );
 }

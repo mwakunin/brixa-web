@@ -176,6 +176,8 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }
 
   const held = waiting !== null;
+  // "See the marked fields" goes once none is left; a refusal of the API's stays until the next press.
+  const shownRefusal = refused === words.checkFields && Object.keys(problems).length === 0 ? null : refused;
   const mainThen: Then = draft.unidentified ? "emergency" : "opd";
 
   function footer() {
@@ -193,10 +195,10 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
     const sending = state.kind === "sending" ? state.action.body.then : undefined;
     return (
       <>
-        {refused && !stillChecked && (
+        {shownRefusal && !stillChecked && (
           <Alert variant="problem">
             <AlertTitle>{en.writes.notDone}</AlertTitle>
-            <AlertDescription>{refused}</AlertDescription>
+            <AlertDescription>{shownRefusal}</AlertDescription>
           </Alert>
         )}
         <div className="flex flex-wrap gap-3">
