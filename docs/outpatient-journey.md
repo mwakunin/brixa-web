@@ -172,7 +172,7 @@ Found while drawing each screen against the API, settled by the walkthrough and 
 14. **Triage took three or four calls.** A refusal part-way left part of it saved, so the screen's "Not saved" was not true. brixa-api #39 adds `POST /queue-entries/{id}/triage`, which records all of it or, on any refusal, none of it.
 15. **A write sent again after a dropped connection was done twice:** a second registration, a second set of vital signs, a second payment. brixa-api #39 adds the `Idempotency-Key`: the screen makes one per press of a main button and sends it again with any retry, and the API answers a repeat with the first answer.
 16. **A refusal on a closed visit did not say why.** brixa-api #39 gives every one the same sentence: what happened, when, by whom and what to do. For example: "This visit was cancelled at 09:40 by Joyce Mwangi. Ask the front desk whether to start a new one."
-   - The refused-triage board (4d) shows a visit cancelled at the front desk. That cannot happen while the patient is with the nurse, as the API refuses to cancel a visit whose patient is being seen. The board needs another example, such as another nurse having sent the patient on already.
+   - The refused-triage board (4d) first showed a visit cancelled at the front desk. That cannot happen while the patient is with the nurse, as the API refuses to cancel a visit whose patient is being seen. Since 2026-11-22 it shows a refusal that can: the chosen clinic's consultation fee has no price yet, in the API's own words, with what was typed kept.
 
 **Still open:**
 - whether a patient who buys the rest of a medicine elsewhere needs a printed note of what is left;
