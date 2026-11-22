@@ -40,6 +40,36 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-border-strong: var(--border-strong);
+  --color-link: var(--link);
+  --color-selected: var(--selected);
+  --color-selected-tint: var(--selected-tint);
+  --color-status-now: var(--status-now);
+  --color-status-now-foreground: var(--status-now-foreground);
+  --color-status-soon: var(--status-soon);
+  --color-status-soon-foreground: var(--status-soon-foreground);
+  --color-status-soon-border: var(--status-soon-border);
+  --color-status-range: var(--status-range);
+  --color-status-range-foreground: var(--status-range-foreground);
+  --color-status-range-border: var(--status-range-border);
+  --color-status-desk: var(--status-desk);
+  --color-status-desk-foreground: var(--status-desk-foreground);
+  --color-status-desk-border: var(--status-desk-border);
+  --color-done: var(--done);
+  --color-done-foreground: var(--done-foreground);
+  --color-done-border: var(--done-border);
+  --color-problem: var(--problem);
+  --color-problem-foreground: var(--problem-foreground);
+  --color-problem-border: var(--problem-border);
+  --color-caution: var(--caution);
+  --color-caution-foreground: var(--caution-foreground);
+  --color-caution-border: var(--caution-border);
+  /*
+   * Five sizes (the mockup's rules board): 14 text-sm, 16 text-base,
+   * 18 text-lg, and these two.
+   */
+  --text-title: 1.375rem; /* 22: a page's title outside the desks, a medicine */
+  --text-name: 1.75rem; /* 28: the patient's name, the brand */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,25 +79,56 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * The colours of the outpatient mockup and its rules board. Each text
+ * colour meets 4.5:1 on its ground. A status is never told by colour alone:
+ * its word says it.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #f1f5f9; /* behind the cards */
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a; /* the one dark button */
+  --primary-foreground: #ffffff;
+  --secondary: #e2e8f0; /* a closed facility, the desk switch's track */
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569; /* hints, the line under a name */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #991b1b;
+  --border: #cbd5e1;
+  --border-strong: #94a3b8; /* a card that is a button */
+  --input: #64748b;
+  --ring: #1d4ed8;
+  --link: #1d4ed8;
+  --selected: #1d4ed8; /* a pressed choice */
+  --selected-tint: #dbeafe; /* the patient in front of you */
+  /* Status, four kinds */
+  --status-now: #991b1b; /* act now: critical, emergency */
+  --status-now-foreground: #ffffff;
+  --status-soon: #fb923c; /* soon: urgent */
+  --status-soon-foreground: #431407;
+  --status-soon-border: #9a3412;
+  --status-range: #fef3c7; /* outside the usual range: low, high, not normal */
+  --status-range-foreground: #78350f;
+  --status-range-border: #b45309;
+  --status-desk: #ffffff; /* for your desk's work: not paid yet, paid, out of stock, running low */
+  --status-desk-foreground: #334155;
+  --status-desk-border: #94a3b8;
+  /* Messages */
+  --done: #dcfce7;
+  --done-foreground: #14532d;
+  --done-border: #15803d;
+  --problem: #fef2f2;
+  --problem-foreground: #7f1d1d;
+  --problem-border: #fca5a5;
+  --caution: #fef3c7;
+  --caution-foreground: #451a03;
+  --caution-border: #b45309;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -130,7 +191,7 @@
   }
   /* Where the keyboard is, always visible. On a dark background, a control sets its own colour. */
   :focus-visible {
-    outline: 3px solid #1d4ed8;
+    outline: 3px solid var(--ring);
     outline-offset: 2px;
   }
 }

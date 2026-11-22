@@ -11,7 +11,7 @@ import { answerMayBeLost, type ResetFailure, resetFailure } from "@/lib/password
 import type { SignInFailure } from "@/lib/sign-in";
 import { en } from "@/strings/en";
 
-const secondaryLink = "self-start py-3 text-[15px] text-blue-700 underline underline-offset-2";
+const secondaryLink = "self-start py-3 text-link underline underline-offset-2";
 
 /**
  * The new password, typed twice. The API spends the link, signs the person
@@ -87,7 +87,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.passwordReset.title}</h1>
+      <h1 className="text-title font-semibold">{en.passwordReset.title}</h1>
       <NewPasswordFields label={en.passwordReset.password} required readOnly={pending} {...newPassword.fields} />
       {problem && <Problem><p>{problem.text}</p></Problem>}
       <PendingStatus message={pending ? en.passwordReset.submitting : null} />

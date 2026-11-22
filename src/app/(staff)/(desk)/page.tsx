@@ -9,9 +9,9 @@ export default function Home() {
   const { facility } = useWorking();
   return (
     <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-3 px-6 py-5">
-      <h1 className="text-[28px] font-bold">{facility.name}</h1>
+      <h1 className="text-name font-bold">{facility.name}</h1>
       <p className="text-lg">{en.home.yourRoles(roleNames(facility.roles))}</p>
-      <p className="max-w-2xl text-slate-600">{en.home.notBuiltYet}</p>
+      <p className="max-w-2xl text-muted-foreground">{en.home.notBuiltYet}</p>
     </main>
   );
 }

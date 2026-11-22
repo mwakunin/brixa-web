@@ -11,7 +11,7 @@ import { codeFailure, typedBackupCode, typedCode } from "@/lib/two-step";
 import { en } from "@/strings/en";
 
 /** A quiet way off the card: switching to a backup code, or back to the password. */
-const sideAction = "self-start py-3 text-[15px] text-blue-700 underline underline-offset-2";
+const sideAction = "self-start py-3 text-link underline underline-offset-2";
 
 /**
  * The second step of signing in: the code from the person's authenticator
@@ -81,7 +81,7 @@ export function CodeForm({ next, onStartAgain }: { next: string; onStartAgain: (
 
   return (
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.twoStep.title}</h1>
+      <h1 className="text-title font-semibold">{en.twoStep.title}</h1>
       <p>{backup ? en.twoStep.backupIntro : en.twoStep.intro}</p>
       <TextField
         key={backup ? "backup" : "app"}

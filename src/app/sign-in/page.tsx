@@ -20,7 +20,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
     <CenteredPage>
       <Brand />
       <SignInForm next={safeNext(firstParam(next))} />
-      <p className="max-w-[420px] text-center text-[15px] text-slate-600">{en.signIn.byInvitation}</p>
+      <p className="max-w-[420px] text-center text-muted-foreground">{en.signIn.byInvitation}</p>
     </CenteredPage>
   );
 }

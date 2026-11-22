@@ -41,10 +41,10 @@ export function FacilityPicker() {
     return (
       <CenteredPage>
         <div className="flex w-full max-w-[560px] flex-col gap-2">
-          <h1 className="text-[26px] font-semibold">{en.facilities.noneTitle}</h1>
+          <h1 className="text-name font-semibold">{en.facilities.noneTitle}</h1>
           <p>{en.facilities.noneHelp}</p>
         </div>
-        <SignOutButton className="text-blue-700" />
+        <SignOutButton className="text-link" />
       </CenteredPage>
     );
   }
@@ -52,33 +52,33 @@ export function FacilityPicker() {
   return (
     <CenteredPage>
       <div className="flex w-full max-w-[560px] flex-col gap-1.5">
-        {session && <p className="text-[15px] text-slate-600">{en.session.signedInAs(session.user.name)}</p>}
-        <h1 className="text-[26px] font-semibold">{en.facilities.title}</h1>
+        {session && <p className="text-sm text-muted-foreground">{en.session.signedInAs(session.user.name)}</p>}
+        <h1 className="text-name font-semibold">{en.facilities.title}</h1>
       </div>
       <ul className="flex w-full max-w-[560px] flex-col gap-3">
         {pickerOrder(facilities).map(facility => (
           <li key={facility.id}>
             {facility.status === "active"
               ? (
-                  <button type="button" onClick={() => choose(facility.id)} className="flex min-h-[84px] w-full items-center justify-between gap-4 rounded-xl border border-slate-400 bg-white px-5 py-[18px] text-left hover:border-slate-900">
+                  <button type="button" onClick={() => choose(facility.id)} className="flex min-h-[84px] w-full items-center justify-between gap-4 rounded-xl border border-border-strong bg-card px-5 py-[18px] text-left hover:border-foreground">
                     <span className="flex flex-col gap-1">
-                      <span className="text-[19px] font-semibold">{facility.name}</span>
-                      <span className="text-[15px] text-slate-600">{roleNames(facility.roles)}</span>
+                      <span className="text-lg font-semibold">{facility.name}</span>
+                      <span className="text-sm text-muted-foreground">{roleNames(facility.roles)}</span>
                     </span>
                     <ChevronRight aria-hidden="true" className="size-6 shrink-0" />
                   </button>
                 )
               : (
-                  <div className="flex min-h-[84px] flex-col justify-center gap-1 rounded-xl border border-slate-300 bg-slate-200 px-5 py-[18px] text-slate-700">
-                    <span className="text-[19px] font-semibold">{facility.name}</span>
-                    <span className="text-[15px]">{en.facilities.closed}</span>
+                  <div className="flex min-h-[84px] flex-col justify-center gap-1 rounded-xl border border-border bg-secondary px-5 py-[18px] text-secondary-foreground">
+                    <span className="text-lg font-semibold">{facility.name}</span>
+                    <span className="text-sm">{en.facilities.closed}</span>
                   </div>
                 )}
           </li>
         ))}
       </ul>
-      {canSwitch(facilities) && <p className="w-full max-w-[560px] text-[15px] text-slate-600">{en.facilities.switchLater}</p>}
-      <SignOutButton className="text-blue-700" />
+      {canSwitch(facilities) && <p className="w-full max-w-[560px] text-sm text-muted-foreground">{en.facilities.switchLater}</p>}
+      <SignOutButton className="text-link" />
     </CenteredPage>
   );
 }

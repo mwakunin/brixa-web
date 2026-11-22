@@ -5,7 +5,7 @@ import { en } from "@/strings/en";
 export function PageLoading({ message }: { message: string }) {
   return (
     <CenteredPage>
-      <p role="status" className="text-slate-600">{message}</p>
+      <p role="status" className="text-muted-foreground">{message}</p>
     </CenteredPage>
   );
 }
@@ -15,7 +15,7 @@ export function PageFailed({ message, onRetry }: { message: string; onRetry: () 
   return (
     <CenteredPage>
       <p role="alert" className="max-w-md text-center">{message}</p>
-      <button type="button" onClick={onRetry} className="h-12 rounded-lg bg-slate-900 px-6 font-semibold text-white">
+      <button type="button" onClick={onRetry} className="h-12 rounded-lg bg-primary px-6 font-semibold text-primary-foreground">
         {en.errors.tryAgain}
       </button>
     </CenteredPage>

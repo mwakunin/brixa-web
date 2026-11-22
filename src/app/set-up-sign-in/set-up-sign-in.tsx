@@ -97,7 +97,7 @@ function PasswordStep({ onEnabled }: { onEnabled: (totpURI: string, backupCodes:
   return (
     // POST, so that a press before the page has loaded its script never puts the password in a URL.
     <form method="post" onSubmit={submit} className={formCard}>
-      <h1 className="text-[22px] font-semibold">{en.twoStep.setUp.title}</h1>
+      <h1 className="text-title font-semibold">{en.twoStep.setUp.title}</h1>
       <p>{en.twoStep.setUp.intro}</p>
       <TextField ref={input} label={en.twoStep.setUp.password} hint={en.twoStep.setUp.passwordHint} type="password" name="password" autoComplete="current-password" required readOnly={pending} value={password} onChange={(event) => { setPassword(event.target.value); setProblem(null); }} />
       {problem && <Problem><p>{problem}</p></Problem>}
@@ -141,8 +141,8 @@ function ScanStep({ totpURI, onConfirmed }: { totpURI: string; onConfirmed: () =
           <div className="flex flex-col gap-3">
             <span>{en.twoStep.setUp.scan}</span>
             <QrCode value={totpURI} label={en.twoStep.setUp.qrLabel} />
-            <span id={keyId} className="text-[15px] text-slate-700">{en.twoStep.setUp.cannotScan}</span>
-            <code aria-describedby={keyId} className="rounded-lg bg-slate-100 p-3 font-mono text-[15px] break-words text-slate-900 select-all">{setUpKey(totpURI)}</code>
+            <span id={keyId} className="text-sm text-muted-foreground">{en.twoStep.setUp.cannotScan}</span>
+            <code aria-describedby={keyId} className="rounded-lg bg-muted p-3 font-mono text-base break-words text-foreground select-all">{setUpKey(totpURI)}</code>
           </div>
         </li>
         <li>{en.twoStep.setUp.enterCode}</li>
@@ -164,10 +164,10 @@ function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void })
       <OutcomeTitle>{en.twoStep.setUp.codesTitle}</OutcomeTitle>
       <p>{en.twoStep.setUp.codesIntro}</p>
       <h2 id={listId} className="sr-only">{en.twoStep.setUp.codesLabel}</h2>
-      <ul aria-labelledby={listId} className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg bg-slate-100 p-4 font-mono text-[17px] text-slate-900">
+      <ul aria-labelledby={listId} className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-lg bg-muted p-4 font-mono text-lg text-foreground">
         {codes.map(code => <li key={code}>{code}</li>)}
       </ul>
-      <button type="button" onClick={() => window.print()} className="flex h-12 items-center justify-center rounded-lg border border-slate-500 bg-white font-semibold text-slate-900">
+      <button type="button" onClick={() => window.print()} className="flex h-12 items-center justify-center rounded-lg border border-input bg-card font-semibold text-foreground">
         {en.twoStep.setUp.print}
       </button>
       <button type="button" onClick={onDone} className={primaryAction}>{en.twoStep.setUp.done}</button>
