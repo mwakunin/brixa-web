@@ -21,7 +21,7 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 
 **Design before build.** No role's screen is built before its sketch has been walked through with the pilot's staff. Sign-in and the facility picker are the exception: they are plumbing, and they prove the session, the facility header and the typed client end to end.
 
-**The mockup** of the outpatient journey: https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (the owner's claude.ai account; read it with the Artifact tool, never a web fetch). It is the reference for every outpatient screen. Where it and the walkthrough's decisions in `docs/outpatient-journey.md` differ, the decisions win.
+**The mockup** of the outpatient journey: https://claude.ai/artifact/DK7SUAtHVCMssmwXDLSwxg (the owner's claude.ai account; read it with the Artifact tool, never a web fetch). It is the reference for every outpatient screen, and its board **0, The rules every desk follows** gives the colours, sizes and wording every desk is built from. Where it and the decisions in `docs/outpatient-journey.md` (the walkthrough's and the design review's) differ, the decisions win.
 
 `docs/outpatient-journey.md` maps every sketched screen to the API calls behind it and lists what the sketch asks of the API that it cannot give yet. Settle those in `brixa-api` before building the screen that needs them.
 
@@ -35,11 +35,11 @@ Decided 2026-11-17 (`../api/ROADMAP.md` §1): the frontend is the next piece of 
 | Server state | TanStack Query, in memory only (section 4) |
 | API client | `openapi-fetch`, typed from `src/lib/api/schema.d.ts` |
 | Auth | Better Auth's React client, with its two-factor plugin. Invite-only: sign-in and accepting an invitation, no sign-up. Every sign-in asks for a code from an authenticator app after the password |
-| Styling | Tailwind 4, shadcn/ui (`radix-nova`, neutral). System fonts: nothing to download on a slow connection |
+| Styling | Tailwind 4, shadcn/ui (`radix-nova`, neutral), with each component's variants set once from the mockup's Rules board (44 px targets, its five type sizes). System fonts: nothing to download on a slow connection |
 | Tests | Vitest, on plain functions (`src/**/*.test.ts`) |
 | PWA | A manifest now. The service worker and offline support come with P6 |
 
-Devices: **desktop and tablet**, not phones. Language: **English**, with every string in `src/strings/en.ts`.
+Devices: **desktop and tablet**, not phones. The pilot's desk screens are 1920 × 1080; the mockup draws 1366 × 768 as the smallest. Language: **English**, with every string in `src/strings/en.ts`.
 
 ---
 
@@ -49,6 +49,7 @@ Devices: **desktop and tablet**, not phones. Language: **English**, with every s
 - `NEXT_PUBLIC_API_URL` says where the API is (`http://localhost:9999` in development).
 - **`src/lib/api/client.ts` is the one way to call it.** `api.GET("/patients/{id}", { params: { path: { id } } })` is typed from `schema.d.ts`, which `pnpm codegen` generates from the API's `/doc`. Never edit `schema.d.ts` by hand, and never restate a response shape: read it off `paths`.
 - **Every tenant request names its facility** in `X-Facility-Id`. The client adds it from `src/lib/facility.ts`. `GET /me/facilities` lists where the person works and their roles there; one membership goes straight in, several show the picker.
+- **A write a screen may send again sends an `Idempotency-Key`**, made once per press of its button and sent again with any retry. The API answers a repeat with its first answer and does not do it twice; a refused write keeps nothing, so its retry runs afresh. Without the key, a retry after a dropped connection could register a patient or take a payment twice.
 - **Roles come from the membership**, per facility. A role decides which desk a person lands on. The API still checks every call; hiding a button is a convenience, not a control.
 - **What the API answers** (`src/lib/api/refusal.ts` turns a failure into one of these):
 
