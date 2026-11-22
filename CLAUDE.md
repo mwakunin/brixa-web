@@ -49,7 +49,10 @@ Devices: **desktop and tablet**, not phones. The pilot's desk screens are 1920 Ã
 - `NEXT_PUBLIC_API_URL` says where the API is (`http://localhost:9999` in development).
 - **`src/lib/api/client.ts` is the one way to call it.** `api.GET("/patients/{id}", { params: { path: { id } } })` is typed from `schema.d.ts`, which `pnpm codegen` generates from the API's `/doc`. Never edit `schema.d.ts` by hand, and never restate a response shape: read it off `paths`.
 - **Every tenant request names its facility** in `X-Facility-Id`. The client adds it from `src/lib/facility.ts`. `GET /me/facilities` lists where the person works and their roles there; one membership goes straight in, several show the picker.
-- **A write a screen may send again sends an `Idempotency-Key`**, made once per press of its button and sent again with any retry. The API answers a repeat with its first answer and does not do it twice; a refused write keeps nothing, so its retry runs afresh. Without the key, a retry after a dropped connection could register a patient or take a payment twice.
+- **Every write a screen may repeat carries an `Idempotency-Key`**, so a dropped connection never registers a patient or takes a payment twice. The API answers a repeated key with its first answer and does not do the write again; a refused write keeps nothing.
+  - **One key belongs to one action.** The screen makes it at the first press of the button, and sends the same key with every resend of that action, whether automatic or a second press by the member of staff, until an answer arrives.
+  - **While no answer has come** (a dropped connection, a timeout), what was sent stays as sent: the form's fields are held, and the only way on is Try again, with the same key. An edited form under the same key is refused as another request, and a new key could repeat a write that did go through.
+  - **Once an answer arrives**, done or refused, the action is over. The next press makes a new key, for example after correcting what was refused.
 - **Roles come from the membership**, per facility. A role decides which desk a person lands on. The API still checks every call; hiding a button is a convenience, not a control.
 - **What the API answers** (`src/lib/api/refusal.ts` turns a failure into one of these):
 

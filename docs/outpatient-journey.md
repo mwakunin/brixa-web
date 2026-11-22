@@ -118,7 +118,7 @@ The mockup was redrawn after a design review. Its Rules board holds the details;
 
 ## Screens and the API behind them
 
-Paths are `brixa-api`'s. Each read that names a patient is audited by the API, so a screen fetches only what it shows. A gap number marks where the walkthrough or the review changed the API. **Every write a screen may send again sends an `Idempotency-Key`**, made once per press of its button (gap 15).
+Paths are `brixa-api`'s. Each read that names a patient is audited by the API, so a screen fetches only what it shows. A gap number marks where the walkthrough or the review changed the API. **Every write a screen may repeat carries an `Idempotency-Key`**, one for each action, kept until its answer arrives (gap 15).
 
 | # | Screen | Who | Reads | Writes |
 |---|---|---|---|---|
@@ -170,7 +170,10 @@ Found while drawing each screen against the API, settled by the walkthrough and 
 
 13. ~~**Nothing marks the emergency area.**~~ Fixed in brixa-api #38. The Emergency button sends the patient straight to the emergency area, but service points were only triage or a clinic. The facility admin now marks one clinic as the emergency area, and an emergency visit joins it unless told otherwise; without one, it joins triage.
 14. **Triage took three or four calls.** A refusal part-way left part of it saved, so the screen's "Not saved" was not true. brixa-api #39 adds `POST /queue-entries/{id}/triage`, which records all of it or, on any refusal, none of it.
-15. **A write sent again after a dropped connection was done twice:** a second registration, a second set of vital signs, a second payment. brixa-api #39 adds the `Idempotency-Key`: the screen makes one per press of a main button and sends it again with any retry, and the API answers a repeat with the first answer.
+15. **A write sent again after a dropped connection was done twice:** a second registration, a second set of vital signs, a second payment. brixa-api #39 adds the `Idempotency-Key`, and the API answers a repeated key with its first answer. How a screen keeps its key:
+    - one key belongs to one action: made at the first press of the button, and sent with every resend of that action, automatic or a second press, until an answer arrives;
+    - while no answer has come, what was sent stays as sent: the form's fields are held, and Try again resends it with the same key (board 4e). An edited form under the same key is refused as another request, and a new key could repeat a write that did go through;
+    - once an answer arrives, done or refused, the action is over, and the next press makes a new key.
 16. **A refusal on a closed visit did not say why.** brixa-api #39 gives every one the same sentence: what happened, when, by whom and what to do. For example: "This visit was cancelled at 09:40 by Joyce Mwangi. Ask the front desk whether to start a new one."
    - The refused-triage board (4d) first showed a visit cancelled at the front desk. That cannot happen while the patient is with the nurse, as the API refuses to cancel a visit whose patient is being seen. Since 2026-11-22 it shows a refusal that can: the chosen clinic's consultation fee has no price yet, in the API's own words, with what was typed kept.
 
