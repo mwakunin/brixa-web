@@ -5,7 +5,7 @@ import { useId } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useDebounced } from "@/hooks/use-debounced";
-import { SEARCH_MIN_LENGTH, usePatientSearch } from "@/hooks/use-patients";
+import { SEARCH_MAX_LENGTH, SEARCH_MIN_LENGTH, usePatientSearch } from "@/hooks/use-patients";
 import { failureText } from "@/lib/api/refusal";
 import { type FoundPatient, fullName } from "@/lib/patients";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,7 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRe
           id={id}
           ref={inputRef}
           type="search"
+          maxLength={SEARCH_MAX_LENGTH}
           value={term}
           onChange={event => onTerm(event.target.value)}
           aria-describedby={`${id}-hint`}

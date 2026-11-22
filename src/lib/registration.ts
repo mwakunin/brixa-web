@@ -40,6 +40,13 @@ export interface RegistrationDraft {
   guardians: GuardianDraft[];
 }
 
+/**
+ * The longest each field may be, as brixa-api's `routes/patients/patients.routes.ts`
+ * caps it (the generated types carry no lengths). The inputs stop there, so
+ * nothing longer is ever sent; what is allowed inside them stays the API's to say.
+ */
+export const LIMITS = { name: 100, phone: 30, idNumber: 60, relationship: 40 } as const;
+
 /** At most three contacts at registration; more are added to the record afterwards. */
 export const MAX_GUARDIANS = 3;
 

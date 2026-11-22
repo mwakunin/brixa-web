@@ -19,6 +19,7 @@ import {
   fieldProblem,
   type GuardianDraft,
   type IdentityDocument,
+  LIMITS,
   MAX_GUARDIANS,
   type Problems,
   type RegisterBody,
@@ -231,7 +232,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
             : (
                 <>
                   <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-                    <TextField label={words.givenName} autoComplete="off" value={draft.givenName} onChange={event => change({ givenName: event.target.value })} problem={problems.givenName} />
+                    <TextField label={words.givenName} autoComplete="off" maxLength={LIMITS.name} value={draft.givenName} onChange={event => change({ givenName: event.target.value })} problem={problems.givenName} />
                     <TextField
                       label={(
                         <>
@@ -241,17 +242,18 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
                         </>
                       )}
                       autoComplete="off"
+                      maxLength={LIMITS.name}
                       value={draft.middleNames}
                       onChange={event => change({ middleNames: event.target.value })}
                       problem={problems.middleNames}
                     />
-                    <TextField label={words.familyName} autoComplete="off" value={draft.familyName} onChange={event => change({ familyName: event.target.value })} problem={problems.familyName} />
+                    <TextField label={words.familyName} autoComplete="off" maxLength={LIMITS.name} value={draft.familyName} onChange={event => change({ familyName: event.target.value })} problem={problems.familyName} />
                   </div>
                   <SexChoice value={draft.sex} onChange={sex => change({ sex })} problem={problems.sex} />
                   <BirthAndAge draft={draft} change={change} problems={problems} />
                   <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
                     <div className="flex flex-col gap-1.5">
-                      <TextField label={words.phone} type="tel" autoComplete="off" disabled={draft.noPhone} value={draft.phone} onChange={event => change({ phone: event.target.value })} problem={problems.phone} />
+                      <TextField label={words.phone} type="tel" autoComplete="off" maxLength={LIMITS.phone} disabled={draft.noPhone} value={draft.phone} onChange={event => change({ phone: event.target.value })} problem={problems.phone} />
                       <Tick label={words.noPhone} checked={draft.noPhone} onChange={noPhone => change({ noPhone })} />
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -263,7 +265,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
                           </select>
                         </label>
                       )}
-                      <TextField label={otherId ? words.otherIdNumber : words.idNumber} autoComplete="off" disabled={draft.noId !== null} value={draft.idNumber} onChange={event => change({ idNumber: event.target.value })} problem={problems.idNumber} />
+                      <TextField label={otherId ? words.otherIdNumber : words.idNumber} autoComplete="off" maxLength={LIMITS.idNumber} disabled={draft.noId !== null} value={draft.idNumber} onChange={event => change({ idNumber: event.target.value })} problem={problems.idNumber} />
                       <div className="flex flex-wrap items-center gap-x-5">
                         <Tick label={words.notCarried} checked={draft.noId === "not_carried"} onChange={on => change({ noId: on ? "not_carried" : null })} />
                         <Tick label={words.noneHeld} checked={draft.noId === "none_held"} onChange={on => change({ noId: on ? "none_held" : null })} />
@@ -406,10 +408,10 @@ function Guardians({ guardians, problems, change, changeGuardian }: {
         <fieldset key={at} className="flex flex-col gap-3 rounded-lg border border-border p-4">
           <legend className="px-1 font-semibold">{words.guardian(at + 1)}</legend>
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-            <TextField label={words.guardianName} autoComplete="off" value={guardian.name} onChange={event => changeGuardian(at, { name: event.target.value })} problem={problem(at, "name")} />
-            <TextField label={words.relationship} hint={words.relationshipHint} autoComplete="off" value={guardian.relationship} onChange={event => changeGuardian(at, { relationship: event.target.value })} problem={problem(at, "relationship")} />
-            <TextField label={words.phone} type="tel" autoComplete="off" value={guardian.phone} onChange={event => changeGuardian(at, { phone: event.target.value })} problem={problem(at, "phone")} />
-            <TextField label={words.guardianId} autoComplete="off" value={guardian.idNumber} onChange={event => changeGuardian(at, { idNumber: event.target.value })} problem={problem(at, "idNumber")} />
+            <TextField label={words.guardianName} autoComplete="off" maxLength={LIMITS.name} value={guardian.name} onChange={event => changeGuardian(at, { name: event.target.value })} problem={problem(at, "name")} />
+            <TextField label={words.relationship} hint={words.relationshipHint} autoComplete="off" maxLength={LIMITS.relationship} value={guardian.relationship} onChange={event => changeGuardian(at, { relationship: event.target.value })} problem={problem(at, "relationship")} />
+            <TextField label={words.phone} type="tel" autoComplete="off" maxLength={LIMITS.phone} value={guardian.phone} onChange={event => changeGuardian(at, { phone: event.target.value })} problem={problem(at, "phone")} />
+            <TextField label={words.guardianId} autoComplete="off" maxLength={LIMITS.idNumber} value={guardian.idNumber} onChange={event => changeGuardian(at, { idNumber: event.target.value })} problem={problem(at, "idNumber")} />
           </div>
           <Button variant="link" onClick={() => change({ guardians: guardians.filter((_, index) => index !== at) })} className="self-start">{words.removeGuardian}</Button>
         </fieldset>

@@ -5,8 +5,9 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { unwrap } from "@/lib/api/refusal";
 
-/** The fewest characters the API searches on. */
+/** The fewest characters the API searches on, and the most (brixa-api `routes/patients/patients.routes.ts`). */
 export const SEARCH_MIN_LENGTH = 2;
+export const SEARCH_MAX_LENGTH = 100;
 
 /*
  * Every read here is audited by the API: a search, the opening of a record,
