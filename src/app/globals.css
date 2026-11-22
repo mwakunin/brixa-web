@@ -52,9 +52,9 @@
   --color-status-range: var(--status-range);
   --color-status-range-foreground: var(--status-range-foreground);
   --color-status-range-border: var(--status-range-border);
-  --color-status-paperwork: var(--status-paperwork);
-  --color-status-paperwork-foreground: var(--status-paperwork-foreground);
-  --color-status-paperwork-border: var(--status-paperwork-border);
+  --color-status-desk: var(--status-desk);
+  --color-status-desk-foreground: var(--status-desk-foreground);
+  --color-status-desk-border: var(--status-desk-border);
   --color-done: var(--done);
   --color-done-foreground: var(--done-foreground);
   --color-done-border: var(--done-border);
@@ -116,9 +116,9 @@
   --status-range: #fef3c7; /* outside the usual range: low, high, not normal */
   --status-range-foreground: #78350f;
   --status-range-border: #b45309;
-  --status-paperwork: #ffffff; /* paperwork: not paid yet, paid, out of stock */
-  --status-paperwork-foreground: #334155;
-  --status-paperwork-border: #94a3b8;
+  --status-desk: #ffffff; /* for your desk's work: not paid yet, paid, out of stock, running low */
+  --status-desk-foreground: #334155;
+  --status-desk-border: #94a3b8;
   /* Messages */
   --done: #dcfce7;
   --done-foreground: #14532d;
