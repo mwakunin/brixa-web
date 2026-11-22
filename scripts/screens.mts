@@ -37,7 +37,9 @@ import { DEV_TOTP_SECRET, totp } from "./dev-code.mts";
 /** The facility picker's answer, as the API's own contract says. */
 type MyFacilities = paths["/me/facilities"]["get"]["responses"][200]["content"]["application/json"];
 
+// The pilot's desk screens are 1920 × 1080; the mockup draws 1366 × 768 as the smallest.
 const SIZES = [
+  { name: "pilot-desk", width: 1920, height: 1080 },
   { name: "desktop", width: 1366, height: 768 },
   { name: "tablet-landscape", width: 1024, height: 768 },
   { name: "tablet-portrait", width: 768, height: 1024 },
@@ -83,6 +85,10 @@ for (const [index, route] of pages.entries()) {
     const page = await context.newPage();
     await page.setViewportSize({ width: size.width, height: size.height });
     const response = await page.goto(`${APP_URL}${route}`, { waitUntil: "networkidle" });
+    // A page is ready once its heading shows: "Checking that you are signed in…" and the like have none,
+    // and a slow first answer can leave the network quiet before it comes. Then whatever it asks next.
+    await page.locator("h1").first().waitFor({ timeout: 30_000 }).catch(() => {});
+    await page.waitForLoadState("networkidle");
     const file = `${index + 1}-${slug}-${size.name}.png`;
     await page.screenshot({ path: path.join(OUT, file), fullPage: true });
     const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();

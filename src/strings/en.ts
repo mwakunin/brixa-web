@@ -1,3 +1,4 @@
+import type { Desk } from "@/lib/desks";
 import type { MembershipRole } from "@/lib/facility";
 
 /**
@@ -15,6 +16,7 @@ export const en = {
   home: {
     yourRoles: (roles: string) => `Your roles here: ${roles}.`,
     notBuiltYet: "The screens for this work are being designed with the hospital's staff. Nothing to use here yet.",
+    openingDesk: "Opening your desk…",
   },
   facilities: {
     pageTitle: "Where are you working",
@@ -27,7 +29,12 @@ export const en = {
   },
   header: {
     switchFacility: "Switch facility",
+    yourDesks: "Your desks",
   },
+  /** Each desk by the job done there. */
+  desks: {
+    "front-desk": "Front desk",
+  } satisfies Record<Desk["id"], string>,
   /** Each role by the job it names, as staff say it. */
   roles: {
     facility_admin: "Administrator",
@@ -151,6 +158,87 @@ export const en = {
     joined: (facility: string) => `You can now work at ${facility}. Sign in with the password you already have: anything typed here was not used.`,
     signIn: "Sign in",
   },
+  dates: {
+    today: "Today",
+    yesterday: "Yesterday",
+    dayAndTime: (day: string, time: string) => `${day}, ${time}`,
+  },
+  /** How a patient's record reads, wherever it is shown. */
+  patients: {
+    sex: { female: "Female", male: "Male", intersex: "Intersex" },
+    sexNotKnown: "Sex not known",
+    sexAndAgeLabel: "Sex and age",
+    sexAndAge: (sex: string, age: string) => `${sex}, ${age}`,
+    born: "Born",
+    bornEstimated: "Not known: the age was given",
+    phone: "Phone",
+    noPhone: { no_phone: "Has no phone", unidentified: "Not known yet" },
+    notRecorded: "Not recorded",
+    idNumber: "ID number",
+    noId: { none_held: "Has none", not_carried: "Not carried when registered", unidentified: "Not known yet" },
+    documents: {
+      national_id: "National ID",
+      passport: "Passport",
+      birth_certificate: "Birth certificate",
+      alien_id: "Alien ID",
+      refugee_id: "Refugee ID",
+      sha_number: "SHA number",
+      client_registry_id: "Client registry ID",
+      other: "Other ID",
+    },
+    /** The shorter words of a search result's line. */
+    inLine: {
+      noPhone: "no phone",
+      noId: "no ID",
+      documents: { national_id: "ID", passport: "Passport", birth_certificate: "Birth certificate", alien_id: "Alien ID", refugee_id: "Refugee ID" },
+    },
+    reminders: "Text reminders",
+    remindersSaid: { yes: "Yes", no: "No", notAsked: "Not asked yet" },
+  },
+  /** A patient's visits, as the front desk sees them. */
+  visits: {
+    lastHere: "Last here",
+    hereNow: "Here now",
+    none: "Not here before",
+    checking: "Checking…",
+    notChecked: "Could not be checked",
+    kinds: { opd: "outpatient visit", emergency: "emergency", ipd: "admission" },
+    kindsNow: { opd: "Outpatient visit", emergency: "Emergency", ipd: "Admission" },
+    before: (day: string, kind: string) => `${day}, ${kind}`,
+    waiting: (kind: string, point: string, time: string) => `${kind}, waiting at ${point} since ${time}`,
+    serving: (kind: string, point: string, time: string) => `${kind}, with ${point} since ${time}`,
+    open: (kind: string, time: string) => `${kind}, open since ${time}, in no queue`,
+  },
+  frontDesk: {
+    pageTitle: "Front desk",
+    find: "Find a patient",
+    findHint: "Name, phone, patient number or ID number",
+    searching: "Searching…",
+    results: "Patients found",
+    nobodyFound: (term: string) => `Nobody found for “${term}”. Check the spelling, or search by phone or ID number.`,
+    patient: "The patient",
+    nobodyChosen: "Nobody chosen yet",
+    nobodyChosenHelp: "Find the patient on the left, then choose them to see their record and start their visit.",
+    opening: "Opening the record…",
+    start: "Start today's visit",
+    starting: "Starting…",
+    emergency: "Emergency",
+    startHint: "Today's visit starts at triage. Emergency skips triage and goes straight to the emergency area.",
+    next: "Find the next patient",
+    alreadyHere: (name: string) => `${name} has a visit open already.`,
+    inQueue: (name: string, point: string) => `${name} is in the ${point} queue.`,
+    inQueueAsEmergency: (name: string, point: string) => `${name} is in the ${point} queue, as an emergency.`,
+    inNoQueue: (name: string) => `The visit is open, but ${name} is in no queue.`,
+    startedAt: (time: string) => `Started at ${time}.`,
+    tryAgainStart: "Try again: start today's visit",
+    tryAgainEmergency: "Try again: emergency",
+  },
+  /** What a write said, beside the button that sent it. */
+  writes: {
+    notDone: "Not done",
+    noAnswerTitle: "No answer: the connection dropped",
+    noAnswer: "It may or may not have been saved. Try again when the connection is back: it is saved once, either way.",
+  },
   session: {
     checking: "Checking that you are signed in…",
     signedInAs: (name: string) => `Signed in as ${name}`,
@@ -166,6 +254,7 @@ export const en = {
     failed: "Something went wrong on our side. Try again; if it keeps happening, give this reference to support:",
     failedNoReference: "Something went wrong on our side. Try again; if it keeps happening, tell support.",
     offline: "No connection. Check the network and try again.",
+    tooMany: "Too many requests. Wait a minute, then try again.",
     tryAgain: "Try again",
   },
 } as const;

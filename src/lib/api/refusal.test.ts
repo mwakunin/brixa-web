@@ -27,6 +27,12 @@ describe("what the API refused", () => {
     expect(refusalOf(422, body)).toEqual({ kind: "invalid", issues: [{ path: "lines.0.quantity", message: "Too small" }, { path: "", message: "Nothing to change" }] });
   });
 
+  it("is too many requests on 429, with the limiter's words, which are written for staff", () => {
+    expect(refusalOf(429, { message: "Too many requests. Please slow down and try again shortly.", retryAfterSeconds: 30 })).toEqual({ kind: "too_many", message: "Too many requests. Please slow down and try again shortly." });
+    expect(failureText(new ApiError(refusalOf(429, { message: "Too many requests. Please slow down and try again shortly." })))).toBe("Too many requests. Please slow down and try again shortly.");
+    expect(failureText(new ApiError(refusalOf(429, "")))).toBe(en.errors.tooMany);
+  });
+
   it("is our failure, with the reference to quote, for anything it cannot read", () => {
     expect(refusalOf(500, { message: "Internal Server Error", requestId: "req-1" })).toEqual({ kind: "failed", requestId: "req-1" });
     expect(refusalOf(502, "<html>Bad gateway</html>")).toEqual({ kind: "failed", requestId: null });

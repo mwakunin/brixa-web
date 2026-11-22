@@ -6,6 +6,19 @@ import { signOut } from "@/lib/auth-client";
 import { chooseFacility } from "@/lib/facility";
 import { SIGN_IN_PATH } from "@/lib/navigation";
 
+/** True while this tab signs out on purpose. */
+let leaving = false;
+
+/**
+ * Whether this tab is signing out on purpose. The session empties before
+ * the sign-in page loads, and whatever notices that first must not send the
+ * page there itself with a `next`: the next person at a shared desk would
+ * be sent on to the last person's page.
+ */
+export function signingOut(): boolean {
+  return leaving;
+}
+
 /**
  * Signs out and leaves nothing behind.
  *
@@ -18,6 +31,7 @@ export function useSignOut() {
 
   async function run() {
     setState("pending");
+    leaving = true;
     try {
       const { error } = await signOut();
       // 401: the session had already ended, which is what was asked.
@@ -25,6 +39,7 @@ export function useSignOut() {
         throw error;
     }
     catch {
+      leaving = false;
       setState("failed");
       return;
     }

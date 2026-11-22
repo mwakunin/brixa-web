@@ -262,6 +262,12 @@ async function newcomer(what: string): Promise<Newcomer> {
 const alert = (page: Page, text: string) => page.getByRole("alert").filter({ hasText: text });
 const heading = (page: Page) => page.getByRole("heading", { level: 1 });
 
+/** On the front desk, where a records clerk lands, working where the header says. */
+async function atFrontDesk(page: Page, facility = "Sample Hospital"): Promise<void> {
+  await page.waitForURL("**/front-desk");
+  await page.locator("header").getByText(facility, { exact: true }).waitFor();
+}
+
 // ---------------------------------------------------------------------------
 // The flows
 // ---------------------------------------------------------------------------
@@ -296,26 +302,25 @@ const signInFlow: Flow = {
       expect("the code", await page.getByLabel("Code", { exact: true }).inputValue(), "");
     });
 
-    await step("the right code lands on the desk, with the facility and the person in the header", async () => {
+    await step("the right code lands on the front desk, with the facility and the person in the header", async () => {
       await page.getByLabel("Code", { exact: true }).fill(totp(DEV_TOTP_SECRET));
       await page.getByRole("button", { name: "Sign in" }).click();
-      await page.waitForURL(`${APP_URL}/`);
-      await heading(page).waitFor();
+      await atFrontDesk(page);
       const header = await page.locator("header").innerText();
       if (!header.includes("Sample Hospital") || !header.includes("Joyce Mwangi"))
         throw new Error(`the header reads ${JSON.stringify(header)}`);
     });
 
-    await step("the sign-in page sends someone signed in onward", async () => {
+    await step("the sign-in page sends someone signed in onward, to their desk", async () => {
       await page.goto(`${APP_URL}/sign-in`);
-      await page.waitForURL(`${APP_URL}/`);
+      await page.waitForURL("**/front-desk");
     });
 
     await step("signing out returns to sign in and forgets the facility chosen at the picker", async () => {
       // Landing at a single facility does not store it, so it is chosen at the picker first, as a returning clerk might.
       await page.goto(`${APP_URL}/facilities`);
       await page.getByRole("button", { name: /^Sample Hospital/ }).click();
-      await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
+      await atFrontDesk(page);
       if (await page.evaluate(() => localStorage.getItem("brixa.facilityId")) === null)
         throw new Error("choosing at the picker stored no facility, so sign-out has nothing to forget");
       await authRoom(1);
@@ -351,19 +356,18 @@ const pickerFlow: Flow = {
       expect("buttons for", await page.getByRole("listitem").getByRole("button").count(), 2);
     });
 
-    await step("choosing one lands on its desk, with the roles held there", async () => {
+    await step("choosing one lands on the desk for the roles held there", async () => {
       await page.getByRole("button", { name: /Westside/ }).click();
-      await heading(page).filter({ hasText: "Westside" }).waitFor();
-      await page.getByText("Records clerk, Cashier").waitFor();
+      await atFrontDesk(page, "Sample Hospital, Westside");
     });
 
     await step("switching facility from the header, and a reload stays there", async () => {
       await page.getByRole("link", { name: "Switch facility" }).click();
       await page.waitForURL("**/facilities");
       await page.getByRole("button", { name: /^Sample Hospital Records clerk$/ }).click();
-      await heading(page).filter({ hasText: /^Sample Hospital$/ }).waitFor();
+      await atFrontDesk(page);
       await page.reload();
-      await heading(page).filter({ hasText: /^Sample Hospital$/ }).waitFor();
+      await atFrontDesk(page);
     });
 
     await step("a second tab choosing another facility does not move the first tab's requests", async () => {
@@ -372,7 +376,7 @@ const pickerFlow: Flow = {
       const other = await context.newPage();
       await other.goto(`${APP_URL}/facilities`);
       await other.getByRole("button", { name: /Westside/ }).click();
-      await heading(other).filter({ hasText: "Westside" }).waitFor();
+      await atFrontDesk(other, "Sample Hospital, Westside");
       // The first tab asks again once its list is stale (15 s) and the window is looked at.
       await page.waitForTimeout(16_000);
       const sent = page.waitForRequest(request => request.url().endsWith("/me/facilities"));
@@ -479,8 +483,7 @@ const invitationFlow: Flow = {
 
     await step("keeping them goes on to the desk", async () => {
       await page.getByRole("button", { name: "I have kept them" }).click();
-      await page.waitForURL(`${APP_URL}/`);
-      await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
+      await atFrontDesk(page);
       invitedAccount = { email: newcomer, password, secret, backupCodes };
     });
 
@@ -510,8 +513,7 @@ const twoStepFlow: Flow = {
       await page.getByRole("button", { name: "Use a backup code instead" }).click();
       await page.getByLabel("Backup code").fill(backupCode.replace("-", " "));
       await page.getByRole("button", { name: "Sign in" }).click();
-      await page.waitForURL(`${APP_URL}/`);
-      await heading(page).filter({ hasText: "Sample Hospital" }).waitFor();
+      await atFrontDesk(page);
     });
 
     await step("the same backup code is refused the next time", async () => {
@@ -566,7 +568,7 @@ const resetFlow: Flow = {
     await step("they are signed in on another device before the reset", async () => {
       await authRoom(1);
       await signInAs(elsewhere, email, password, secret);
-      await elsewhere.waitForURL(`${APP_URL}/`);
+      await atFrontDesk(elsewhere);
     });
 
     await step("asking for a link for their address emails one", async () => {
@@ -594,7 +596,8 @@ const resetFlow: Flow = {
       await page.getByRole("button", { name: "Change my password" }).click();
       await page.getByRole("heading", { name: "Your password is changed" }).waitFor();
       await elsewhere.reload();
-      await elsewhere.waitForURL("**/sign-in");
+      // Its session ended there, not by signing out, so sign-in brings it back to the desk it was on.
+      await elsewhere.waitForURL(url => url.pathname === "/sign-in" && url.searchParams.get("next") === "/front-desk");
     });
 
     await step("the used link cannot be used again, and offers a new one", async () => {
@@ -612,7 +615,7 @@ const resetFlow: Flow = {
       await fillSignIn(page, email, password);
       await alert(page, "do not match").waitFor();
       await signInAs(page, email, newPassword, secret);
-      await page.waitForURL(`${APP_URL}/`);
+      await atFrontDesk(page);
       // The new password is the one to use from now on, for a flow after this one.
       person.password = newPassword;
     });
@@ -622,7 +625,138 @@ const resetFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow];
+const frontDeskFlow: Flow = {
+  name: "front-desk",
+  about: "the clerk finds a patient, starts their visit through a dropped answer, sends them on as an emergency, and is refused a second",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    const search = page.getByRole("searchbox", { name: "Find a patient" });
+    // Someone made up for this run, found by a family name no one else has.
+    const familyName = `Flows${RUN}`;
+    const name = `Amani ${familyName}`;
+    const idNumber = String(Date.now()).slice(-8);
+    const match = page.getByRole("button", { name: new RegExp(`^${name}`) });
+    let facilityId = "";
+    let patientId = "";
+
+    const visitsOf = async (id: string) => (await (await context.request.get(`${API_URL}/encounters?patientId=${id}`, { headers: { "x-facility-id": facilityId } })).json() as { encounters: { id: string; kind: string; status: string }[] }).encounters;
+    // Opening a record, or the list of a patient's visits, is an audited read: the page makes none until asked.
+    const recordReads: string[] = [];
+    page.on("request", (sent) => {
+      const url = new URL(sent.url());
+      if (sent.method() === "GET" && url.origin === new URL(API_URL).origin && (/^\/patients\/[\w-]+$/.test(url.pathname) || url.pathname === "/encounters"))
+        recordReads.push(url.pathname + url.search);
+    });
+
+    await step("the clerk lands on the front desk, named in the header, with nobody chosen", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("frontdesk"), SEED_PASSWORD);
+      await atFrontDesk(page);
+      await page.locator("header").getByText("Front desk", { exact: true }).waitFor();
+      await heading(page).filter({ hasText: "Nobody chosen yet" }).waitFor();
+    });
+
+    await step("a made-up patient is registered through the API, in the clerk's session", async () => {
+      const { facilities } = await (await context.request.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+      const registered = await context.request.post(`${API_URL}/patients`, {
+        headers: { "x-facility-id": facilityId, "origin": APP_URL },
+        data: { givenName: "Amani", familyName, sex: "female", dateOfBirth: "1990-04-12", noPhoneReason: "no_phone", identifiers: [{ type: "national_id", value: idNumber }] },
+      });
+      expect("registering the patient", registered.status(), 201);
+      patientId = (await registered.json() as { id: string }).id;
+    });
+
+    await step("a search shows each match with its sex, age, phone and ID, and opens no record, even on hover", async () => {
+      await search.fill(familyName);
+      await match.waitFor();
+      const line = await match.innerText();
+      if (!/Female · \d+ years · no phone/.test(line) || !line.includes(`ID ${idNumber}`))
+        throw new Error(`the match reads ${JSON.stringify(line)}`);
+      await match.hover();
+      await page.waitForTimeout(1_000);
+      expect("records read before choosing", recordReads, []);
+    });
+
+    await step("choosing the match opens the record, which says they have not been here before", async () => {
+      await match.click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      await page.getByText("Not here before").waitFor();
+      expect("the address", new URL(page.url()).search, `?patient=${patientId}`);
+      expect("the match, marked chosen", await match.getAttribute("aria-pressed"), "true");
+    });
+
+    await step("a lost answer holds the visit; Try again resends its key, and the API answers with its first answer", async () => {
+      const keys: string[] = [];
+      let answerLost = false;
+      await page.route(`${API_URL}/encounters`, async (route) => {
+        if (route.request().method() !== "POST")
+          return route.continue();
+        keys.push(route.request().headers()["idempotency-key"] ?? "");
+        if (answerLost)
+          return route.continue();
+        answerLost = true;
+        // The visit is opened, but its answer never reaches the page.
+        await route.fetch();
+        await route.abort("connectionreset");
+      });
+      await page.getByRole("button", { name: "Start today's visit" }).click();
+      await alert(page, "No answer: the connection dropped").waitFor();
+      expect("the Emergency button, while an answer is awaited", await page.getByRole("button", { name: "Emergency" }).count(), 0);
+      const second = page.waitForResponse(response => response.url() === `${API_URL}/encounters` && response.request().method() === "POST");
+      await page.getByRole("button", { name: "Try again: start today's visit" }).click();
+      expect("the answer, replayed", (await second).headers()["idempotent-replayed"], "true");
+      expect("one key, sent twice", keys.length === 2 && keys[0] === keys[1] && keys[0].length >= 8, true);
+      await page.getByRole("status").filter({ hasText: `${name} is in the Triage queue.` }).waitFor();
+      await page.unroute(`${API_URL}/encounters`);
+    });
+
+    await step("the visit was opened once; the record says where the patient waits, without reading it again", async () => {
+      const reads = recordReads.length;
+      await page.getByText(/^Outpatient visit, waiting at Triage since \d\d:\d\d$/).waitFor();
+      expect("records read since", recordReads.length, reads);
+      expect("visits opened", (await visitsOf(patientId)).map(visit => [visit.kind, visit.status]), [["opd", "open"]]);
+    });
+
+    await step("Find the next patient empties the search and the panel, and puts the cursor in the search", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await heading(page).filter({ hasText: "Nobody chosen yet" }).waitFor();
+      expect("the search", await search.inputValue(), "");
+      expect("the cursor in the search", await search.evaluate(input => input === document.activeElement), true);
+      expect("the address", new URL(page.url()).search, "");
+    });
+
+    await step("a patient with a visit open is sent on with Emergency, as an emergency", async () => {
+      await search.fill(familyName);
+      await match.click();
+      await page.getByText(`${name} has a visit open already.`).waitFor();
+      await page.getByRole("button", { name: "Emergency" }).click();
+      await page.getByRole("status").filter({ hasText: new RegExp(`^${name} is in the .+ queue, as an emergency\\.`) }).waitFor();
+    });
+
+    await step("a second emergency is refused in the API's own words, beside the button", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await search.fill(familyName);
+      await match.click();
+      await page.getByText(`${name} has a visit open already.`).waitFor();
+      await page.getByRole("button", { name: "Emergency" }).click();
+      await alert(page, "Not done").filter({ hasText: "already has an open visit of that kind" }).waitFor();
+      expect("visits opened", (await visitsOf(patientId)).map(visit => visit.kind).sort(), ["emergency", "opd"]);
+    });
+
+    await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
+      for (const visit of (await visitsOf(patientId)).filter(visit => visit.status === "open")) {
+        const cancelled = await context.request.post(`${API_URL}/encounters/${visit.id}/cancel`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { reason: "Opened by pnpm flows" } });
+        expect(`cancelling the ${visit.kind} visit`, cancelled.status(), 200);
+      }
+    });
+
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow];
 
 // ---------------------------------------------------------------------------
 // The run

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { PageFailed, PageLoading } from "@/components/page-states";
+import { signingOut } from "@/hooks/use-sign-out";
 import { useSession } from "@/lib/auth-client";
 import { setUpSignInHref, signInHref } from "@/lib/navigation";
 import { en } from "@/strings/en";
@@ -31,7 +32,8 @@ export function SessionGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const here = window.location.pathname + window.location.search;
-    if (signedOut)
+    // Signing out goes to the sign-in page by itself, remembering nothing.
+    if (signedOut && !signingOut())
       window.location.replace(signInHref(here));
     else if (notSetUp)
       window.location.replace(setUpSignInHref(here));

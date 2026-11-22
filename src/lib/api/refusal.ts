@@ -9,6 +9,7 @@ import { en } from "@/strings/en";
  *   403            { message, code? }               the role does not allow it
  *   404            { message }                      not there, or not yours
  *   409 and others { message, code, ...fields }     a refusal, written for the user
+ *   429            { message, retryAfterSeconds }   too many requests, written for the user
  *   422            { success: false, error: { issues } }   a field is not valid
  *   500            { message, requestId }           our fault
  *
@@ -21,6 +22,7 @@ export type Refusal
     | { kind: "not_found" }
     | { kind: "refused"; code: string; message: string; fields: Record<string, unknown> }
     | { kind: "invalid"; issues: { path: string; message: string }[] }
+    | { kind: "too_many"; message: string | null }
     | { kind: "failed"; requestId: string | null };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
@@ -66,6 +68,7 @@ export function failureText(error: unknown): string {
     case "not_found": return en.errors.notFound;
     case "refused": return refusal.message;
     case "invalid": return en.errors.invalid;
+    case "too_many": return refusal.message ?? en.errors.tooMany;
     case "failed": return refusal.requestId ? `${en.errors.failed} ${refusal.requestId}` : en.errors.failedNoReference;
   }
 }
@@ -80,6 +83,8 @@ export function refusalOf(status: number, body: unknown): Refusal {
     return { kind: "not_found" };
   if (status === 422)
     return { kind: "invalid", issues: issuesOf(fields) };
+  if (status === 429)
+    return { kind: "too_many", message: text(fields.message) };
   const code = text(fields.code);
   const message = text(fields.message);
   if (status < 500 && code && message) {
