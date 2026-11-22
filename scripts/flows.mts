@@ -756,7 +756,156 @@ const frontDeskFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow];
+const registerFlow: Flow = {
+  name: "register",
+  about: "the clerk registers a child with a guardian through a lost answer, meets a likely duplicate, and registers an unidentified patient as an emergency",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    const search = page.getByRole("searchbox", { name: "Find a patient" });
+    // A made-up child, found by a family name no one else has: letters only, as a search for a name is.
+    const familyName = `Flows${RUN.replace(/\d/g, digit => "abcdefghij"[Number(digit)])}`;
+    const name = `Baraka ${familyName}`;
+    const born = String(new Date().getFullYear() - 4);
+    let facilityId = "";
+    const keys: string[] = [];
+    const posted = () => keys.length;
+    page.on("request", (sent) => {
+      if (sent.method() === "POST" && sent.url() === `${API_URL}/patients`)
+        keys.push(sent.headers()["idempotency-key"] ?? "");
+    });
+    const api = (path: string) => context.request.get(`${API_URL}${path}`, { headers: { "x-facility-id": facilityId } });
+    const found = async () => (await (await api(`/patients?q=${familyName}`)).json() as { patients: { id: string }[] }).patients;
+    const register = page.getByRole("button", { name: "Not here? Register a new patient" });
+
+    /** Fills in the child as the clerk would: names, sex, date of birth, and why there is no phone or ID. */
+    async function fillChild(): Promise<void> {
+      await page.getByLabel("First name").fill("Baraka");
+      await page.getByLabel("Family name").fill(familyName);
+      await page.getByRole("button", { name: "Male", exact: true }).click();
+      await page.getByLabel("Day", { exact: true }).fill("10");
+      await page.getByLabel("Month", { exact: true }).fill("3");
+      await page.getByLabel("Year", { exact: true }).fill(born);
+      await page.getByLabel("Has no phone").check();
+      await page.getByLabel("Has none, such as a young child").check();
+    }
+
+    await step("the clerk lands on the front desk", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("frontdesk"), SEED_PASSWORD);
+      await atFrontDesk(page);
+      const { facilities } = await (await context.request.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+    });
+
+    await step("a search that finds nobody leads to registering, with the name searched for typed in", async () => {
+      await search.fill(name);
+      await page.getByText(`Nobody found for “${name}”`).waitFor();
+      await register.click();
+      await heading(page).filter({ hasText: "New patient" }).waitFor();
+      expect("the names", [await page.getByLabel("First name").inputValue(), await page.getByLabel("Family name").inputValue()], ["Baraka", familyName]);
+      expect("the address", new URL(page.url()).search, "?new");
+    });
+
+    await step("what is missing is marked at each field, and nothing is sent", async () => {
+      await page.getByRole("button", { name: "Register and start today's visit" }).click();
+      await alert(page, "see the marked fields").waitFor();
+      for (const said of ["Choose the sex.", "Give the date of birth, or about how old.", "Give a phone number, or tick that the patient has none.", "Give an ID number, or tick why there is none."])
+        await page.getByText(said).waitFor();
+      expect("registrations sent", posted(), 0);
+    });
+
+    await step("a child with a guardian: a lost answer holds the form, and Try again registers once and starts the visit", async () => {
+      await fillChild();
+      await page.getByRole("button", { name: "Add a guardian" }).click();
+      const guardian = page.getByRole("group", { name: "Guardian 1" });
+      await guardian.getByLabel("Name", { exact: true }).fill("Grace Flows");
+      await guardian.getByLabel("Relationship").fill("Mother");
+      await guardian.getByLabel("Phone").fill("0711 000 111");
+      let answerLost = false;
+      await page.route(`${API_URL}/patients`, async (route) => {
+        if (route.request().method() !== "POST" || answerLost)
+          return route.continue();
+        answerLost = true;
+        // The patient is registered, but the answer never reaches the page.
+        await route.fetch();
+        await route.abort("connectionreset");
+      });
+      await page.getByRole("button", { name: "Register and start today's visit" }).click();
+      await alert(page, "No answer: the connection dropped").waitFor();
+      expect("the form, held as sent", await page.getByLabel("First name").isDisabled(), true);
+      const second = page.waitForResponse(response => response.url() === `${API_URL}/patients` && response.request().method() === "POST");
+      await page.getByRole("button", { name: "Try again: register and start today's visit" }).click();
+      expect("the answer, replayed", (await second).headers()["idempotent-replayed"], "true");
+      expect("one key, sent twice", keys.length === 2 && keys[0] === keys[1], true);
+      await page.unroute(`${API_URL}/patients`);
+      await page.getByRole("status").filter({ hasText: `${name} is in the Triage queue.` }).waitFor();
+      await page.getByText(/^Registered as \S+, and started at \d\d:\d\d\.$/).waitFor();
+      const patients = await found();
+      expect("patients registered", patients.length, 1);
+      const record = await (await api(`/patients/${patients[0].id}`)).json() as { contacts: { name: string; relationship: string; phone: string }[] };
+      expect("the guardian", record.contacts.map(contact => [contact.name, contact.relationship, contact.phone]), [["Grace Flows", "Mother", "+254711000111"]]);
+    });
+
+    await step("registering the child again meets the likely duplicate, whose record opens", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await register.click();
+      await fillChild();
+      await page.getByRole("button", { name: "Register only" }).click();
+      await page.getByRole("heading", { name: "Is this the same person?" }).waitFor();
+      await page.getByRole("button", { name: "Yes, open this record" }).click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      const patients = await found();
+      expect("the record opened", new URL(page.url()).search, `?patient=${patients[0].id}`);
+      expect("patients registered", patients.length, 1);
+    });
+
+    await step("saying it is someone else registers another of that name, as the clerk asked", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await register.click();
+      await fillChild();
+      await page.getByRole("button", { name: "Register only" }).click();
+      await page.getByRole("button", { name: "No, this is someone else" }).click();
+      await page.getByRole("status").filter({ hasText: new RegExp(`^${name} is registered, as \\S+\\.$`) }).waitFor();
+      await page.getByRole("button", { name: "Start today's visit" }).waitFor();
+      expect("patients registered", (await found()).length, 2);
+    });
+
+    let unidentified = "";
+    await step("someone who cannot say who they are is registered as an emergency, under a placeholder name", async () => {
+      await search.fill(familyName);
+      await register.click();
+      await page.getByRole("button", { name: "Register an unidentified patient" }).click();
+      await heading(page).filter({ hasText: "Unidentified patient" }).waitFor();
+      await page.getByRole("button", { name: "Male", exact: true }).click();
+      await page.getByLabel("About how old, in years").fill("30");
+      await page.getByRole("button", { name: "Register as an emergency" }).click();
+      // An earlier run's "Unknown Male" of the same age is a likely duplicate: this is someone else.
+      const done = page.getByRole("status").filter({ hasText: /^Unknown Male is in the .+ queue, as an emergency\./ });
+      const same = page.getByRole("button", { name: "No, this is someone else" });
+      await Promise.race([done.waitFor(), same.waitFor()]);
+      if (await same.isVisible())
+        await same.click();
+      await done.waitFor();
+      unidentified = new URL(page.url()).searchParams.get("patient") ?? "";
+    });
+
+    await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
+      const ids = [...(await found()).map(patient => patient.id), unidentified];
+      for (const id of ids) {
+        const { encounters } = await (await api(`/encounters?patientId=${id}`)).json() as { encounters: { id: string; status: string }[] };
+        for (const visit of encounters.filter(visit => visit.status === "open")) {
+          const cancelled = await context.request.post(`${API_URL}/encounters/${visit.id}/cancel`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { reason: "Opened by pnpm flows" } });
+          expect("cancelling a visit", cancelled.status(), 200);
+        }
+      }
+    });
+
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow];
 
 // ---------------------------------------------------------------------------
 // The run

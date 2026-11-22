@@ -139,12 +139,13 @@ pnpm flows                  # every flow
 pnpm flows sign-in picker   # some, by name
 ```
 
-- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker`, `invitation` (which sets up two-step sign-in), `two-step` (backup codes), `reset` and `front-desk`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
+- **What it does:** each flow walks one journey in a real browser against the API, step by step. Today the flows are `sign-in`, `picker`, `invitation` (which sets up two-step sign-in), `two-step` (backup codes), `reset`, `front-desk` and `register`. Each step's name says what must hold, for example "a second tab choosing another facility does not move the first tab's requests". A failure names the flow and the step, says what was there, and exits 1.
 - **Emails:** in development, the API keeps every email it would have sent in its `.dev-mail/` folder. Flows read invitation and reset links from there (`DEV_MAIL_DIR`, else `../api/.dev-mail`).
-- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), who set up two-step sign-in, whose passwords the `reset` flow changes, and whom a re-seed clears. The `front-desk` flow registers a made-up patient (`Amani Flows…`) and cancels the visits it opens for them.
+- **Data:** flows sign in as seeded staff without changing them. They invite made-up people (`flows-…@sample-hospital.test`), who set up two-step sign-in, whose passwords the `reset` flow changes, and whom a re-seed clears. The `front-desk` and `register` flows register made-up patients (`Amani Flows…`, `Baraka Flows…`, `Unknown Male`) and cancel the visits they open for them.
 - **Codes:** every sign-in asks for a code after the password. Seeded staff share one development authenticator, whose code `scripts/dev-code.mts` works out from the secret in brixa-api's `src/dev/two-factor.ts` (the two must match). To sign in by hand, `pnpm dev:code` in brixa-api prints it. A made-up person's code comes from the setup key their setup page showed.
 - **Rate limits:** the development API counts the browser as one address.
-  - It allows 10 sign-in and password requests a minute, which a full run exceeds. So a run keeps count, across runs too, and waits for room, printing "waiting N s". Codes have their own, looser limit, and are not counted.
+  - It allows 10 sign-in and password requests a minute, which a full run exceeds.
+  - It allows 10 sign-ins per account every 15 minutes. A full run signs in as the front desk clerk about five times, so screenshots taken as `frontdesk` just before it can use up the rest. So a run keeps count, across runs too, and waits for room, printing "waiting N s". Codes have their own, looser limit, and are not counted.
   - A run uses half of the 15-minute allowance of invitation answers, so two runs fit in 15 minutes.
   - A flow that still meets a limit stops and says how long to wait. That happens, for example, after signing in by hand in a browser.
 - **When:** run it after any change to a flow's screens, and before calling a desk done. Each desk adds its own flow as it is built.

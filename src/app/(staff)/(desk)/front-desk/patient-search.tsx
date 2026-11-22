@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useDebounced } from "@/hooks/use-debounced";
 import { SEARCH_MIN_LENGTH, usePatientSearch } from "@/hooks/use-patients";
 import { failureText } from "@/lib/api/refusal";
-import { businessDate } from "@/lib/dates";
-import { type FoundPatient, foundLine, fullName } from "@/lib/patients";
+import { type FoundPatient, fullName } from "@/lib/patients";
 import { cn } from "@/lib/utils";
 import { en } from "@/strings/en";
+
+import { FoundLine } from "./found-line";
 
 /** A pause in typing this long sends the search: each one is audited, and limited per person. */
 const TYPING_PAUSE_MS = 350;
@@ -21,6 +22,7 @@ interface Props {
   onTerm: (term: string) => void;
   chosenId: string | null;
   onChoose: (patient: FoundPatient) => void;
+  onRegister: () => void;
 }
 
 /**
@@ -28,14 +30,13 @@ interface Props {
  * patient number or their ID number. Each match shows enough to tell two
  * people of one name apart, so the clerk opens only the record they mean.
  */
-export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose }: Props) {
+export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose, onRegister }: Props) {
   const id = useId();
   const typed = term.trim();
   const q = useDebounced(typed, TYPING_PAUSE_MS);
   const search = usePatientSearch(q);
   const asking = typed.length >= SEARCH_MIN_LENGTH;
   const found = asking ? search.data : undefined;
-  const today = businessDate();
 
   return (
     <section aria-label={en.frontDesk.find} className="flex min-h-0 w-[300px] shrink-0 flex-col gap-4 overflow-y-auto lg:w-[340px] xl:w-[380px] 2xl:w-[440px]">
@@ -81,20 +82,14 @@ export function PatientSearch({ inputRef, term, onTerm, chosenId, onChoose }: Pr
                     )}
                   >
                     <span className={pressed ? "font-bold" : "font-semibold"}>{fullName(patient)}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {foundLine(patient, today).map((part, index) => (
-                        <span key={part}>
-                          {index > 0 && " · "}
-                          <span className="whitespace-nowrap">{part}</span>
-                        </span>
-                      ))}
-                    </span>
+                    <FoundLine patient={patient} />
                   </button>
                 </li>
               );
             })}
           </ul>
         )}
+        <Button variant="second" onClick={onRegister} className="min-h-12 text-base">{en.register.link}</Button>
       </div>
     </section>
   );

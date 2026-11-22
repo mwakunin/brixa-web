@@ -27,17 +27,21 @@ export function useRepeatSafe<Body, Result>(send: (action: Action<Body>, signal:
     setState(next);
   }
 
-  async function press(body: Body): Promise<void> {
+  /** Sends the action, and gives where it ended: done, refused, or no answer. A press while one is sent gives that one's state. */
+  async function press(body: Body): Promise<WriteState<Body, Result>> {
     if (latest.current.kind === "sending")
-      return;
+      return latest.current;
     const action = toSend(waitingIn(latest.current), body);
     move({ kind: "sending", action });
+    let ended: WriteState<Body, Result>;
     try {
-      move(settle(action, { ok: true, result: await send(action, AbortSignal.timeout(ANSWER_WAIT_MS)) }));
+      ended = settle(action, { ok: true, result: await send(action, AbortSignal.timeout(ANSWER_WAIT_MS)) });
     }
     catch (error) {
-      move(settle<Body, Result>(action, { ok: false, error }));
+      ended = settle<Body, Result>(action, { ok: false, error });
     }
+    move(ended);
+    return ended;
   }
 
   return { state, press };

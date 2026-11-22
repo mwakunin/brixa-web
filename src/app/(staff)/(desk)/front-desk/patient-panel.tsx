@@ -20,6 +20,12 @@ interface Start {
   kind: "opd" | "emergency";
 }
 
+/** A patient registered a moment ago: their new number, and what the clerk asked to follow. */
+export interface Arrival {
+  registeredAs: string;
+  then: Start["kind"] | null;
+}
+
 /** What starting the visit led to, in the words the Done message uses. */
 function startedText(name: string, visit: Visit): string {
   const words = en.frontDesk;
@@ -36,8 +42,12 @@ function startedText(name: string, visit: Visit): string {
  * Starting the visit is repeat-safe: a dropped connection leaves only Try
  * again, under the same key. The answer adds the new visit to the list
  * already read, so the record is not opened again to show it.
+ *
+ * A patient just registered arrives with their new number, and with the
+ * visit started for them when "Register and start today's visit" (or
+ * "Register as an emergency") was pressed: the same press, carried on.
  */
-export function PatientPanel({ id, found, onNext }: { id: string; found: FoundPatient | null; onNext: () => void }) {
+export function PatientPanel({ id, found, arrival, onNext }: { id: string; found: FoundPatient | null; arrival: Arrival | null; onNext: () => void }) {
   const record = usePatient(id);
   const visits = usePatientVisits(id);
   const queryClient = useQueryClient();
@@ -50,6 +60,14 @@ export function PatientPanel({ id, found, onNext }: { id: string; found: FoundPa
     return opened;
   });
   const { state } = start;
+
+  const startAsked = useRef(false);
+  useEffect(() => {
+    if (!arrival?.then || startAsked.current)
+      return;
+    startAsked.current = true;
+    void start.press({ patientId: id, kind: arrival.then });
+  }, [arrival, id, start]);
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {
@@ -115,12 +133,22 @@ export function PatientPanel({ id, found, onNext }: { id: string; found: FoundPa
         {opNumber && <span className="text-lg font-semibold text-secondary-foreground">{opNumber}</span>}
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
-        {state.kind === "done" && (
-          <Alert variant="done">
-            <AlertTitle>{startedText(name ?? en.frontDesk.patient, state.result)}</AlertTitle>
-            <AlertDescription>{en.frontDesk.startedAt(clockTime(new Date(state.result.startedAt)))}</AlertDescription>
-          </Alert>
-        )}
+        {state.kind === "done"
+          ? (
+              <Alert variant="done">
+                <AlertTitle>{startedText(name ?? en.frontDesk.patient, state.result)}</AlertTitle>
+                <AlertDescription>
+                  {arrival
+                    ? en.frontDesk.registeredAndStarted(arrival.registeredAs, clockTime(new Date(state.result.startedAt)))
+                    : en.frontDesk.startedAt(clockTime(new Date(state.result.startedAt)))}
+                </AlertDescription>
+              </Alert>
+            )
+          : arrival && (
+            <Alert variant="done">
+              <AlertTitle>{en.frontDesk.registered(name ?? en.frontDesk.patient, arrival.registeredAs)}</AlertTitle>
+            </Alert>
+          )}
         {record.data
           ? (
               <dl className="grid grid-cols-2 gap-x-6 gap-y-3.5 2xl:grid-cols-3">
