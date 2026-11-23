@@ -1,7 +1,7 @@
 import type { paths } from "@/lib/api/schema";
 
 import { businessDate, dayBefore, printedDateThisYear } from "@/lib/dates";
-import { formatKes } from "@/lib/money";
+import { centsFromShillings, formatKes } from "@/lib/money";
 import { en } from "@/strings/en";
 
 /** A visit on the cashier's list, with what is due on it (`GET /cashier/due`). */
@@ -38,4 +38,94 @@ export function visitWords(visit: Pick<DueVisit, "kind" | "startedAt">, today: s
   if (day === dayBefore(today))
     return en.cashier.visitYesterday(kind);
   return en.cashier.visitOn(kind, printedDateThisYear(day, today));
+}
+
+/** The ways a patient pays, as the cashier chooses them: card and bank share a button. */
+export type PayingBy = "paybill" | "prompt" | "cash" | "card_or_bank";
+
+/** What the cashier has chosen and typed to take a payment. */
+export interface PaymentDraft {
+  method: PayingBy;
+  cardOrBank: "card" | "bank";
+  /** In shillings, as typed. */
+  amount: string;
+  phone: string;
+  reference: string;
+  /** The M-Pesa payment chosen from those waiting to be matched. */
+  transactionId: string | null;
+}
+
+/** M-Pesa paid to the paybill first, then the prompt, cash, and card or bank (the walkthrough, 2026-11-20). */
+export const emptyPayment: PaymentDraft = { method: "paybill", cardOrBank: "card", amount: "", phone: "", reference: "", transactionId: null };
+
+/** What a press sends, fixed at the press: a payment by one method, for one amount. */
+export type Paying
+  = | { method: "paybill"; transactionId: string; amountCents: number }
+    | { method: "prompt"; phone: string; amountCents: number }
+    | { method: "cash"; amountCents: number }
+    | { method: "card" | "bank"; amountCents: number; reference: string };
+
+export type PaymentField = "amount" | "phone" | "reference" | "transaction";
+
+/** As the API takes a card's or a transfer's reference. */
+const REFERENCE = /^[\w /-]{3,40}$/;
+/** As long as the API takes a phone to prompt; its format is the API's to check. */
+const PHONE_LENGTH = { min: 9, max: 16 };
+
+/**
+ * The payment the draft asks for, or what must be put right first, at its
+ * field. A payment to the paybill is for the amount M-Pesa received, given
+ * as `transactionCents`, whatever was typed.
+ */
+export function payingFor(draft: PaymentDraft, transactionCents: number | null): { ok: true; paying: Paying } | { ok: false; problems: Partial<Record<PaymentField, string>> } {
+  const words = en.cashier.pay.problems;
+  if (draft.method === "paybill") {
+    return draft.transactionId && transactionCents !== null
+      ? { ok: true, paying: { method: "paybill", transactionId: draft.transactionId, amountCents: transactionCents } }
+      : { ok: false, problems: { transaction: words.transaction } };
+  }
+  const problems: Partial<Record<PaymentField, string>> = {};
+  const amountCents = centsFromShillings(draft.amount);
+  if (!amountCents)
+    problems.amount = words.amount;
+  const phone = draft.phone.trim();
+  if (draft.method === "prompt" && (phone.length < PHONE_LENGTH.min || phone.length > PHONE_LENGTH.max))
+    problems.phone = words.phone;
+  const reference = draft.reference.trim();
+  if (draft.method === "card_or_bank" && !REFERENCE.test(reference))
+    problems.reference = words.reference;
+  if (!amountCents || Object.keys(problems).length > 0)
+    return { ok: false, problems };
+  if (draft.method === "prompt")
+    return { ok: true, paying: { method: "prompt", phone, amountCents } };
+  if (draft.method === "cash")
+    return { ok: true, paying: { method: "cash", amountCents } };
+  return { ok: true, paying: { method: draft.cardOrBank, amountCents, reference } };
+}
+
+/**
+ * The M-Pesa payments waiting to be matched that fit what the cashier
+ * typed: part of the M-Pesa code, or of the phone that paid, as dialled at
+ * home (0712…) or with the country code.
+ */
+export function matchingPayments<T extends { transactionId: string; msisdn: string }>(waiting: readonly T[], typed: string): T[] {
+  const text = typed.trim();
+  if (text === "")
+    return [...waiting];
+  if (/[a-z]/i.test(text))
+    return waiting.filter(payment => payment.transactionId.toUpperCase().includes(text.toUpperCase()));
+  const digits = text.replace(/\D/g, "").replace(/^0/, "");
+  return waiting.filter(payment => payment.msisdn.replace(/\D/g, "").includes(digits));
+}
+
+/** The field a value the API did not accept belongs to, from the path it gave, with what to say there in our words. */
+export function paymentFieldProblem(path: string): { field: PaymentField; problem: string } | null {
+  const words = en.cashier.pay.problems.notAccepted;
+  if (path === "phone")
+    return { field: "phone", problem: words.phone };
+  if (path === "reference")
+    return { field: "reference", problem: words.reference };
+  if (path === "amountCents")
+    return { field: "amount", problem: words.amount };
+  return null;
 }

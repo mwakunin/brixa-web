@@ -1100,7 +1100,7 @@ const registerFlow: Flow = {
 
 const cashierFlow: Flow = {
   name: "cashier",
-  about: "the cashier sees who has money due, opens a patient's bill, and reads their shift",
+  about: "the cashier sees who has money due, opens a patient's bill, reads their shift, and takes the money in two parts",
   async run(browser, step) {
     const { context } = await freshContext(browser);
     const page = await context.newPage();
@@ -1112,6 +1112,7 @@ const cashierFlow: Flow = {
     let facilityId = "";
     let visitId = "";
     let testItems: string[] = [];
+    let paid = false;
     const asClerk = { "x-facility-id": "", "origin": APP_URL };
     // A visit's bill is part of the patient's record, and reading it is audited: the page reads none until one is chosen.
     const billReads: string[] = [];
@@ -1174,8 +1175,65 @@ const cashierFlow: Flow = {
       await shift.getByText(/^KES [\d,]+$/).first().waitFor();
     });
 
-    await step("the test and the visit are cancelled, so no list keeps a made-up patient", async () => {
-      if (!visitId)
+    await step("part paid in cash through a lost answer is billed and recorded once, under one key, and its receipt opens", async () => {
+      await page.getByRole("button", { name: "Cash", exact: true }).click();
+      const amount = page.getByLabel("Amount, in shillings");
+      expect("the amount, at first what is due", await amount.inputValue(), "300");
+      await amount.fill("100");
+      const keys: Record<string, string[]> = { bill: [], pay: [] };
+      let answerLost = false;
+      const billOrPay = (url: URL) => url.pathname === `/encounters/${visitId}/bill-now` || url.pathname === "/payments";
+      await page.route(billOrPay, async (route) => {
+        const pay = new URL(route.request().url()).pathname === "/payments";
+        keys[pay ? "pay" : "bill"].push(route.request().headers()["idempotency-key"] ?? "");
+        if (!pay || answerLost)
+          return route.continue();
+        answerLost = true;
+        // Billed and paid, but the answer never reaches the page.
+        await route.fetch();
+        paid = true;
+        await route.abort("connectionreset");
+      });
+      // The receipt's tab opens at the press, and closes when no answer comes.
+      const [lost] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 100 in cash and print the receipt" }).click()]);
+      await alert(page, "No answer: the connection dropped").waitFor();
+      if (!lost.isClosed())
+        await lost.waitForEvent("close");
+      expect("the amount, held as sent", [await amount.inputValue(), await amount.isDisabled()], ["100", true]);
+      const [receipt, replayed] = await Promise.all([
+        context.waitForEvent("page"),
+        page.waitForResponse(response => new URL(response.url()).pathname === "/payments" && response.request().method() === "POST"),
+        page.getByRole("button", { name: "Try again: record the payment" }).click(),
+      ]);
+      expect("the payment's answer, replayed", replayed.headers()["idempotent-replayed"], "true");
+      await page.unroute(billOrPay);
+      const [first] = keys.bill;
+      expect("one key for the action, sent twice for each request", [keys.bill.length, keys.pay.length, keys.bill[1] === first, keys.pay[1] === keys.pay[0], first.endsWith(".bill"), keys.pay[0] === `${first.slice(0, -".bill".length)}.pay`], [2, 2, true, true, true, true]);
+      await page.getByRole("status").filter({ hasText: /^KES 100 paid\. Receipt RCT-/ }).waitFor();
+      await page.getByText("KES 200 is still to pay on this visit.").waitFor();
+      await receipt.waitForURL(/^blob:/);
+      await receipt.close();
+      expect("the row on Money due", await row.getByText(/^KES /).innerText(), "KES 200");
+    });
+
+    await step("the rest by bank transfer settles the visit: paid in full, and it leaves Money due", async () => {
+      await page.getByRole("button", { name: "Card or bank" }).click();
+      await page.getByRole("button", { name: "Bank transfer" }).click();
+      await page.getByLabel("The transfer's reference").fill(`FT FLOWS ${RUN}`);
+      expect("the amount, what is due once again", await page.getByLabel("Amount, in shillings").inputValue(), "200");
+      const [receipt] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 200 by bank transfer and print the receipt" }).click()]);
+      await page.getByRole("status").filter({ hasText: /^Paid in full\. Receipt RCT-/ }).waitFor();
+      await receipt.waitForURL(/^blob:/);
+      await receipt.close();
+      await row.waitFor({ state: "detached" });
+      await page.getByRole("button", { name: "Choose the next patient" }).waitFor();
+      const owed = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string }[] };
+      expect("the visit, on the API's list of money due", owed.visits.some(visit => visit.encounterId === visitId), false);
+    });
+
+    await step("the test and the visit are cancelled, unless paid for, so no list keeps a made-up patient", async () => {
+      // A paid visit keeps its payments: only finance reverses one, and a re-seed clears them.
+      if (!visitId || paid)
         return;
       for (const item of testItems) {
         const cancelled = await clerk.post(`${API_URL}/order-items/${item}/cancel`, { headers: asClerk, data: { reason: "Entered by pnpm flows" } });

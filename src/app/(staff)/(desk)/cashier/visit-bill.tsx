@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useBusinessDate } from "@/hooks/use-business-date";
 import { useBill } from "@/hooks/use-cashier";
@@ -10,6 +10,8 @@ import { failureText } from "@/lib/api/refusal";
 import { billLine, type DueVisit, printedQuantity, standingCharges, visitWords } from "@/lib/cashier";
 import { formatKes } from "@/lib/money";
 import { en } from "@/strings/en";
+
+import { TakePayment } from "./take-payment";
 
 const words = en.cashier;
 
@@ -21,6 +23,7 @@ const words = en.cashier;
  * Who the patient is and what is due come from the visit's row on the money
  * due list; the lines come from the visit's charges, read once the visit is
  * known on the list. Every figure is the API's: the screen adds nothing up.
+ * Under the bill, the payment is taken (`TakePayment`).
  */
 export function VisitBill({ id, listed, listRead }: {
   id: string;
@@ -74,69 +77,65 @@ export function VisitBill({ id, listed, listRead }: {
           </span>
         )}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
-        {!due && listRead && (
-          <Alert variant="caution">
-            <AlertTitle>{words.notDue}</AlertTitle>
-            <AlertDescription>{words.notDueHelp}</AlertDescription>
-          </Alert>
-        )}
-        {bill.data
-          ? (
-              // As wide as a bill reads at a glance, however wide the screen.
-              <div className="flex max-w-[900px] flex-col gap-2">
-                {lines.length === 0
-                  ? <p className="text-secondary-foreground">{words.nothingCharged}</p>
-                  : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-collapse">
-                          <caption className="sr-only">{words.bill}</caption>
-                          <thead>
-                            <tr className="border-b border-border text-sm text-muted-foreground">
-                              <th scope="col" className="py-2 text-left font-semibold">{words.whatWasDone}</th>
-                              <th scope="col" className="py-2 pl-4 text-right font-semibold">{words.howMany}</th>
-                              <th scope="col" className="py-2 pl-4 text-right font-semibold">{words.amount}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {lines.map(charge => (
-                              <tr key={charge.id} className="border-b border-secondary">
-                                <td className="py-2.5">{billLine(charge)}</td>
-                                <td className="py-2.5 pl-4 text-right">{printedQuantity(charge.quantity)}</td>
-                                <td className="py-2.5 pl-4 text-right whitespace-nowrap">{formatKes(charge.amountCents)}</td>
+      <TakePayment visit={visit} listed={listed}>
+        <div className="flex flex-col gap-5">
+          {bill.data
+            ? (
+                // As wide as a bill reads at a glance, however wide the screen.
+                <div className="flex max-w-[900px] flex-col gap-2">
+                  {lines.length === 0
+                    ? <p className="text-secondary-foreground">{words.nothingCharged}</p>
+                    : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <caption className="sr-only">{words.bill}</caption>
+                            <thead>
+                              <tr className="border-b border-border text-sm text-muted-foreground">
+                                <th scope="col" className="py-2 text-left font-semibold">{words.whatWasDone}</th>
+                                <th scope="col" className="py-2 pl-4 text-right font-semibold">{words.howMany}</th>
+                                <th scope="col" className="py-2 pl-4 text-right font-semibold">{words.amount}</th>
                               </tr>
-                            ))}
-                          </tbody>
-                          <tfoot>
-                            {partDue && (
-                              <tr>
-                                <th scope="row" colSpan={2} className="pt-2.5 text-left font-semibold">{words.totalForVisit}</th>
-                                <td className="pt-2.5 pl-4 text-right font-semibold whitespace-nowrap">{formatKes(bill.data.totalCents)}</td>
-                              </tr>
-                            )}
-                            {due && (
-                              <tr className="text-lg">
-                                <th scope="row" colSpan={2} className="py-2.5 text-left">{words.toPay}</th>
-                                <td className="py-2.5 pl-4 text-right font-bold whitespace-nowrap">{formatKes(visit.dueCents)}</td>
-                              </tr>
-                            )}
-                          </tfoot>
-                        </table>
-                      </div>
-                    )}
-                {due && partDue && <p className="text-sm text-muted-foreground">{words.restPaid}</p>}
-                <p className="text-sm text-muted-foreground">{words.fromTheDesks}</p>
-              </div>
-            )
-          : !bill.isError && <p role="status" className="text-muted-foreground">{words.readingBill}</p>}
-        {/* A read of the bill that failed says so, beside the lines read before when there are some. */}
-        {bill.isError && (
-          <Alert variant="problem">
-            <AlertDescription>{words.billReadFailed(failureText(bill.error))}</AlertDescription>
-            <Button variant="link" className="self-start" onClick={() => void bill.refetch()}>{en.errors.tryAgain}</Button>
-          </Alert>
-        )}
-      </div>
+                            </thead>
+                            <tbody>
+                              {lines.map(charge => (
+                                <tr key={charge.id} className="border-b border-secondary">
+                                  <td className="py-2.5">{billLine(charge)}</td>
+                                  <td className="py-2.5 pl-4 text-right">{printedQuantity(charge.quantity)}</td>
+                                  <td className="py-2.5 pl-4 text-right whitespace-nowrap">{formatKes(charge.amountCents)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              {partDue && (
+                                <tr>
+                                  <th scope="row" colSpan={2} className="pt-2.5 text-left font-semibold">{words.totalForVisit}</th>
+                                  <td className="pt-2.5 pl-4 text-right font-semibold whitespace-nowrap">{formatKes(bill.data.totalCents)}</td>
+                                </tr>
+                              )}
+                              {due && (
+                                <tr className="text-lg">
+                                  <th scope="row" colSpan={2} className="py-2.5 text-left">{words.toPay}</th>
+                                  <td className="py-2.5 pl-4 text-right font-bold whitespace-nowrap">{formatKes(visit.dueCents)}</td>
+                                </tr>
+                              )}
+                            </tfoot>
+                          </table>
+                        </div>
+                      )}
+                  {due && partDue && <p className="text-sm text-muted-foreground">{words.restPaid}</p>}
+                  <p className="text-sm text-muted-foreground">{words.fromTheDesks}</p>
+                </div>
+              )
+            : !bill.isError && <p role="status" className="text-muted-foreground">{words.readingBill}</p>}
+          {/* A read of the bill that failed says so, beside the lines read before when there are some. */}
+          {bill.isError && (
+            <Alert variant="problem">
+              <AlertDescription>{words.billReadFailed(failureText(bill.error))}</AlertDescription>
+              <Button variant="link" className="self-start" onClick={() => void bill.refetch()}>{en.errors.tryAgain}</Button>
+            </Alert>
+          )}
+        </div>
+      </TakePayment>
     </section>
   );
 }

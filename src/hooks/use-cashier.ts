@@ -16,6 +16,7 @@ import { unwrap } from "@/lib/api/refusal";
 const DUE_PAGE = 200;
 
 export const dueKey = ["cashier", "due"] as const;
+export const unmatchedKey = ["mpesa", "unmatched"] as const;
 export const shiftKey = ["cashier-shifts", "current"] as const;
 export const billKey = (encounterId: string) => ["encounters", encounterId, "charges"] as const;
 
@@ -61,5 +62,46 @@ export function useBill(encounterId: string, enabled: boolean) {
     enabled,
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * The M-Pesa payments to the paybill nothing matched to a patient, newest
+ * first (`GET /mpesa/transactions?status=unmatched`): the API's first page,
+ * of 100, holds a day's at a counter. Audited, as it shows payers' names and
+ * phones, so it is read once the cashier starts looking for a payment.
+ */
+export function useUnmatchedPayments(enabled: boolean) {
+  return useQuery({
+    queryKey: unmatchedKey,
+    queryFn: async () => (await unwrap(api.GET("/mpesa/transactions", { params: { query: { status: "unmatched" } } }))).transactions,
+    enabled,
+  });
+}
+
+/** How often a prompt to a phone is checked while the patient has it. */
+const PROMPT_CHECK_MS = 3_000;
+
+/**
+ * A prompt sent to a patient's phone, checked every few seconds until it is
+ * paid or has failed (`GET /mpesa/stk/{id}`).
+ */
+export function usePrompt(id: string | null) {
+  return useQuery({
+    queryKey: ["mpesa", "stk", id],
+    queryFn: async () => unwrap(api.GET("/mpesa/stk/{id}", { params: { path: { id: id! } } })),
+    enabled: id !== null,
+    refetchInterval: query => (query.state.data?.status === "completed" || query.state.data?.status === "failed" ? false : PROMPT_CHECK_MS),
+    refetchOnWindowFocus: false,
+  });
+}
+
+/** A payment and its receipt (`GET /payments/{id}`), once a prompt has become one. */
+export function usePayment(id: string | null) {
+  return useQuery({
+    queryKey: ["payments", id],
+    queryFn: async () => unwrap(api.GET("/payments/{id}", { params: { path: { id: id! } } })),
+    enabled: id !== null,
+    staleTime: Number.POSITIVE_INFINITY,
   });
 }

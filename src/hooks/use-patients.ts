@@ -33,12 +33,13 @@ export function usePatientSearch(q: string) {
 /**
  * A patient's record (`GET /patients/{id}`). Each opening of the record is
  * a read, and so recorded, however recently it was last read: what was read
- * before shows while it runs.
+ * before shows while it runs. Not read until `enabled`.
  */
-export function usePatient(id: string) {
+export function usePatient(id: string, enabled = true) {
   return useQuery({
     queryKey: patientKey(id),
     queryFn: () => unwrap(api.GET("/patients/{id}", { params: { path: { id } } })),
+    enabled,
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
