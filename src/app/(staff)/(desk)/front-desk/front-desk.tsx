@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { patientKey } from "@/hooks/use-patients";
 import { sentBody } from "@/hooks/use-repeat-safe";
+import { idParam } from "@/lib/navigation";
 import { type FoundPatient, opNumberOf, type PatientRecord } from "@/lib/patients";
 import { emptyDraft, namesFromSearch, type RegistrationDraft } from "@/lib/registration";
 import { en } from "@/strings/en";
@@ -14,8 +15,6 @@ import { BookedToday } from "./booked-today";
 import { type Arrival, PatientPanel } from "./patient-panel";
 import { PatientSearch } from "./patient-search";
 import { type Registering, RegisterPatient, type Then } from "./register-patient";
-
-const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
 /**
  * The front desk: who to find on the left, the patient in front of you on
@@ -30,8 +29,7 @@ const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
  */
 export function FrontDesk() {
   const params = useSearchParams();
-  const asked = params.get("patient");
-  const patientId = asked && UUID.test(asked) ? asked : null;
+  const patientId = idParam(params.get("patient"));
   const registering = params.has("new");
   const [term, setTerm] = useState("");
   // The search's own row for the patient chosen, shown while their record opens.

@@ -261,6 +261,8 @@ async function newcomer(what: string): Promise<Newcomer> {
 }
 
 const alert = (page: Page, text: string) => page.getByRole("alert").filter({ hasText: text });
+/** A route's test for an outside request's tests, one function so `unroute` finds the route it set. */
+const walkInOrders = (url: URL) => url.pathname.endsWith("/walk-in-orders");
 const heading = (page: Page) => page.getByRole("heading", { level: 1 });
 
 /** On the front desk, where a records clerk lands, working where the header says. */
@@ -797,7 +799,9 @@ const frontDeskFlow: Flow = {
       await page.getByRole("checkbox", { name: /^Malaria rapid test/ }).check();
       const keys: Record<string, string[]> = { visit: [], tests: [] };
       let answerLost = false;
-      await page.route(url => url.href === `${API_URL}/encounters` || /\/encounters\/[\w-]+\/walk-in-orders$/.test(url.pathname), async (route) => {
+      // Kept, as `unroute` removes only the route registered with this same function.
+      const visitOrTests = (url: URL) => url.href === `${API_URL}/encounters` || /\/encounters\/[\w-]+\/walk-in-orders$/.test(url.pathname);
+      await page.route(visitOrTests, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const tests = route.request().url().endsWith("/walk-in-orders");
@@ -818,7 +822,7 @@ const frontDeskFlow: Flow = {
       const answer = await replayed;
       expect("the tests' answer, replayed", answer.headers()["idempotent-replayed"], "true");
       expect("the tests replayed, as first entered", (await answer.json() as { items: { id: string }[] }).items.map(item => item.id), testItems);
-      await page.unroute(url => url.href === `${API_URL}/encounters` || url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(visitOrTests);
       const [first] = keys.visit;
       expect("one key for the action, sent twice for each request", [keys.visit.length, keys.tests.length, keys.visit[1] === first, keys.tests[1] === keys.tests[0], first.endsWith(".visit"), keys.tests[0] === `${first.slice(0, -".visit".length)}.tests`], [2, 2, true, true, true, true]);
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
@@ -837,7 +841,7 @@ const frontDeskFlow: Flow = {
       // The tests' answer is held back until the clerk has left the patient and come back.
       let release = () => {};
       const held = new Promise<void>(resolve => (release = resolve));
-      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+      await page.route(walkInOrders, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const answered = await route.fetch();
@@ -859,7 +863,7 @@ const frontDeskFlow: Flow = {
         release();
       }
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
-      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(walkInOrders);
       expect("the form, to send a second time", await page.getByRole("heading", { name: "Tests from an outside request" }).count(), 0);
     });
 
@@ -874,7 +878,7 @@ const frontDeskFlow: Flow = {
       // The answer is held back until the clerk is on another patient, then let through while they are away.
       let release = () => {};
       const held = new Promise<void>(resolve => (release = resolve));
-      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+      await page.route(walkInOrders, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const answered = await route.fetch();
@@ -892,7 +896,7 @@ const frontDeskFlow: Flow = {
         release();
       }
       await page.waitForResponse(response => response.url().endsWith("/walk-in-orders") && response.request().method() === "POST");
-      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(walkInOrders);
       await search.fill(familyName);
       await match.click();
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
@@ -1094,7 +1098,99 @@ const registerFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow];
+const cashierFlow: Flow = {
+  name: "cashier",
+  about: "the cashier sees who has money due, opens a patient's bill, and reads their shift",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    // The front desk, at another computer: it sends a made-up patient to the lab, so a visit has money due.
+    const clerk = await request.newContext();
+    const familyName = `Flows${RUN}`;
+    const name = `Neema ${familyName}`;
+    const row = page.getByRole("button", { name: new RegExp(`^${name}`) });
+    let facilityId = "";
+    let visitId = "";
+    let testItems: string[] = [];
+    const asClerk = { "x-facility-id": "", "origin": APP_URL };
+    // A visit's bill is part of the patient's record, and reading it is audited: the page reads none until one is chosen.
+    const billReads: string[] = [];
+    page.on("request", (sent) => {
+      const url = new URL(sent.url());
+      if (url.origin === new URL(API_URL).origin && sent.method() === "GET" && /^\/encounters\/[\w-]+\/charges$/.test(url.pathname))
+        billReads.push(url.pathname);
+    });
+
+    await step("the front desk sends a made-up patient to the lab with tests they asked for, which are charged", async () => {
+      await apiSignIn(clerk, seeded("frontdesk"), SEED_PASSWORD);
+      const { facilities } = await (await clerk.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+      asClerk["x-facility-id"] = facilityId;
+      const registered = await clerk.post(`${API_URL}/patients`, { headers: asClerk, data: { givenName: "Neema", familyName, sex: "female", dateOfBirth: "1993-02-17", noPhoneReason: "no_phone", noIdReason: "not_carried" } });
+      expect("registering the patient", registered.status(), 201);
+      const patientId = (await registered.json() as { id: string }).id;
+      const opened = await clerk.post(`${API_URL}/encounters`, { headers: asClerk, data: { patientId, kind: "opd", queueAt: null } });
+      expect("opening the visit", opened.status(), 201);
+      visitId = (await opened.json() as { id: string }).id;
+      const { tests } = await (await clerk.get(`${API_URL}/lab-tests`, { headers: { "x-facility-id": facilityId } })).json() as { tests: { id: string; name: string }[] };
+      const malaria = tests.find(test => test.name === "Malaria rapid test");
+      const entered = await clerk.post(`${API_URL}/encounters/${visitId}/walk-in-orders`, { headers: asClerk, data: { selfRequested: true, labTestIds: [malaria?.id] } });
+      expect("entering the test", entered.status(), 201);
+      testItems = (await entered.json() as { items: { id: string }[] }).items.map(item => item.id);
+    });
+
+    await step("the cashier lands on the cashier's desk, named in the header, with nobody chosen", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("cashier"), SEED_PASSWORD);
+      await page.waitForURL("**/cashier");
+      await page.locator("header").getByText("Cashier", { exact: true }).waitFor();
+      await heading(page).filter({ hasText: "Nobody chosen yet" }).waitFor();
+    });
+
+    await step("the money due list names the patient with what is due, and no bill is read before one is chosen", async () => {
+      await row.waitFor();
+      expect("the amount due on the row", await row.getByText(/^KES /).innerText(), "KES 300");
+      await row.hover();
+      await page.waitForTimeout(1_000);
+      expect("bills read before choosing", billReads, []);
+    });
+
+    await step("choosing the patient opens their bill: who, which visit, each line, and what is to pay", async () => {
+      await row.click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      expect("the address", new URL(page.url()).search, `?visit=${visitId}`);
+      expect("the row, marked chosen", await row.getAttribute("aria-pressed"), "true");
+      await page.getByText(/· today's outpatient visit$/).waitFor();
+      const bill = page.getByRole("table", { name: "The bill" });
+      await bill.locator("tbody tr").first().waitFor();
+      expect("the lines", await bill.locator("tbody tr").allInnerTexts(), ["Malaria rapid test\t1\tKES 300"]);
+      expect("what is to pay", await bill.locator("tfoot tr").allInnerTexts(), ["To pay\tKES 300"]);
+      expect("bills read", billReads, [`/encounters/${visitId}/charges`]);
+    });
+
+    await step("the shift shows what should be in the drawer", async () => {
+      const shift = page.getByRole("region", { name: "Your shift" });
+      await shift.getByText("Should be in the drawer").waitFor();
+      await shift.getByText(/^KES [\d,]+$/).first().waitFor();
+    });
+
+    await step("the test and the visit are cancelled, so no list keeps a made-up patient", async () => {
+      if (!visitId)
+        return;
+      for (const item of testItems) {
+        const cancelled = await clerk.post(`${API_URL}/order-items/${item}/cancel`, { headers: asClerk, data: { reason: "Entered by pnpm flows" } });
+        expect("cancelling the test", cancelled.status(), 200);
+      }
+      const cancelled = await clerk.post(`${API_URL}/encounters/${visitId}/cancel`, { headers: asClerk, data: { reason: "Opened by pnpm flows" } });
+      expect("cancelling the visit", cancelled.status(), 200);
+    }, { always: true });
+
+    await clerk.dispose();
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, cashierFlow];
 
 // ---------------------------------------------------------------------------
 // The run

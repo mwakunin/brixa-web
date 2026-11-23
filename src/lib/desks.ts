@@ -3,13 +3,13 @@ import type { MembershipRole } from "@/lib/facility";
 /**
  * The desks: one screen per job, each the landing place of the roles that do
  * that job. A person lands on their first desk and switches to their others
- * from the header. Only the desks built so far are listed; the cashier joins
- * when its screen is built.
+ * from the header. Only the desks built so far are listed.
  *
  * Which desk someone sees is a convenience: the API checks every call.
  */
 export const DESKS = [
   { id: "front-desk", path: "/front-desk", roles: ["records_clerk"] },
+  { id: "cashier", path: "/cashier", roles: ["cashier"] },
 ] as const satisfies readonly { id: string; path: `/${string}`; roles: readonly MembershipRole[] }[];
 
 export type Desk = (typeof DESKS)[number];

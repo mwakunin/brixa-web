@@ -64,3 +64,13 @@ export function setUpSignInHref(from: string | null | undefined): string {
 export function facilitiesHref(from: string): string {
   return withNext(FACILITIES_PATH, from);
 }
+
+const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+
+/**
+ * The record a desk's address names (`?patient=`, `?visit=`): an id, or
+ * nothing for anything else, so a mistyped address opens nobody's record.
+ */
+export function idParam(value: string | null): string | null {
+  return value && UUID.test(value) ? value : null;
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { facilitiesHref, firstParam, forgotPasswordHref, safeNext, setUpSignInHref, signInHref } from "./navigation";
+import { facilitiesHref, firstParam, forgotPasswordHref, idParam, safeNext, setUpSignInHref, signInHref } from "./navigation";
 
 describe("where to go after signing in", () => {
   it("goes back to a page of this app", () => {
@@ -84,5 +84,16 @@ describe("reading a query parameter that may repeat", () => {
     expect(firstParam("/facilities")).toBe("/facilities");
     expect(firstParam(undefined)).toBeNull();
     expect(firstParam([])).toBeNull();
+  });
+});
+
+describe("the record a desk's address names", () => {
+  it("is an id", () => {
+    expect(idParam("0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f")).toBe("0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f");
+  });
+
+  it("is nothing for anything else", () => {
+    for (const value of [null, "", "OP-000412", "0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f/x"])
+      expect(idParam(value)).toBeNull();
   });
 });
