@@ -10,7 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useLabTests, usePriceList } from "@/hooks/use-desk";
 import { visitsKey } from "@/hooks/use-patients";
-import { useRepeatSafe, waitingBody } from "@/hooks/use-repeat-safe";
+import { useRepeatSafe, sentBody } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { ApiError, failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
@@ -29,9 +29,9 @@ import {
 } from "@/lib/walk-in";
 import { en } from "@/strings/en";
 
-/** What an outside request waiting for its answer sent, for the panel to show its form again as it was. */
-export function waitingOutsideTests(patientId: string): WalkInDraft | null {
-  return waitingBody<Entry>(`outside-tests:${patientId}`)?.draft ?? null;
+/** What an outside request sent, while it waits or after a refusal not yet shown: for the panel to show its form again as it was. */
+export function sentOutsideTests(patientId: string): WalkInDraft | null {
+  return sentBody<Entry>(`outside-tests:${patientId}`)?.draft ?? null;
 }
 
 export type WalkInOrder = paths["/encounters/{id}/walk-in-orders"]["post"]["responses"][201]["content"]["application/json"];
@@ -87,7 +87,8 @@ export function OutsideTests({ patientId, name, openVisitId, draft, setDraft, on
       // Known from here on, so a refused entry pressed again goes on this visit rather than opening another;
       // a read of the visits begun before it opened would not have it, so it is stopped first.
       await queryClient.cancelQueries({ queryKey: visitsKey(body.patientId), exact: true });
-      queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
+      // A visit already known by its id is kept as known: a replayed answer may be older than it.
+      queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => (known?.some(visit => visit.id === opened.id) ? known : [opened, ...(known ?? [])]));
       visitId = opened.id;
     }
     return unwrap(api.POST("/encounters/{id}/walk-in-orders", { params: { path: { id: visitId } }, body: body.request, headers: { [IDEMPOTENCY_HEADER]: `${key}.tests` }, signal }));
@@ -142,8 +143,11 @@ export function OutsideTests({ patientId, name, openVisitId, draft, setDraft, on
     setRefused(failureText(ended.error));
   }
 
-  // "See the marked fields" goes once none is left; a refusal of the API's stays until the next press.
-  const shownRefusal = refused === en.register.checkFields && Object.keys(problems).length === 0 ? null : refused;
+  // "See the marked fields" goes once none is left; a refusal of the API's stays until the next press. One that
+  // came while the panel was left, which this form never handled, is shown from the shared state, in general words.
+  const shownRefusal = refused !== null
+    ? (refused === en.register.checkFields && Object.keys(problems).length === 0 ? null : refused)
+    : state.kind === "refused" ? failureText(state.error) : null;
   const offered = tests.data && prices.data ? offeredTests(tests.data, prices.data) : null;
   const shown = offered ? testsMatching(offered, find) : [];
   const catalogueFailed = tests.isError || prices.isError;

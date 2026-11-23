@@ -51,6 +51,13 @@ describe("dates in words", () => {
     expect(printedDate("2027-01-01")).toBe("1 January 2027");
   });
 
+  it("print a birth date from before 1942 as the day it was, though Nairobi kept other offsets then", () => {
+    // +02:45 until 1942, +02:30 before that: a date read as midnight at +03:00 fell on the day before.
+    expect(printedDate("1940-06-14")).toBe("14 June 1940");
+    expect(printedDate("1930-01-01")).toBe("1 January 1930");
+    expect(printedDay("1940-06-14", "2026-11-22")).toBe("14 June 1940");
+  });
+
   it.each([
     ["2026-11-22", "Today"],
     ["2026-11-21", "Yesterday"],

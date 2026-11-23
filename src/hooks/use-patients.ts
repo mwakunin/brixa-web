@@ -30,20 +30,26 @@ export function usePatientSearch(q: string) {
   });
 }
 
-/** A patient's record (`GET /patients/{id}`). */
+/**
+ * A patient's record (`GET /patients/{id}`). Each opening of the record is
+ * a read, and so recorded, however recently it was last read: what was read
+ * before shows while it runs.
+ */
 export function usePatient(id: string) {
   return useQuery({
     queryKey: patientKey(id),
     queryFn: () => unwrap(api.GET("/patients/{id}", { params: { path: { id } } })),
+    refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
 }
 
-/** A patient's visits, newest first (`GET /encounters?patientId=`): the first page is all the front desk needs. */
+/** A patient's visits, newest first (`GET /encounters?patientId=`), read at each opening as the record is. The first page is all the front desk needs. */
 export function usePatientVisits(patientId: string) {
   return useQuery({
     queryKey: visitsKey(patientId),
     queryFn: async () => (await unwrap(api.GET("/encounters", { params: { query: { patientId } } }))).encounters,
+    refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
 }

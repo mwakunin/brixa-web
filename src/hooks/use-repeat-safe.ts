@@ -2,7 +2,7 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-import { type Action, ActionStore, ANSWER_WAIT_MS, READY, settle, toSend, waitingIn, type WriteState } from "@/lib/api/repeat-safe";
+import { type Action, ActionStore, ANSWER_WAIT_MS, READY, sentIn, settle, toSend, waitingIn, type WriteState } from "@/lib/api/repeat-safe";
 import { chosenFacilityId } from "@/lib/facility";
 
 /** This tab's actions: in memory only, like everything the API returned. */
@@ -65,7 +65,11 @@ export function hasAction(name: string): boolean {
   return actions.get(atFacility(name)).kind !== "ready";
 }
 
-/** What the action `name` sent, while it waits for its answer: for a screen shown again to show it as it was sent. */
-export function waitingBody<Body>(name: string): Body | null {
-  return (waitingIn(actions.get(atFacility(name)))?.body as Body | undefined) ?? null;
+/**
+ * What the action `name` sent, while it waits for its answer or after a
+ * refusal no screen has shown yet: for a screen shown again to show its form
+ * as it was sent.
+ */
+export function sentBody<Body>(name: string): Body | null {
+  return (sentIn(actions.get(atFacility(name)))?.body as Body | undefined) ?? null;
 }

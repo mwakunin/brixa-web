@@ -191,8 +191,11 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }
 
   const held = waiting !== null;
-  // "See the marked fields" goes once none is left; a refusal of the API's stays until the next press.
-  const shownRefusal = refused === words.checkFields && Object.keys(problems).length === 0 ? null : refused;
+  // "See the marked fields" goes once none is left; a refusal of the API's stays until the next press. One that
+  // came while the screen was left, which this form never handled, is shown from the shared state, in general words.
+  const shownRefusal = refused !== null
+    ? (refused === words.checkFields && Object.keys(problems).length === 0 ? null : refused)
+    : duplicate === null && state.kind === "refused" ? failureText(state.error) : null;
   const mainThen: Then = draft.unidentified ? "emergency" : "opd";
 
   function footer() {

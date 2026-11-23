@@ -31,11 +31,6 @@ export function businessDate(at: Date = new Date()): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-/** The instant a Kenyan day begins: its midnight in Nairobi. */
-function startOfBusinessDay(date: string): Date {
-  return new Date(`${date}T00:00:00+03:00`);
-}
-
 /** Whole years from `dateOfBirth` to `today`, both Kenyan days. */
 function ageInYears(dateOfBirth: string, today: string): number {
   const [by, bm, bd] = dateOfBirth.split("-").map(Number);
@@ -58,8 +53,10 @@ export function printedAge(dateOfBirth: string, today: string): string {
   return plural(Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(by, bm - 1, bd)) / 86_400_000), "day");
 }
 
+// A date is a day, not an instant: it is printed as itself, read in UTC. Read at Nairobi's midnight, a day
+// before 1942, when Nairobi kept +02:45 (and +02:30 before that), would print as the day before.
 const longDayParts = new Intl.DateTimeFormat("en-GB", {
-  timeZone: BUSINESS_TIME_ZONE,
+  timeZone: "UTC",
   calendar: "gregory",
   numberingSystem: "latn",
   year: "numeric",
@@ -69,7 +66,8 @@ const longDayParts = new Intl.DateTimeFormat("en-GB", {
 
 /** A date in words: `1997-06-14` → "14 June 1997". */
 export function printedDate(date: string): string {
-  const part = partsOf(longDayParts, startOfBusinessDay(date));
+  const [y, m, d] = date.split("-").map(Number);
+  const part = partsOf(longDayParts, new Date(Date.UTC(y, m - 1, d)));
   return `${part("day")} ${part("month")} ${part("year")}`;
 }
 

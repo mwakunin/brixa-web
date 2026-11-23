@@ -43,14 +43,14 @@ export function BookedToday() {
                 {appointments.data.map(appointment => <Booking key={appointment.id} appointment={appointment} date={today} />)}
               </ul>
             )
-        : appointments.isError
-          ? (
-              <Alert variant="problem">
-                <AlertDescription>{failureText(appointments.error)}</AlertDescription>
-                <Button variant="link" className="self-start" onClick={() => void appointments.refetch()}>{en.errors.tryAgain}</Button>
-              </Alert>
-            )
-          : <p role="status" className="text-muted-foreground">{words.bookedChecking}</p>}
+        : !appointments.isError && <p role="status" className="text-muted-foreground">{words.bookedChecking}</p>}
+      {/* A read that failed says so, beside the bookings last read when there are some. */}
+      {appointments.isError && (
+        <Alert variant="problem">
+          <AlertDescription>{failureText(appointments.error)}</AlertDescription>
+          <Button variant="link" className="self-start" onClick={() => void appointments.refetch()}>{en.errors.tryAgain}</Button>
+        </Alert>
+      )}
     </section>
   );
 }

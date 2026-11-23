@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ApiError, EmptyAnswer, refusalOf } from "./refusal";
-import { ActionStore, noAnswer, settle, toSend, waitingIn } from "./repeat-safe";
+import { ActionStore, noAnswer, sentIn, settle, toSend, waitingIn } from "./repeat-safe";
 
 const visit: { patientId: string; kind: "opd" | "emergency" } = { patientId: "p-1", kind: "opd" };
 
@@ -36,6 +36,15 @@ describe("one key for one action", () => {
     expect(waitingIn(done)).toBeNull();
     expect(waitingIn(refused)).toBeNull();
     expect(toSend(waitingIn(refused), visit).key).not.toBe(first.key);
+  });
+
+  it("keeps what a refused action sent, for its form to be shown again, though it no longer waits", () => {
+    const first = toSend(null, visit);
+    const refused = settle(first, { ok: false, error: new ApiError(refusalOf(409, { message: "Refused", code: "refused" })) });
+
+    expect(waitingIn(refused)).toBeNull();
+    expect(sentIn(refused)).toBe(first);
+    expect(sentIn(settle(first, { ok: true, result: {} }))).toBeNull();
   });
 
   it("stays waiting while it is being sent", () => {

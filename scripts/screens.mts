@@ -82,8 +82,9 @@ if (values.as) {
 await mkdir(OUT, { recursive: true });
 const report: { page: string; size: string; file: string; status: number | null; ready: boolean; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
 /**
- * Resolves true once nothing the page asked for has been in flight for half
- * a second, or false after 30 s of requests that did not settle. Playwright's
+ * Resolves true once nothing the page asked for has been in flight for 1.5 s,
+ * longer than a failed read waits before it is tried again, or false after
+ * 30 s of requests that did not settle. Playwright's
  * own "networkidle" resolves at once when the page reached it earlier, before
  * a desk asks for its data; this counts the page's requests itself, from
  * before it loads.
@@ -103,7 +104,7 @@ function quiet(page: Page): () => Promise<boolean> {
   page.on("requestfailed", ended);
   return async () => {
     const until = Date.now() + 30_000;
-    while (inFlight > 0 || Date.now() - last < 500) {
+    while (inFlight > 0 || Date.now() - last < 1_500) {
       if (Date.now() >= until)
         return false;
       await page.waitForTimeout(100);

@@ -641,6 +641,7 @@ const frontDeskFlow: Flow = {
     let facilityId = "";
     let patientId = "";
     let bookedId = "";
+    let readsBeforeRetry = 0;
 
     const visitsOf = async (id: string) => (await (await context.request.get(`${API_URL}/encounters?patientId=${id}`, { headers: { "x-facility-id": facilityId } })).json() as { encounters: { id: string; kind: string; status: string }[] }).encounters;
     // Opening a record, or the list of a patient's visits, is an audited read: the page makes none until asked.
@@ -720,6 +721,8 @@ const frontDeskFlow: Flow = {
       await alert(page, "No answer: the connection dropped").waitFor();
       expect("the Emergency button, while an answer is awaited", await page.getByRole("button", { name: "Emergency" }).count(), 0);
       const second = page.waitForResponse(response => response.url() === `${API_URL}/encounters` && response.request().method() === "POST");
+      // Counted from before Try again, so a read the answer set off is not hidden in the count.
+      readsBeforeRetry = recordReads.length;
       await page.getByRole("button", { name: "Try again: start today's visit" }).click();
       expect("the answer, replayed", (await second).headers()["idempotent-replayed"], "true");
       expect("one key, sent twice", keys.length === 2 && keys[0] === keys[1] && keys[0].length >= 8, true);
@@ -728,7 +731,7 @@ const frontDeskFlow: Flow = {
     });
 
     await step("the visit was opened once; the record says where the patient waits, without reading it again", async () => {
-      const reads = recordReads.length;
+      const reads = readsBeforeRetry;
       await page.getByText(/^Outpatient visit, waiting at Triage since \d\d:\d\d$/).waitFor();
       expect("records read since", recordReads.length, reads);
       expect("visits opened", (await visitsOf(patientId)).map(visit => [visit.kind, visit.status]), [["opd", "open"]]);

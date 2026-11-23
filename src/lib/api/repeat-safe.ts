@@ -32,7 +32,11 @@ export function toSend<Body>(waiting: Action<Body> | null, body: Body): Action<B
   return waiting ?? { key: newKey(), body };
 }
 
-/** A gateway's answer in front of the API (502, 503, 504): it cannot say whether the write behind it was done. */
+/**
+ * A gateway's answer in front of the API (502, 503, 504): it cannot say whether the write behind it was done.
+ * The API itself answers none of these from a route; its only 503, from its startup gate, comes before any route
+ * runs, so a resend under the same key runs afresh. If a route ever answers one of them, this needs revisiting.
+ */
 const GATEWAY_FAILURES = new Set([502, 503, 504]);
 
 /**
@@ -59,18 +63,27 @@ export type WriteState<Body, Result>
     | { kind: "sending"; action: Action<Body> }
     | { kind: "no_answer"; action: Action<Body> }
     | { kind: "done"; result: Result }
-    | { kind: "refused"; error: unknown };
+    | { kind: "refused"; error: unknown; action: Action<Body> };
 
 /** The state once `action` was answered, or failed to be. Only no answer keeps it waiting. */
 export function settle<Body, Result>(action: Action<Body>, outcome: { ok: true; result: Result } | { ok: false; error: unknown }): WriteState<Body, Result> {
   if (outcome.ok)
     return { kind: "done", result: outcome.result };
-  return noAnswer(outcome.error) ? { kind: "no_answer", action } : { kind: "refused", error: outcome.error };
+  return noAnswer(outcome.error) ? { kind: "no_answer", action } : { kind: "refused", error: outcome.error, action };
 }
 
 /** The action that is still waiting for its answer in `state`, if any. */
 export function waitingIn<Body, Result>(state: WriteState<Body, Result>): Action<Body> | null {
   return state.kind === "sending" || state.kind === "no_answer" ? state.action : null;
+}
+
+/**
+ * What `state` sent, while it waits or after it was refused: for a screen
+ * shown again to show its form as it was, refusal and all. A refused action
+ * no longer waits, so a press makes a new key for the corrected form.
+ */
+export function sentIn<Body, Result>(state: WriteState<Body, Result>): Action<Body> | null {
+  return state.kind === "sending" || state.kind === "no_answer" || state.kind === "refused" ? state.action : null;
 }
 
 export const READY: WriteState<never, never> = { kind: "ready" };

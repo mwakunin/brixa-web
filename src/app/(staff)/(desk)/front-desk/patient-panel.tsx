@@ -17,7 +17,7 @@ import { hasOpenOutpatientVisit, type Visit, visitFact } from "@/lib/visits";
 import { emptyWalkIn, type WalkInDraft } from "@/lib/walk-in";
 import { en } from "@/strings/en";
 
-import { OutsideTests, type WalkInOrder, waitingOutsideTests } from "./outside-tests";
+import { OutsideTests, sentOutsideTests, type WalkInOrder } from "./outside-tests";
 import { WaitingNow } from "./waiting-now";
 
 interface Start {
@@ -72,7 +72,7 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
   // answered while nobody watched opens to show its answer, so nobody enters the same tests again.
   const [mode, setMode] = useState<"record" | "outside-tests">(() => (hasAction(`outside-tests:${id}`) ? "outside-tests" : "record"));
   // The outside request's form, kept here so going back to the record and returning finds it as it was left.
-  const [testsDraft, setTestsDraft] = useState<WalkInDraft>(() => waitingOutsideTests(id) ?? emptyWalkIn);
+  const [testsDraft, setTestsDraft] = useState<WalkInDraft>(() => sentOutsideTests(id) ?? emptyWalkIn);
   // The tests entered from an outside request, for the Done message.
   const [entered, setEntered] = useState<WalkInOrder | null>(null);
   const enteredTests = useCallback((order: WalkInOrder) => {
@@ -213,14 +213,14 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
                 ))}
               </dl>
             )
-          : record.isError
-            ? (
-                <Alert variant="problem">
-                  <AlertDescription>{failureText(record.error)}</AlertDescription>
-                  <Button variant="link" className="self-start" onClick={() => void record.refetch()}>{en.errors.tryAgain}</Button>
-                </Alert>
-              )
-            : <p role="status" className="text-muted-foreground">{en.frontDesk.opening}</p>}
+          : !record.isError && <p role="status" className="text-muted-foreground">{en.frontDesk.opening}</p>}
+        {/* A read of the record that failed says so, beside what was read before when there is some. */}
+        {record.isError && (
+          <Alert variant="problem">
+            <AlertDescription>{failureText(record.error)}</AlertDescription>
+            <Button variant="link" className="self-start" onClick={() => void record.refetch()}>{en.errors.tryAgain}</Button>
+          </Alert>
+        )}
         {record.data && visits.isError && (
           <Button variant="link" className="self-start" onClick={() => void visits.refetch()}>{en.errors.tryAgain}</Button>
         )}
