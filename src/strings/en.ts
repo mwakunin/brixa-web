@@ -251,6 +251,7 @@ export const en = {
     owesHelp: "On bills already out. It does not stop today's visit: tell the patient, and the cashier takes it.",
     takeAtCashier: "Take it at the cashier",
     owedUnknown: "What the patient owes could not be checked.",
+    owedChecking: "Checking what the patient owes…",
   },
   /** Registering a new patient at the front desk. */
   register: {
@@ -464,6 +465,7 @@ export const en = {
       waitingHelp: (amount: string, phone: string) => `A prompt for ${amount} went to ${phone}. M-Pesa asks for the PIN there. This is checked every few seconds.`,
       waitingReadFailed: (why: string) => `The prompt could not be checked: ${why}`,
       promptPaid: (name: string) => `${name} paid on the phone`,
+      placed: (name: string) => `${name}'s M-Pesa payment is recorded`,
       readingReceipt: "Reading the receipt…",
       receiptReadFailed: (why: string) => `The payment is recorded, but its receipt could not be read: ${why}`,
       promptFailed: "The prompt was not paid",

@@ -42,9 +42,14 @@ interface Pay {
   paying: Paying;
 }
 
-/** What a payment led to: a receipt, or a prompt the patient has yet to pay on their phone. */
+/**
+ * What a payment led to: a receipt; an M-Pesa payment placed on the
+ * account whose receipt could not be read with it, and is read again; or a
+ * prompt the patient has yet to pay on their phone.
+ */
 type Paid
   = | { kind: "paid"; receiptNumber: string; documentId: string; amountCents: number }
+    | { kind: "placed"; paymentId: string }
     | { kind: "prompted"; promptId: string; phone: string; amountCents: number };
 
 /** The form a payment was sent from, for a screen shown again while it waits, or after a refusal. */
@@ -128,20 +133,24 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
       const prompt = await unwrap(api.POST("/mpesa/stk", { body: { ...towards, phone: paying.phone, amountCents: paying.amountCents }, headers: keyed("pay"), signal }));
       paid = { kind: "prompted", promptId: prompt.id, phone: paying.phone, amountCents: prompt.amountCents };
     }
+    else if (paying.method === "paybill") {
+      const placed = await unwrap(api.POST("/mpesa/transactions/{id}/assign", { params: { path: { id: paying.transactionId } }, body: towards, headers: keyed("pay"), signal }));
+      if (!placed.paymentId)
+        throw new Error("A placed M-Pesa payment came back without its payment");
+      void queryClient.invalidateQueries({ queryKey: unmatchedKey });
+      try {
+        const payment = await unwrap(api.GET("/payments/{id}", { params: { path: { id: placed.paymentId } }, signal }));
+        paid = { kind: "paid", receiptNumber: payment.receiptNumber, documentId: payment.documentId, amountCents: payment.amountCents };
+      }
+      catch {
+        // Placed: the payment is done whatever this read says. Its receipt is read again on the screen, with its own Try again.
+        paid = { kind: "placed", paymentId: placed.paymentId };
+      }
+    }
     else {
-      let payment;
-      if (paying.method === "paybill") {
-        const placed = await unwrap(api.POST("/mpesa/transactions/{id}/assign", { params: { path: { id: paying.transactionId } }, body: towards, headers: keyed("pay"), signal }));
-        if (!placed.paymentId)
-          throw new Error("A placed M-Pesa payment came back without its payment");
-        payment = await unwrap(api.GET("/payments/{id}", { params: { path: { id: placed.paymentId } }, signal }));
-        void queryClient.invalidateQueries({ queryKey: unmatchedKey });
-      }
-      else {
-        const reference = paying.method === "cash" ? {} : { reference: paying.reference };
-        payment = await unwrap(api.POST("/payments", { body: { ...towards, method: paying.method, amountCents: paying.amountCents, ...reference }, headers: keyed("pay"), signal }));
-        void queryClient.invalidateQueries({ queryKey: shiftKey });
-      }
+      const reference = paying.method === "cash" ? {} : { reference: paying.reference };
+      const payment = await unwrap(api.POST("/payments", { body: { ...towards, method: paying.method, amountCents: paying.amountCents, ...reference }, headers: keyed("pay"), signal }));
+      void queryClient.invalidateQueries({ queryKey: shiftKey });
       paid = { kind: "paid", receiptNumber: payment.receiptNumber, documentId: payment.documentId, amountCents: payment.amountCents };
     }
     // What is due, the bills behind it and the patient's account have changed: they are read again.
@@ -154,9 +163,11 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
   const { state } = pay;
   const waiting = waitingIn(state);
   const prompted = state.kind === "done" && state.result.kind === "prompted" ? state.result : null;
+  const placed = state.kind === "done" && state.result.kind === "placed" ? state.result : null;
   const prompt = usePrompt(prompted?.promptId ?? null);
   const promptStatus = prompt.data?.status;
-  const promptPayment = usePayment(promptStatus === "completed" ? (prompt.data?.paymentId ?? null) : null);
+  // A payment recorded without its receipt: paid on the phone, or placed while the receipt's read failed.
+  const laterPayment = usePayment(placed?.paymentId ?? (promptStatus === "completed" ? (prompt.data?.paymentId ?? null) : null));
   const promptOpen = prompted !== null && promptStatus !== "completed" && promptStatus !== "failed";
 
   // The receipt goes to the tab opened at the press, and says so when the browser blocked it; a press that ended
@@ -271,8 +282,8 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
 
   const receipt = state.kind === "done" && state.result.kind === "paid"
     ? state.result
-    : promptPayment.data
-      ? { receiptNumber: promptPayment.data.receiptNumber, documentId: promptPayment.data.documentId, amountCents: promptPayment.data.amountCents }
+    : laterPayment.data
+      ? { receiptNumber: laterPayment.data.receiptNumber, documentId: laterPayment.data.documentId, amountCents: laterPayment.data.amountCents }
       : null;
 
   return (
@@ -286,19 +297,19 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
             {prompt.isError && <AlertDescription>{words.waitingReadFailed(failureText(prompt.error))}</AlertDescription>}
           </Alert>
         )}
-        {/* Paid on the phone: the payment is recorded, and its receipt is read to print. */}
-        {prompted && promptStatus === "completed" && !promptPayment.data && (
-          promptPayment.isError
+        {/* Paid on the phone, or placed from the paybill: the payment is recorded, and its receipt is read to print. */}
+        {((prompted && promptStatus === "completed") || placed) && !laterPayment.data && (
+          laterPayment.isError
             ? (
                 <Alert variant="problem">
-                  <AlertTitle>{words.promptPaid(name)}</AlertTitle>
-                  <AlertDescription>{words.receiptReadFailed(failureText(promptPayment.error))}</AlertDescription>
-                  <Button variant="link" className="self-start" onClick={() => void promptPayment.refetch()}>{en.errors.tryAgain}</Button>
+                  <AlertTitle>{prompted ? words.promptPaid(name) : words.placed(name)}</AlertTitle>
+                  <AlertDescription>{words.receiptReadFailed(failureText(laterPayment.error))}</AlertDescription>
+                  <Button variant="link" className="self-start" onClick={() => void laterPayment.refetch()}>{en.errors.tryAgain}</Button>
                 </Alert>
               )
             : (
                 <Alert variant="done">
-                  <AlertTitle>{words.promptPaid(name)}</AlertTitle>
+                  <AlertTitle>{prompted ? words.promptPaid(name) : words.placed(name)}</AlertTitle>
                   <AlertDescription>{words.readingReceipt}</AlertDescription>
                 </Alert>
               )

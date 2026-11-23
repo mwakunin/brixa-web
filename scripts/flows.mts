@@ -1246,7 +1246,9 @@ const cashierFlow: Flow = {
       expect("the row on Money due", await row.getByText(/^KES /).innerText(), "KES 200");
     });
 
-    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due", async () => {
+    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due; the payment typed before it is kept", async () => {
+      // Typed for the payment, then the waiver asked for first.
+      await page.getByLabel("Amount, in shillings").fill("150");
       await page.getByRole("button", { name: "Ask for a waiver" }).click();
       const bill = page.getByRole("button", { name: /^INV-\S+, KES 200 owed$/ });
       await bill.click();
@@ -1262,6 +1264,7 @@ const cashierFlow: Flow = {
       await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
       expect("what the API says is due, the waiver not approved yet", (await dueOnVisit())?.dueCents, 20_000);
       await page.getByRole("button", { name: "Back to taking payment" }).click();
+      expect("the payment's amount, as typed before the waiver", await page.getByLabel("Amount, in shillings").inputValue(), "150");
     });
 
     await step("what the patient owes on bills out opens at the cashier for them, and the rest by bank transfer settles it", async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,14 @@ import { AskWaiver } from "./ask-waiver";
 import { TakePayment } from "./take-payment";
 
 const words = en.cashier;
+
+/**
+ * The row last seen for each visit opened in this tab, in memory only. A
+ * payment sent there whose answer is still to show, or still awaited, is
+ * found again with its patient once the visit has left the list, paid off
+ * by that payment.
+ */
+const lastListed = new Map<string, DueVisit>();
 
 /**
  * The patient in front of the cashier: who they are, which visit, what is
@@ -35,9 +43,13 @@ export function VisitBill({ id, listed, listRead }: {
   listRead: boolean;
 }) {
   // The row last seen for this visit: it still names the patient once the visit leaves the list.
-  const [known, setKnown] = useState(listed);
+  const [known, setKnown] = useState(() => listed ?? (hasAction(`pay:${id}`) ? (lastListed.get(id) ?? null) : null));
   if (listed && listed !== known)
     setKnown(listed);
+  useEffect(() => {
+    if (listed)
+      lastListed.set(id, listed);
+  }, [id, listed]);
   const visit = listed ?? known;
   const bill = useBill(id, visit !== null);
   const due = useMoneyDue();
@@ -145,19 +157,19 @@ export function VisitBill({ id, listed, listRead }: {
           </span>
         )}
       </div>
-      {asking
-        ? <AskWaiver visit={visit} listed={listed} onBack={() => setAsking(false)}>{billBlock}</AskWaiver>
-        : (
-            <TakePayment
-              patient={visit.patient}
-              towards={{ kind: "visit", encounterId: visit.encounterId, unbilledCents: (listed ?? visit).unbilledCents }}
-              dueCents={listed?.dueCents ?? null}
-              dueRead={{ read: due.isSuccess, checking: due.isFetching, failed: due.isError }}
-              nothingDue={{ title: words.notDue, help: words.notDueHelp }}
-            >
-              {billBlock}
-            </TakePayment>
-          )}
+      {asking && <AskWaiver visit={visit} listed={listed} onBack={() => setAsking(false)}>{billBlock}</AskWaiver>}
+      {/* Kept while the waiver is asked for, out of sight, so what was typed for the payment is there on the way back. */}
+      <div hidden={asking} className="contents">
+        <TakePayment
+          patient={visit.patient}
+          towards={{ kind: "visit", encounterId: visit.encounterId, unbilledCents: (listed ?? visit).unbilledCents }}
+          dueCents={listed?.dueCents ?? null}
+          dueRead={{ read: due.isSuccess, checking: due.isFetching, failed: due.isError }}
+          nothingDue={{ title: words.notDue, help: words.notDueHelp }}
+        >
+          {!asking && billBlock}
+        </TakePayment>
+      </div>
     </section>
   );
 }

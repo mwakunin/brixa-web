@@ -239,6 +239,8 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
           </div>
         )}
         {record.data && account.isError && <p className="text-sm text-muted-foreground">{en.frontDesk.owedUnknown}</p>}
+        {/* Until the account answers, owing nothing and not checked yet look alike: it says so. */}
+        {record.data && mayReadAccount(facility.roles) && account.isPending && <p role="status" className="text-sm text-muted-foreground">{en.frontDesk.owedChecking}</p>}
         {/* A read of the record that failed says so, beside what was read before when there is some. */}
         {record.isError && (
           <Alert variant="problem">

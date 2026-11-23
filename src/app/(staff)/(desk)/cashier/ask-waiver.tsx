@@ -67,12 +67,18 @@ export function AskWaiver({ visit, listed, onBack, children }: {
 
   const ask = useRepeatSafe<Asking, Asked>(actionName, async ({ key, body }, signal) => {
     const keyed = (part: string) => ({ [IDEMPOTENCY_HEADER]: `${key}.${part}` });
-    const invoiceId = body.invoiceId ?? (await unwrap(api.POST("/encounters/{id}/bill-now", { params: { path: { id: body.encounterId } }, headers: keyed("bill"), signal }))).id;
+    let invoiceId = body.invoiceId;
+    if (invoiceId === null) {
+      const billed = (await unwrap(api.POST("/encounters/{id}/bill-now", { params: { path: { id: body.encounterId } }, headers: keyed("bill"), signal }))).id;
+      invoiceId = billed;
+      // Billing what was not billed changes the visit's bills, whatever the waiver's answer; the waiver changes nothing due until approved.
+      void queryClient.invalidateQueries({ queryKey: dueKey });
+      void queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) });
+      void queryClient.invalidateQueries({ queryKey: accountKey(visit.patient.id) });
+      // A waiver refused, then corrected, is asked for on this bill: what it was for is billed now.
+      setDraft(known => (known.billId === NOT_BILLED ? { ...known, billId: billed } : known));
+    }
     const asked = await unwrap(api.POST("/invoices/{id}/adjustments", { params: { path: { id: invoiceId } }, body: { kind: "waiver", amountCents: body.amountCents, reason: body.reason }, headers: keyed("ask"), signal }));
-    // Billing what was not billed changes the visit's bills; the waiver changes nothing due until approved.
-    void queryClient.invalidateQueries({ queryKey: dueKey });
-    void queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) });
-    void queryClient.invalidateQueries({ queryKey: accountKey(visit.patient.id) });
     return { amountCents: asked.amountCents, invoiceNumber: asked.invoiceNumber ?? "" };
   });
   const { state } = ask;

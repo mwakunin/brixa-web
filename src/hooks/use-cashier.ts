@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import type { DueVisit } from "@/lib/cashier";
+import type { DueVisit, MpesaPayment } from "@/lib/cashier";
 
 import { api } from "@/lib/api/client";
 import { unwrap } from "@/lib/api/refusal";
@@ -66,16 +66,28 @@ export function useBill(encounterId: string, enabled: boolean) {
   });
 }
 
+/** The API's page of M-Pesa payments. */
+const MPESA_PAGE = 100;
+
 /**
  * The M-Pesa payments to the paybill nothing matched to a patient, newest
- * first (`GET /mpesa/transactions?status=unmatched`): the API's first page,
- * of 100, holds a day's at a counter. Audited, as it shows payers' names and
- * phones, so it is read once the cashier starts looking for a payment.
+ * first (`GET /mpesa/transactions?status=unmatched`), read page by page
+ * until a page comes back short: one left unmatched for days is still found.
+ * Audited, as it shows payers' names and phones, so it is read once the
+ * cashier starts looking for a payment.
  */
 export function useUnmatchedPayments(enabled: boolean) {
   return useQuery({
     queryKey: unmatchedKey,
-    queryFn: async () => (await unwrap(api.GET("/mpesa/transactions", { params: { query: { status: "unmatched" } } }))).transactions,
+    queryFn: async () => {
+      const all: MpesaPayment[] = [];
+      for (;;) {
+        const page = (await unwrap(api.GET("/mpesa/transactions", { params: { query: { status: "unmatched", offset: all.length } } }))).transactions;
+        all.push(...page);
+        if (page.length < MPESA_PAGE)
+          return all;
+      }
+    },
     enabled,
   });
 }

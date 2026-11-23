@@ -8,6 +8,9 @@ import { en } from "@/strings/en";
 /** A visit on the cashier's list, with what is due on it (`GET /cashier/due`). */
 export type DueVisit = paths["/cashier/due"]["get"]["responses"][200]["content"]["application/json"]["visits"][number];
 
+/** An M-Pesa payment to the paybill, as listed (`GET /mpesa/transactions`). */
+export type MpesaPayment = paths["/mpesa/transactions"]["get"]["responses"][200]["content"]["application/json"]["transactions"][number];
+
 /** The cashier's own open shift and its takings (`GET /cashier-shifts/current`). */
 export type Shift = NonNullable<paths["/cashier-shifts/current"]["get"]["responses"][200]["content"]["application/json"]["shift"]>;
 
