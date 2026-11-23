@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -71,10 +71,16 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
   const [mode, setMode] = useState<"record" | "outside-tests">(() => (waitingBody(`outside-tests:${id}`) ? "outside-tests" : "record"));
   // The tests entered from an outside request, for the Done message.
   const [entered, setEntered] = useState<WalkInOrder | null>(null);
+  const enteredTests = useCallback((order: WalkInOrder) => {
+    setEntered(order);
+    setMode("record");
+  }, []);
 
   const start = useRepeatSafe<Start, Visit>(`start:${id}`, async ({ key, body }, signal) => {
     const opened = await unwrap(api.POST("/encounters", { body, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
     // Kept even when the list was never read: an outside request goes on this visit rather than opening another.
+    // A read of the visits begun before it opened would not have it, so it is stopped first.
+    await queryClient.cancelQueries({ queryKey: visitsKey(body.patientId), exact: true });
     queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
     void queryClient.invalidateQueries({ queryKey: servicePointsKey });
     return opened;
@@ -158,10 +164,7 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
               patientId={id}
               name={name ?? en.frontDesk.patient}
               openVisitId={openVisitId}
-              onEntered={(order) => {
-                setEntered(order);
-                setMode("record");
-              }}
+              onEntered={enteredTests}
               onBack={() => setMode("record")}
             />
           )

@@ -43,6 +43,8 @@ export function walkInBody(draft: WalkInDraft): { ok: true; body: WalkInBody } |
     problems.facility = words.facility;
   if (draft.testIds.length === 0)
     problems.tests = words.tests;
+  else if (draft.testIds.length > WALK_IN_LIMITS.tests)
+    problems.tests = words.tooManyTests(WALK_IN_LIMITS.tests);
   if (Object.keys(problems).length > 0)
     return { ok: false, problems };
   return {

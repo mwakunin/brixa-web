@@ -64,13 +64,13 @@ export function FrontDesk() {
     window.history.pushState(null, "", "?new");
   }
 
-  function registered(record: PatientRecord, then: Then) {
+  const registered = useCallback((record: PatientRecord, then: Then) => {
     setDraft(emptyDraft);
     setTerm("");
     setChosen(null);
     setArrival({ patientId: record.id, registeredAs: opNumberOf(record) ?? "", then });
     window.history.replaceState(null, "", `?patient=${record.id}`);
-  }
+  }, []);
 
   // Once sent, the visit asked for on registering is not sent again, whatever is shown again.
   const arrivalSent = useCallback(() => setArrival(known => known && { ...known, then: null }), []);

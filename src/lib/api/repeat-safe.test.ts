@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiError, refusalOf } from "./refusal";
+import { ApiError, EmptyAnswer, refusalOf } from "./refusal";
 import { ActionStore, noAnswer, settle, toSend, waitingIn } from "./repeat-safe";
 
 const visit: { patientId: string; kind: "opd" | "emergency" } = { patientId: "p-1", kind: "opd" };
@@ -52,8 +52,9 @@ describe("no answer", () => {
     expect(noAnswer(new DOMException("The operation was aborted.", "AbortError"))).toBe(true);
   });
 
-  it("is a success whose body could not be read: the write went through, what it returned is unknown", () => {
+  it("is a success whose body could not be read, or came empty: the write went through, what it returned is unknown", () => {
     expect(noAnswer(new SyntaxError("Unexpected end of JSON input"))).toBe(true);
+    expect(noAnswer(new EmptyAnswer(201))).toBe(true);
   });
 
   it("is not an answer the API gave, even our own failure", () => {

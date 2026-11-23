@@ -802,8 +802,10 @@ const frontDeskFlow: Flow = {
         if (!tests || answerLost)
           return route.continue();
         answerLost = true;
-        // The visit is opened and the tests entered, but the answer never reaches the page.
-        await route.fetch();
+        // The visit is opened and the tests entered, but the answer never reaches the page. Their ids are
+        // kept from it now, so clean-up cancels them even if a later check fails.
+        const answered = await route.fetch();
+        testItems = (await answered.json() as { items: { id: string }[] }).items.map(item => item.id);
         await route.abort("connectionreset");
       });
       await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
@@ -812,13 +814,45 @@ const frontDeskFlow: Flow = {
       await page.getByRole("button", { name: "Try again: enter the tests" }).click();
       const answer = await replayed;
       expect("the tests' answer, replayed", answer.headers()["idempotent-replayed"], "true");
-      testItems = (await answer.json() as { items: { id: string }[] }).items.map(item => item.id);
+      expect("the tests replayed, as first entered", (await answer.json() as { items: { id: string }[] }).items.map(item => item.id), testItems);
       await page.unroute(url => url.href === `${API_URL}/encounters` || url.pathname.endsWith("/walk-in-orders"));
       const [first] = keys.visit;
       expect("one key for the action, sent twice for each request", [keys.visit.length, keys.tests.length, keys.visit[1] === first, keys.tests[1] === keys.tests[0], first.endsWith(".visit"), keys.tests[0] === `${first.slice(0, -".visit".length)}.tests`], [2, 2, true, true, true, true]);
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
       await page.getByText(/^Outpatient visit, open since \d\d:\d\d, in no queue$/).waitFor();
       expect("visits open", (await visitsOf(patientId)).filter(visit => visit.status === "open").length, 1);
+    });
+
+    await step("an outside request still sending when its patient is left ends, once chosen again, in its Done, not its form", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await search.fill(familyName);
+      await match.click();
+      await page.getByRole("button", { name: "Tests only, from an outside doctor's request" }).click();
+      await page.getByLabel("Doctor's name").fill("Dr Flows");
+      await page.getByLabel("Their hospital or clinic").fill("Riverside Clinic");
+      await page.getByRole("checkbox", { name: /^Full blood count/ }).check();
+      // The tests' answer is held back until the clerk has left the patient and come back.
+      let release = () => {};
+      const held = new Promise<void>(resolve => (release = resolve));
+      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+        if (route.request().method() !== "POST")
+          return route.continue();
+        const answered = await route.fetch();
+        testItems.push(...(await answered.json() as { items: { id: string }[] }).items.map(item => item.id));
+        await held;
+        await route.fulfill({ response: answered });
+      });
+      await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
+      await search.fill("Amina Njeri");
+      await page.getByRole("button", { name: /^Amina Njeri/ }).click();
+      await heading(page).filter({ hasText: "Amina Njeri" }).waitFor();
+      await search.fill(familyName);
+      await match.click();
+      await page.getByRole("button", { name: "Entering the tests…" }).waitFor();
+      release();
+      await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
+      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      expect("the form, to send a second time", await page.getByRole("heading", { name: "Tests from an outside request" }).count(), 0);
     });
 
     await step("a booking for today is checked in with one press, and says so", async () => {
@@ -873,6 +907,12 @@ const registerFlow: Flow = {
     page.on("request", (sent) => {
       if (sent.method() === "POST" && sent.url() === `${API_URL}/patients`)
         keys.push(sent.headers()["idempotency-key"] ?? "");
+    });
+    // Every patient registered, as the API answers, so clean-up finds them even if a later check fails.
+    const registered: string[] = [];
+    page.on("response", (answer) => {
+      if (answer.request().method() === "POST" && answer.url() === `${API_URL}/patients` && answer.status() === 201)
+        void answer.json().then((record: { id: string }) => registered.push(record.id), () => {});
     });
     const api = (path: string) => context.request.get(`${API_URL}${path}`, { headers: { "x-facility-id": facilityId } });
     const found = async () => (await (await api(`/patients?q=${familyName}`)).json() as { patients: { id: string }[] }).patients;
@@ -975,7 +1015,6 @@ const registerFlow: Flow = {
       expect("patients registered", (await found()).length, 2);
     });
 
-    let unidentified = "";
     await step("someone who cannot say who they are is registered as an emergency, under a placeholder name", async () => {
       await search.fill(familyName);
       await register.click();
@@ -991,14 +1030,13 @@ const registerFlow: Flow = {
       if (await same.isVisible())
         await same.click();
       await done.waitFor();
-      unidentified = new URL(page.url()).searchParams.get("patient") ?? "";
     });
 
     await step("the visits opened are cancelled, so no queue keeps a made-up patient", async () => {
       // Signing in failed: nothing was made.
       if (!facilityId)
         return;
-      const ids = [...(await found()).map(patient => patient.id), unidentified].filter(Boolean);
+      const ids = new Set([...(await found()).map(patient => patient.id), ...registered]);
       for (const id of ids) {
         const { encounters } = await (await api(`/encounters?patientId=${id}`)).json() as { encounters: { id: string; status: string }[] };
         for (const visit of encounters.filter(visit => visit.status === "open")) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "@/strings/en";
 
-import { ApiError, failureText, refusalOf, unwrap } from "./refusal";
+import { ApiError, EmptyAnswer, failureText, refusalOf, unwrap } from "./refusal";
 
 describe("what the API refused", () => {
   it("is a refusal with its own words and code, and whatever else it carried", () => {
@@ -75,5 +75,10 @@ describe("unwrapping a typed call", () => {
   it("throws the refusal", async () => {
     const call = Promise.resolve({ error: { message: "Unauthorized" }, response: new Response(null, { status: 401 }) });
     await expect(unwrap(call)).rejects.toMatchObject({ refusal: { kind: "signed_out" } });
+  });
+
+  it("throws a success that came with no body as an empty answer, not a refusal: the write went through", async () => {
+    const call = Promise.resolve({ data: undefined, response: new Response(null, { status: 201 }) });
+    await expect(unwrap(call)).rejects.toBeInstanceOf(EmptyAnswer);
   });
 });

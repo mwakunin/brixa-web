@@ -34,6 +34,12 @@ import { FoundLine } from "./found-line";
 /** What follows registering: the visit started, an emergency, or nothing yet. */
 export type Then = "opd" | "emergency" | null;
 
+/** What registering led to: the new record, and what the clerk asked to follow. */
+interface Registered {
+  record: PatientRecord;
+  then: Then;
+}
+
 /** A patient already on file who looks like the one being registered, and why. */
 type Candidate = FoundPatient & { reasons: (keyof typeof en.register.sameReasons)[] };
 
@@ -103,13 +109,20 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
       body.current?.querySelector("[data-problem]")?.scrollIntoView({ block: "center" });
   }, [checked]);
 
-  const register = useRepeatSafe<{ request: RegisterBody; then: Then }, PatientRecord>("register", async ({ key, body }, signal) => {
+  const register = useRepeatSafe<{ request: RegisterBody; then: Then }, Registered>("register", async ({ key, body }, signal) => {
     const record = await unwrap(api.POST("/patients", { body: body.request, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
     // The answer is the whole record, which is not read again. Their visits are read as the record opens.
     queryClient.setQueryData(patientKey(record.id), record);
-    return record;
+    return { record, then: body.then };
   });
   const { state } = register;
+
+  // Registered: acted on here, from the state, whichever press sent it. One finished after this screen was
+  // left (the browser's Back) opens nobody: the desk may be on another patient by then.
+  useEffect(() => {
+    if (state.kind === "done")
+      onRegistered(state.result.record, state.result.then);
+  }, [state, onRegistered]);
   const waiting = state.kind === "sending" || state.kind === "no_answer" ? state.action.body : null;
 
   // The duplicate check stands while the form is as it was when checked: a change is checked again.
@@ -130,11 +143,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }
 
   /** What the answer to registering means for the screen. */
-  function answered(ended: WriteState<{ request: RegisterBody; then: Then }, PatientRecord>, request: RegisterBody, then: Then) {
-    if (ended.kind === "done") {
-      onRegistered(ended.result, then);
-      return;
-    }
+  function answered(ended: WriteState<{ request: RegisterBody; then: Then }, Registered>, request: RegisterBody, then: Then) {
     if (ended.kind !== "refused")
       return;
     const refusal = ended.error instanceof ApiError ? ended.error.refusal : null;

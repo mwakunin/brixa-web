@@ -45,9 +45,23 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * A success that came with no body where one was due. For a write, what was
+ * done went through but its answer is unknown: it is no answer, not a
+ * refusal, so the action keeps its key (`repeat-safe.ts`).
+ */
+export class EmptyAnswer extends Error {
+  constructor(readonly status: number) {
+    super(`The API answered ${status} with no body`);
+    this.name = "EmptyAnswer";
+  }
+}
+
 /** The data of a typed call (`api.GET(...)`), or its refusal thrown as an `ApiError`. */
 export async function unwrap<T>(call: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
   const { data, error, response } = await call;
+  if (error === undefined && data === undefined && response.ok)
+    throw new EmptyAnswer(response.status);
   if (error !== undefined || data === undefined)
     throw new ApiError(refusalOf(response.status, error));
   return data;

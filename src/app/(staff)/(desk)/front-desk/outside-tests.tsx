@@ -78,7 +78,9 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
     let visitId = body.visitId;
     if (!visitId) {
       const opened = await unwrap(api.POST("/encounters", { body: { patientId: body.patientId, kind: "opd", queueAt: null }, headers: { [IDEMPOTENCY_HEADER]: `${key}.visit` }, signal }));
-      // Known from here on, so a refused entry pressed again goes on this visit rather than opening another.
+      // Known from here on, so a refused entry pressed again goes on this visit rather than opening another;
+      // a read of the visits begun before it opened would not have it, so it is stopped first.
+      await queryClient.cancelQueries({ queryKey: visitsKey(body.patientId), exact: true });
       queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
       visitId = opened.id;
     }
@@ -91,6 +93,13 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
     if (state.kind === "no_answer")
       main.current?.focus();
   }, [state.kind]);
+
+  // The tests are entered: acted on here, from the state, whichever press sent them. One sent before the
+  // panel was left and opened again ends here too, rather than leaving the form to be sent a second time.
+  useEffect(() => {
+    if (state.kind === "done")
+      onEntered(state.result);
+  }, [state, onEntered]);
 
   function change(patch: Partial<WalkInDraft>) {
     setDraft(known => ({ ...known, ...patch }));
@@ -115,10 +124,6 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
       entry = { patientId, visitId: openVisitId, request: built.body, draft };
     }
     const ended = await enter.press(entry);
-    if (ended.kind === "done") {
-      onEntered(ended.result);
-      return;
-    }
     if (ended.kind !== "refused")
       return;
     const refusal = ended.error instanceof ApiError ? ended.error.refusal : null;

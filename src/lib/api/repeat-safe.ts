@@ -9,6 +9,8 @@
  * could repeat a write that did go through. Once any answer arrives, done or
  * refused, the action is over, and the next press makes a new key.
  */
+import { EmptyAnswer } from "./refusal";
+
 export const IDEMPOTENCY_HEADER = "Idempotency-Key";
 
 /** How long a write waits for its answer before the screen says that none came. */
@@ -34,11 +36,12 @@ export function toSend<Body>(waiting: Action<Body> | null, body: Body): Action<B
  * Whether a write's failure means that no answer came, so the write may or
  * may not have been done: the request did not get through (`fetch` throws a
  * TypeError), its answer did not come back in time, or a success's body
- * could not be read (a `SyntaxError`: the write went through, but what it
- * returned is unknown). Only an answer the API gave ends the action.
+ * could not be read or came empty (a `SyntaxError`, an `EmptyAnswer`: the
+ * write went through, but what it returned is unknown). Only an answer the
+ * API gave ends the action.
  */
 export function noAnswer(error: unknown): boolean {
-  if (error instanceof TypeError || error instanceof SyntaxError)
+  if (error instanceof TypeError || error instanceof SyntaxError || error instanceof EmptyAnswer)
     return true;
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }

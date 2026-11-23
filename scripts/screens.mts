@@ -30,6 +30,8 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright-core";
 
+import type { Page } from "playwright-core";
+
 import type { paths } from "../src/lib/api/schema";
 
 import { DEV_TOTP_SECRET, totp } from "./dev-code.mts";
@@ -78,21 +80,49 @@ if (values.as) {
 }
 
 await mkdir(OUT, { recursive: true });
-const report: { page: string; size: string; file: string; status: number | null; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
+const report: { page: string; size: string; file: string; status: number | null; ready: boolean; violations: { id: string; impact: string | null | undefined; help: string; nodes: number }[] }[] = [];
+/**
+ * Resolves once nothing the page asked for has been in flight for half a
+ * second, or after 30 s. Playwright's own "networkidle" resolves at once when
+ * the page reached it earlier, before a desk asks for its data; this counts
+ * the page's requests itself, from before it loads.
+ */
+function quiet(page: Page): () => Promise<void> {
+  let inFlight = 0;
+  let last = Date.now();
+  page.on("request", () => {
+    inFlight += 1;
+    last = Date.now();
+  });
+  const ended = () => {
+    inFlight -= 1;
+    last = Date.now();
+  };
+  page.on("requestfinished", ended);
+  page.on("requestfailed", ended);
+  return async () => {
+    const until = Date.now() + 30_000;
+    while (Date.now() < until && (inFlight > 0 || Date.now() - last < 500))
+      await page.waitForTimeout(100);
+  };
+}
+
 for (const [index, route] of pages.entries()) {
   const slug = route === "/" ? "home" : route.replace(/^\/|\/$/g, "").replace(/[^\w-]+/g, "_");
   for (const size of SIZES) {
     const page = await context.newPage();
     await page.setViewportSize({ width: size.width, height: size.height });
-    const response = await page.goto(`${APP_URL}${route}`, { waitUntil: "networkidle" });
-    // A page is ready once its heading shows: "Checking that you are signed in…" and the like have none,
-    // and a slow first answer can leave the network quiet before it comes. Then whatever it asks next.
-    await page.locator("h1").first().waitFor({ timeout: 30_000 }).catch(() => {});
-    await page.waitForLoadState("networkidle");
+    const settled = quiet(page);
+    const response = await page.goto(`${APP_URL}${route}`);
+    // A page is ready once its heading shows ("Checking that you are signed in…" and the like have none), and
+    // then whatever it asks for next has come. One that never shows a heading, such as a request that failed, is
+    // reported, not scanned as if it were the page asked for.
+    const ready = await page.locator("h1").first().waitFor({ timeout: 30_000 }).then(() => true, () => false);
+    await settled();
     const file = `${index + 1}-${slug}-${size.name}.png`;
     await page.screenshot({ path: path.join(OUT, file), fullPage: true });
     const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
-    report.push({ page: route, size: size.name, file, status: response?.status() ?? null, violations: scan.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length })) });
+    report.push({ page: route, size: size.name, file, status: response?.status() ?? null, ready, violations: scan.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.length })) });
     await page.close();
   }
 }
@@ -100,8 +130,9 @@ await browser.close();
 
 await writeFile(path.join(OUT, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
 const httpErrors = report.filter(r => r.status !== null && r.status >= 400).map(r => `${r.page} (${r.size}): HTTP ${r.status}`);
+const notReady = report.filter(r => !r.ready).map(r => `${r.page} (${r.size}): showed no heading in 30 s, so not the page asked for: see ${r.file}`);
 const serious = report.flatMap(r => r.violations.filter(v => v.impact === "serious" || v.impact === "critical").map(v => `${r.page} (${r.size}): ${v.id}, ${v.help}`));
 console.log(`${report.length} screenshots in ${OUT}`);
-for (const line of [...httpErrors, ...serious])
+for (const line of [...httpErrors, ...notReady, ...serious])
   console.log(`  ${line}`);
-process.exit(httpErrors.length + serious.length > 0 ? 1 : 0);
+process.exit(httpErrors.length + notReady.length + serious.length > 0 ? 1 : 0);

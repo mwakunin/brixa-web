@@ -32,6 +32,13 @@ describe("what must be put right first", () => {
     expect(walkInBody(emptyWalkIn)).toEqual({ ok: false, problems: { doctor: expect.any(String), facility: expect.any(String), tests: expect.any(String) } });
   });
 
+  it("is more tests than one request takes, said with the limit", () => {
+    const tests = Array.from({ length: 31 }, (_, n) => `t-${n}`);
+
+    expect(walkInBody({ ...emptyWalkIn, selfRequested: true, testIds: tests })).toEqual({ ok: false, problems: { tests: "Choose at most 30 tests: one request takes no more." } });
+    expect(walkInBody({ ...emptyWalkIn, selfRequested: true, testIds: tests.slice(0, 30) }).ok).toBe(true);
+  });
+
   it("is only the tests when the patient asks for them", () => {
     expect(walkInBody({ ...emptyWalkIn, selfRequested: true })).toEqual({ ok: false, problems: { tests: expect.any(String) } });
   });

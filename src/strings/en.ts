@@ -350,7 +350,8 @@ export const en = {
       doctor: "Give the doctor's name, or tick that the patient asks for the tests.",
       facility: "Give their hospital or clinic.",
       tests: "Choose at least one test.",
-      oneLine: "Check this: one line of text.",
+      tooManyTests: (most: number) => `Choose at most ${most} tests: one request takes no more.`,
+      oneLine: "Check this: one line of text."
     },
   },
   /** What a write said, beside the button that sent it. */
