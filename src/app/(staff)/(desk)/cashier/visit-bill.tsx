@@ -8,12 +8,12 @@ import { useBusinessDate } from "@/hooks/use-business-date";
 import { useBill, useMoneyDue } from "@/hooks/use-cashier";
 import { hasAction } from "@/hooks/use-repeat-safe";
 import { failureText } from "@/lib/api/refusal";
-import { billLine, type DueVisit, printedQuantity, standingCharges, visitWords } from "@/lib/cashier";
+import { billLine, type DueVisit, printedQuantity, standingCharges, visitWords, type WaiverDraft } from "@/lib/cashier";
 import { formatKes } from "@/lib/money";
 import { en } from "@/strings/en";
 
-import { AskWaiver } from "./ask-waiver";
-import { TakePayment } from "./take-payment";
+import { AskWaiver, waiverDraftFor } from "./ask-waiver";
+import { paymentAction, TakePayment } from "./take-payment";
 
 const words = en.cashier;
 
@@ -43,7 +43,7 @@ export function VisitBill({ id, listed, listRead }: {
   listRead: boolean;
 }) {
   // The row last seen for this visit: it still names the patient once the visit leaves the list.
-  const [known, setKnown] = useState(() => listed ?? (hasAction(`pay:${id}`) ? (lastListed.get(id) ?? null) : null));
+  const [known, setKnown] = useState(() => listed ?? (hasAction(paymentAction("visit", id)) ? (lastListed.get(id) ?? null) : null));
   if (listed && listed !== known)
     setKnown(listed);
   useEffect(() => {
@@ -57,6 +57,8 @@ export function VisitBill({ id, listed, listRead }: {
   const dueNow = listed !== null;
   // Asking for a waiver takes the payment's place under the bill until the cashier goes back.
   const [asking, setAsking] = useState(() => hasAction(`waiver:${id}`));
+  // What was typed for a waiver, kept here while the cashier goes back to the payment.
+  const [waiverDraft, setWaiverDraft] = useState<WaiverDraft>(() => waiverDraftFor(id));
 
   if (!visit) {
     return (
@@ -157,7 +159,7 @@ export function VisitBill({ id, listed, listRead }: {
           </span>
         )}
       </div>
-      {asking && <AskWaiver visit={visit} listed={listed} onBack={() => setAsking(false)}>{billBlock}</AskWaiver>}
+      {asking && <AskWaiver visit={visit} listed={listed} draft={waiverDraft} setDraft={setWaiverDraft} onBack={() => setAsking(false)}>{billBlock}</AskWaiver>}
       {/* Kept while the waiver is asked for, out of sight, so what was typed for the payment is there on the way back. */}
       <div hidden={asking} className="contents">
         <TakePayment

@@ -35,6 +35,14 @@ interface Asked {
   invoiceNumber: string;
 }
 
+const waiverAction = (encounterId: string) => `waiver:${encounterId}`;
+
+/** The waiver form for a visit as it was sent, for a screen shown again while it waits or after a refusal; else empty. */
+export function waiverDraftFor(encounterId: string): WaiverDraft {
+  const sent = sentBody<Asking>(waiverAction(encounterId));
+  return sent ? { billId: sent.invoiceId ?? NOT_BILLED, amount: String(sent.amountCents / 100), reason: sent.reason } : emptyWaiver;
+}
+
 /**
  * Asking for a waiver on the visit's bill (the walkthrough, 2026-11-20):
  * the doctor tells the cashier, the cashier asks for it on a bill with the
@@ -45,11 +53,16 @@ interface Asked {
  * (audited). Charges not billed yet can be chosen: they are billed first
  * (`bill-now`, key `<key>.bill`), and the waiver asked for on that bill
  * (`<key>.ask`). Repeat-safe, as every write here.
+ *
+ * The form's draft is the bill panel's (`draft`, `setDraft`), so what was
+ * typed is there again after going back to the payment and returning.
  */
-export function AskWaiver({ visit, listed, onBack, children }: {
+export function AskWaiver({ visit, listed, draft, setDraft, onBack, children }: {
   visit: DueVisit;
   /** The visit's row on the money due list now: null once nothing is due on it. */
   listed: DueVisit | null;
+  draft: WaiverDraft;
+  setDraft: React.Dispatch<React.SetStateAction<WaiverDraft>>;
   onBack: () => void;
   /** The bill. */
   children: React.ReactNode;
@@ -57,11 +70,7 @@ export function AskWaiver({ visit, listed, onBack, children }: {
   const id = useId();
   const queryClient = useQueryClient();
   const account = useAccount(visit.patient.id);
-  const actionName = `waiver:${visit.encounterId}`;
-  const [draft, setDraft] = useState<WaiverDraft>(() => {
-    const sent = sentBody<Asking>(actionName);
-    return sent ? { billId: sent.invoiceId ?? NOT_BILLED, amount: String(sent.amountCents / 100), reason: sent.reason } : emptyWaiver;
-  });
+  const actionName = waiverAction(visit.encounterId);
   const [problems, setProblems] = useState<Partial<Record<WaiverField, string>>>({});
   const main = useRef<HTMLButtonElement>(null);
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { billLine, type Charge, emptyPayment, emptyWaiver, matchingPayments, mayReadAccount, NOT_BILLED, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords, waiverFor } from "./cashier";
+import { billLine, billsToChoose, type Charge, emptyPayment, emptyWaiver, matchingPayments, mayReadAccount, NOT_BILLED, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords, waiverFor } from "./cashier";
 
 const charge: Charge = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -141,5 +141,26 @@ describe("what a waiver asks for", () => {
   it("asks again for what is missing, at its field", () => {
     expect(waiverFor(emptyWaiver)).toEqual({ ok: false, problems: { bill: expect.any(String), amount: expect.any(String), reason: expect.any(String) } });
     expect(waiverFor({ billId: "bill-1", amount: "300", reason: "ok" })).toEqual({ ok: false, problems: { reason: expect.any(String) } });
+  });
+});
+
+describe("the bills out a payment can be taken against", () => {
+  const bill = (id: string, balanceCents: number) => ({ id, balanceCents });
+  const none = () => false;
+
+  it("are those still owing, oldest first, the oldest chosen at first", () => {
+    const { listed, first } = billsToChoose([bill("a", 0), bill("b", 20_000), bill("c", 5_000)], none);
+    expect(listed.map(b => b.id)).toEqual(["b", "c"]);
+    expect(first?.id).toBe("b");
+  });
+
+  it("keep one paid off whose payment is still to show, and choose it at first, so its Try again or its Done is reached", () => {
+    const { listed, first } = billsToChoose([bill("a", 0), bill("b", 20_000), bill("c", 0)], id => id === "c");
+    expect(listed.map(b => b.id)).toEqual(["b", "c"]);
+    expect(first?.id).toBe("c");
+  });
+
+  it("are none once nothing is owed and no payment is still to show", () => {
+    expect(billsToChoose([bill("a", 0)], none)).toEqual({ listed: [], first: null });
   });
 });

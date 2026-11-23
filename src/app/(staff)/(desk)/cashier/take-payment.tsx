@@ -34,6 +34,11 @@ export type Towards
   = | { kind: "visit"; encounterId: string; unbilledCents: number }
     | { kind: "bill"; invoiceId: string };
 
+/** The repeat-safe action of a payment towards a visit or a bill, by its id: found again by any screen that shows it. */
+export function paymentAction(kind: Towards["kind"], id: string): string {
+  return kind === "visit" ? `pay:${id}` : `pay:bill:${id}`;
+}
+
 /** One payment, as sent: billing what is not billed yet first, when there is some. */
 interface Pay {
   patientId: string;
@@ -103,7 +108,7 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
   const queryClient = useQueryClient();
   const shift = useCurrentShift();
   const name = patient.name;
-  const actionName = towards.kind === "visit" ? `pay:${towards.encounterId}` : `pay:bill:${towards.invoiceId}`;
+  const actionName = paymentAction(towards.kind, towards.kind === "visit" ? towards.encounterId : towards.invoiceId);
   const [draft, setDraft] = useState<PaymentDraft>(() => draftOf(sentBody<Pay>(actionName)));
   // Until the amount is typed, it is what is due.
   const [amountTyped, setAmountTyped] = useState(() => sentBody<Pay>(actionName) !== null);

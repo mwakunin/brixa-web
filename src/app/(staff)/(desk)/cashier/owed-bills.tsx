@@ -6,13 +6,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAccount } from "@/hooks/use-cashier";
 import { usePatient } from "@/hooks/use-patients";
+import { hasAction } from "@/hooks/use-repeat-safe";
 import { failureText } from "@/lib/api/refusal";
+import { billsToChoose } from "@/lib/cashier";
 import { formatKes } from "@/lib/money";
 import { fullName, opNumberOf } from "@/lib/patients";
 import { cn } from "@/lib/utils";
 import { en } from "@/strings/en";
 
-import { TakePayment } from "./take-payment";
+import { paymentAction, TakePayment } from "./take-payment";
 
 const words = en.cashier;
 
@@ -25,11 +27,12 @@ export function OwedBills({ patientId }: { patientId: string }) {
   const id = useId();
   const record = usePatient(patientId);
   const account = useAccount(patientId);
-  const owing = account.data?.invoices.filter(bill => bill.balanceCents > 0) ?? [];
-  // The bill chosen, the oldest owing at first; kept once paid, so its Done stays.
+  // A bill paid off by a payment still to show stays listed, and is chosen at first, so its Try again or its Done is reached.
+  const { listed: owing, first } = billsToChoose(account.data?.invoices ?? [], billId => hasAction(paymentAction("bill", billId)));
+  // The bill chosen; kept once paid, so its Done stays.
   const [chosenId, setChosenId] = useState<string | null>(null);
-  if (chosenId === null && owing[0])
-    setChosenId(owing[0].id);
+  if (chosenId === null && first)
+    setChosenId(first.id);
   const chosen = account.data?.invoices.find(bill => bill.id === chosenId) ?? null;
   const name = record.data ? fullName(record.data) : null;
   const opNumber = record.data ? opNumberOf(record.data) : null;

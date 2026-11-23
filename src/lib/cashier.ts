@@ -108,6 +108,18 @@ export function payingFor(draft: PaymentDraft, transactionCents: number | null):
 }
 
 /**
+ * The bills out a payment can be taken against, in the account's order
+ * (oldest first): those still owing, and any with a payment still to show
+ * (its answer awaited, or come while nobody watched), paid off or not, so
+ * its Try again or its Done is reached. The one chosen at first is a bill
+ * with a payment still to show, else the oldest owing.
+ */
+export function billsToChoose<T extends { id: string; balanceCents: number }>(bills: readonly T[], paymentToShow: (id: string) => boolean): { listed: T[]; first: T | null } {
+  const listed = bills.filter(bill => bill.balanceCents > 0 || paymentToShow(bill.id));
+  return { listed, first: listed.find(bill => paymentToShow(bill.id)) ?? listed[0] ?? null };
+}
+
+/**
  * The M-Pesa payments waiting to be matched that fit what the cashier
  * typed: part of the M-Pesa code, or of the phone that paid, as dialled at
  * home (0712…) or with the country code. Digits alone may be either.

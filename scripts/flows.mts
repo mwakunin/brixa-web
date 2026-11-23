@@ -1246,7 +1246,7 @@ const cashierFlow: Flow = {
       expect("the row on Money due", await row.getByText(/^KES /).innerText(), "KES 200");
     });
 
-    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due; the payment typed before it is kept", async () => {
+    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due; what was typed for the payment and the waiver is kept between them", async () => {
       // Typed for the payment, then the waiver asked for first.
       await page.getByLabel("Amount, in shillings").fill("150");
       await page.getByRole("button", { name: "Ask for a waiver" }).click();
@@ -1256,6 +1256,10 @@ const cashierFlow: Flow = {
       expect("the amount, at first all the bill owes", await amount.inputValue(), "200");
       await amount.fill("50");
       await page.getByLabel("Why").fill("Flows: the in-charge said so");
+      // Back to the payment and here again: what was typed for the waiver is still there.
+      await page.getByRole("button", { name: "Back to taking payment" }).click();
+      await page.getByRole("button", { name: "Ask for a waiver" }).click();
+      expect("the waiver, as typed before going back", [await bill.getAttribute("aria-pressed"), await amount.inputValue(), await page.getByLabel("Why").inputValue()], ["true", "50", "Flows: the in-charge said so"]);
       const [asked] = await Promise.all([
         page.waitForResponse(response => /\/invoices\/[\w-]+\/adjustments$/.test(new URL(response.url()).pathname) && response.request().method() === "POST"),
         page.getByRole("button", { name: "Ask for a waiver of KES 50" }).click(),
