@@ -78,7 +78,8 @@ None of the screens is dropped. A waivers list for the in-charge is added. Gap n
   7. the pharmacy.
 
   Each desk waits for its gaps below.
-- **Money owed at the front desk:** when a returning patient owes money, the front desk shows how much. A button opens the cashier desk with that patient.
+- **Money owed at the front desk:** decided by the owner on 2026-11-23, and built in web #18. When a returning patient owes money on bills already out, the front desk shows how much. For someone who is also the cashier, a link opens the cashier's desk with that patient's bills.
+  - It reads `GET /patients/{id}/account`, which the API keeps to those who handle money. A records clerk without the cashier's role sees nothing there yet (gap 17).
 
 ## What the design review decided (2026-11-21)
 
@@ -176,6 +177,10 @@ Found while drawing each screen against the API, settled by the walkthrough and 
     - once an answer arrives, done or refused, the action is over, and the next press makes a new key.
 16. **A refusal on a closed visit did not say why.** brixa-api #39 gives every one the same sentence: what happened, when, by whom and what to do. For example: "This visit was cancelled at 09:40 by Joyce Mwangi. Ask the front desk whether to start a new one."
    - The refused-triage board (4d) first showed a visit cancelled at the front desk. That cannot happen while the patient is with the nurse, as the API refuses to cancel a visit whose patient is being seen. Since 2026-11-22 it shows a refusal that can: the chosen clinic's consultation fee has no price yet, in the API's own words, with what was typed kept.
+
+17. **A records clerk alone cannot see what a patient owes.** `GET /patients/{id}/account` is for those who handle money, and the front desk shows money owed only to them. At the pilot the front desk is usually also the cashier, so it shows there. Open: does a clerk without the cashier's role need the figure, and from which read?
+18. ~~**A visit paid as it goes could not be paid in one payment.**~~ Fixed in brixa-api #42 (decided by the owner on 2026-11-23). `bill-now` makes a bill at each point. A payment towards the visit settled only its final bill, so money paid towards a visit with an earlier bill part-paid and new charges since waited as a deposit. A payment towards a visit now settles each of its bills that still owes, oldest first, and its receipt lists them all.
+19. **A paybill payment that names a patient number lands as credit on the patient's account,** not on the bills of their visit. Open: should it be paid towards their open visit, when they have exactly one?
 
 **Still open:**
 - whether a patient who buys the rest of a medicine elsewhere needs a printed note of what is left;

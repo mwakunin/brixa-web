@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { billLine, type Charge, emptyPayment, matchingPayments, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords } from "./cashier";
+import { billLine, type Charge, emptyPayment, emptyWaiver, matchingPayments, mayReadAccount, NOT_BILLED, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords, waiverFor } from "./cashier";
 
 const charge: Charge = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -112,5 +112,29 @@ describe("a payment's field the API did not accept", () => {
     expect(paymentFieldProblem("reference")?.field).toBe("reference");
     expect(paymentFieldProblem("amountCents")?.field).toBe("amount");
     expect(paymentFieldProblem("patientId")).toBeNull();
+  });
+});
+
+describe("who sees what a patient owes", () => {
+  it("is whoever handles money, not a records clerk alone", () => {
+    expect(mayReadAccount(["records_clerk", "cashier"])).toBe(true);
+    expect(mayReadAccount(["auditor"])).toBe(true);
+    expect(mayReadAccount(["records_clerk"])).toBe(false);
+    expect(mayReadAccount(["nurse", "doctor"])).toBe(false);
+  });
+});
+
+describe("what a waiver asks for", () => {
+  it("is the amount and the reason, on the bill chosen", () => {
+    expect(waiverFor({ billId: "bill-1", amount: "1,000", reason: " Cannot pay, as the in-charge said " })).toEqual({ ok: true, waiver: { invoiceId: "bill-1", amountCents: 100_000, reason: "Cannot pay, as the in-charge said" } });
+  });
+
+  it("is on no bill yet when the charges not billed are chosen, which are billed first", () => {
+    expect(waiverFor({ billId: NOT_BILLED, amount: "300", reason: "Staff child" })).toMatchObject({ ok: true, waiver: { invoiceId: null } });
+  });
+
+  it("asks again for what is missing, at its field", () => {
+    expect(waiverFor(emptyWaiver)).toEqual({ ok: false, problems: { bill: expect.any(String), amount: expect.any(String), reason: expect.any(String) } });
+    expect(waiverFor({ billId: "bill-1", amount: "300", reason: "ok" })).toEqual({ ok: false, problems: { reason: expect.any(String) } });
   });
 });

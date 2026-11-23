@@ -9,13 +9,13 @@ import { TextField } from "@/components/text-field";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useBusinessDate } from "@/hooks/use-business-date";
-import { billKey, dueKey, shiftKey, unmatchedKey, useCurrentShift, useMoneyDue, usePayment, usePrompt, useUnmatchedPayments } from "@/hooks/use-cashier";
+import { accountKey, billKey, dueKey, shiftKey, unmatchedKey, useCurrentShift, usePayment, usePrompt, useUnmatchedPayments } from "@/hooks/use-cashier";
 import { usePatient } from "@/hooks/use-patients";
 import { sentBody, useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { ApiError, failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER, waitingIn, type WriteState } from "@/lib/api/repeat-safe";
-import { type DueVisit, emptyPayment, matchingPayments, type Paying, type PaymentDraft, type PaymentField, paymentFieldProblem, payingFor } from "@/lib/cashier";
+import { emptyPayment, matchingPayments, type Paying, type PaymentDraft, type PaymentField, paymentFieldProblem, payingFor } from "@/lib/cashier";
 import { printedSince } from "@/lib/dates";
 import { desksFor } from "@/lib/desks";
 import { documentTab, openDocument } from "@/lib/documents";
@@ -29,10 +29,15 @@ const words = en.cashier.pay;
 /** As long as a reference, a phone or an amount the API takes. */
 const LIMITS = { amount: 12, phone: 16, reference: 40, find: 20 };
 
-/** One payment for a visit, as sent: billing what is not billed yet first, when there is some. */
+/** What a payment is taken towards: a visit, whose charges not billed yet are billed first, or one bill already out. */
+export type Towards
+  = | { kind: "visit"; encounterId: string; unbilledCents: number }
+    | { kind: "bill"; invoiceId: string };
+
+/** One payment, as sent: billing what is not billed yet first, when there is some. */
 interface Pay {
-  encounterId: string;
   patientId: string;
+  towards: { encounterId: string } | { invoiceId: string };
   bill: boolean;
   paying: Paying;
 }
@@ -62,34 +67,38 @@ function payerPhone(msisdn: string): string {
 }
 
 /**
- * Taking a payment for the visit on the bill: how the patient pays, then
+ * Taking a payment for what the panel shows: how the patient pays, then
  * one dark button that records it and prints the receipt. M-Pesa paid to
  * the paybill comes first, then a prompt to the phone, cash, and card or
  * bank. Paying part is fine: the rest stays due.
  *
- * One press is one repeat-safe action. Charges not billed yet are billed
- * first (`bill-now`), then the payment is taken towards the visit, which
- * settles its bills oldest first; each request carries the action's key
- * with its own suffix. With no answer, what was sent is held, and the only
- * way on is Try again.
+ * One press is one repeat-safe action. For a visit, charges not billed yet
+ * are billed first (`bill-now`), then the payment is taken towards the
+ * visit, which settles its bills oldest first; for a bill already out, it
+ * is taken against that bill. Each request carries the action's key with
+ * its own suffix. With no answer, what was sent is held, and the only way
+ * on is Try again.
  *
  * The receipt opens in a tab opened at the press, so the browser lets it
  * through. A prompt is paid on the patient's phone, so its receipt is
  * printed from the Done message once it is.
  */
-export function TakePayment({ visit, listed, children }: {
-  /** The visit, as last known on the money due list. */
-  visit: DueVisit;
-  /** Its row on the list now: null once nothing is due on it. */
-  listed: DueVisit | null;
+export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, children }: {
+  patient: { id: string; name: string };
+  towards: Towards;
+  /** What is due now, as the API last said: null once nothing is. */
+  dueCents: number | null;
+  /** How the read that says what is due stands, so a payment's Done waits for it to be read again. */
+  dueRead: { read: boolean; checking: boolean; failed: boolean };
+  /** What to say when nothing is due here any more, though nothing was paid here. */
+  nothingDue: { title: string; help: string };
   /** The bill. */
   children: React.ReactNode;
 }) {
   const queryClient = useQueryClient();
-  const due = useMoneyDue();
   const shift = useCurrentShift();
-  const name = visit.patient.name;
-  const actionName = `pay:${visit.encounterId}`;
+  const name = patient.name;
+  const actionName = towards.kind === "visit" ? `pay:${towards.encounterId}` : `pay:bill:${towards.invoiceId}`;
   const [draft, setDraft] = useState<PaymentDraft>(() => draftOf(sentBody<Pay>(actionName)));
   // Until the amount is typed, it is what is due.
   const [amountTyped, setAmountTyped] = useState(() => sentBody<Pay>(actionName) !== null);
@@ -100,9 +109,9 @@ export function TakePayment({ visit, listed, children }: {
 
   const pay = useRepeatSafe<Pay, Paid>(actionName, async ({ key, body }, signal) => {
     const keyed = (part: string) => ({ [IDEMPOTENCY_HEADER]: `${key}.${part}` });
-    if (body.bill) {
+    if (body.bill && "encounterId" in body.towards) {
       try {
-        await unwrap(api.POST("/encounters/{id}/bill-now", { params: { path: { id: body.encounterId } }, headers: keyed("bill"), signal }));
+        await unwrap(api.POST("/encounters/{id}/bill-now", { params: { path: { id: body.towards.encounterId } }, headers: keyed("bill"), signal }));
       }
       catch (error) {
         // Billed already, from another desk: what is due is on its bills, and the payment settles them.
@@ -111,7 +120,7 @@ export function TakePayment({ visit, listed, children }: {
       }
     }
     const { paying } = body;
-    const towards = { patientId: body.patientId, encounterId: body.encounterId };
+    const towards = { patientId: body.patientId, ...body.towards };
     let paid: Paid;
     if (paying.method === "prompt") {
       const prompt = await unwrap(api.POST("/mpesa/stk", { body: { ...towards, phone: paying.phone, amountCents: paying.amountCents }, headers: keyed("pay"), signal }));
@@ -133,9 +142,11 @@ export function TakePayment({ visit, listed, children }: {
       }
       paid = { kind: "paid", receiptNumber: payment.receiptNumber, documentId: payment.documentId, amountCents: payment.amountCents };
     }
-    // What is due, and the bills behind it, have changed: both are read again.
+    // What is due, the bills behind it and the patient's account have changed: they are read again.
     void queryClient.invalidateQueries({ queryKey: dueKey });
-    void queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) });
+    void queryClient.invalidateQueries({ queryKey: accountKey(body.patientId) });
+    if ("encounterId" in body.towards)
+      void queryClient.invalidateQueries({ queryKey: billKey(body.towards.encounterId) });
     return paid;
   });
   const { state } = pay;
@@ -161,12 +172,15 @@ export function TakePayment({ visit, listed, children }: {
   useEffect(() => () => tab.current?.close(), []);
 
   // A prompt paid on the phone changes what is due.
+  const visitId = towards.kind === "visit" ? towards.encounterId : null;
   useEffect(() => {
     if (promptStatus !== "completed")
       return;
     void queryClient.invalidateQueries({ queryKey: dueKey });
-    void queryClient.invalidateQueries({ queryKey: billKey(visit.encounterId) });
-  }, [promptStatus, queryClient, visit.encounterId]);
+    void queryClient.invalidateQueries({ queryKey: accountKey(patient.id) });
+    if (visitId)
+      void queryClient.invalidateQueries({ queryKey: billKey(visitId) });
+  }, [promptStatus, queryClient, patient.id, visitId]);
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {
@@ -175,12 +189,12 @@ export function TakePayment({ visit, listed, children }: {
   }, [state.kind]);
 
   const shown = waiting ? draftOf(waiting.body) : draft;
-  const amount = amountTyped || waiting ? shown.amount : listed ? String(listed.dueCents / 100) : "";
-  const unmatched = useUnmatchedPayments(listed !== null && shown.method === "paybill");
+  const amount = amountTyped || waiting ? shown.amount : dueCents !== null ? String(dueCents / 100) : "";
+  const unmatched = useUnmatchedPayments(dueCents !== null && shown.method === "paybill");
   const chosenPayment = unmatched.data?.find(payment => payment.id === shown.transactionId) ?? null;
   const needsShift = (shown.method === "cash" || (shown.method === "card_or_bank" && shown.cardOrBank === "card")) && shift.data === null;
   // The patient's phone, from their record, read when a prompt is chosen.
-  const record = usePatient(visit.patient.id, shown.method === "prompt");
+  const record = usePatient(patient.id, shown.method === "prompt");
   const filePhone = record.data?.phone ? printedPhone(record.data.phone) : "";
   const [phoneTyped, setPhoneTyped] = useState(() => sentBody<Pay>(actionName) !== null);
   const phone = phoneTyped || waiting ? shown.phone : filePhone;
@@ -221,7 +235,10 @@ export function TakePayment({ visit, listed, children }: {
     // Opened now, while the press counts as the cashier's: a prompt's receipt comes later, from the Done message.
     if (result.paying.method !== "prompt")
       tab.current = documentTab();
-    answered(await pay.press({ encounterId: visit.encounterId, patientId: visit.patient.id, bill: (listed ?? visit).unbilledCents > 0, paying: result.paying }));
+    const body: Pay = towards.kind === "visit"
+      ? { patientId: patient.id, towards: { encounterId: towards.encounterId }, bill: towards.unbilledCents > 0, paying: result.paying }
+      : { patientId: patient.id, towards: { invoiceId: towards.invoiceId }, bill: false, paying: result.paying };
+    answered(await pay.press(body));
   }
 
   function printAgain(documentId: string) {
@@ -253,7 +270,7 @@ export function TakePayment({ visit, listed, children }: {
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-6 py-5">
-        {receipt && <PaidMessage receipt={receipt} listed={listed} visitId={visit.encounterId} onPrint={() => printAgain(receipt.documentId)} printProblem={printProblem} />}
+        {receipt && <PaidMessage receipt={receipt} where={towards.kind} dueCents={dueCents} dueRead={dueRead} onPrint={() => printAgain(receipt.documentId)} printProblem={printProblem} />}
         {prompted && promptOpen && (
           <Alert variant="caution" role="status">
             <AlertTitle>{words.waitingTitle(name)}</AlertTitle>
@@ -268,14 +285,14 @@ export function TakePayment({ visit, listed, children }: {
           </Alert>
         )}
         {/* Paid at another desk, or the visit closed, while it was open here. */}
-        {!listed && !receipt && !prompted && !waiting && due.isSuccess && !due.isFetching && (
+        {dueCents === null && !receipt && !prompted && !waiting && dueRead.read && !dueRead.checking && (
           <Alert variant="caution">
-            <AlertTitle>{en.cashier.notDue}</AlertTitle>
-            <AlertDescription>{en.cashier.notDueHelp}</AlertDescription>
+            <AlertTitle>{nothingDue.title}</AlertTitle>
+            <AlertDescription>{nothingDue.help}</AlertDescription>
           </Alert>
         )}
         {children}
-        {listed && !promptOpen && (
+        {dueCents !== null && !promptOpen && (
           <fieldset disabled={waiting !== null} className="flex min-w-0 flex-col gap-4">
             <legend className="pb-2.5 text-lg font-semibold">{words.how(name)}</legend>
             <Choices
@@ -367,7 +384,7 @@ export function TakePayment({ visit, listed, children }: {
             <AlertDescription>{failureText(state.error)}</AlertDescription>
           </Alert>
         )}
-        {listed || waiting
+        {dueCents !== null || waiting
           ? (
               <>
                 {needsShift && !waiting && <p className="font-semibold text-caution-foreground">{words.noShift}</p>}
@@ -380,33 +397,32 @@ export function TakePayment({ visit, listed, children }: {
           : (
               <Button ref={main} onClick={() => window.history.replaceState(null, "", window.location.pathname)}>{words.next}</Button>
             )}
-        {due.isError && receipt && <p className="text-sm text-muted-foreground">{words.stillUnknown}</p>}
       </div>
     </>
   );
 }
 
-/** The Done message of a payment: its receipt, and what the visit still owes, as the money due list says once read again. */
-function PaidMessage({ receipt, listed, visitId, onPrint, printProblem }: {
+/** The Done message of a payment: its receipt, and what is still due, as the API says once read again. */
+function PaidMessage({ receipt, where, dueCents, dueRead, onPrint, printProblem }: {
   receipt: { receiptNumber: string; documentId: string; amountCents: number };
-  listed: DueVisit | null;
-  visitId: string;
+  where: Towards["kind"];
+  dueCents: number | null;
+  dueRead: { checking: boolean; failed: boolean };
   onPrint: () => void;
   printProblem: string | null;
 }) {
-  const due = useMoneyDue();
   const { facility } = useWorking();
   const frontDesk = desksFor(facility.roles).find(desk => desk.id === "front-desk");
-  // The list read since the payment: until then, what it says is from before.
-  const checking = due.isFetching;
-  const stillDue = listed !== null && listed.encounterId === visitId;
+  // Read again since the payment: until then, what is due is from before it.
+  const { checking, failed } = dueRead;
+  const unknown = checking || failed;
   return (
     <Alert variant="done">
       <AlertTitle>
-        {checking || stillDue ? words.paidPart(formatKes(receipt.amountCents), receipt.receiptNumber) : words.paidInFull(receipt.receiptNumber)}
+        {unknown || dueCents !== null ? words.paidPart(formatKes(receipt.amountCents), receipt.receiptNumber) : words.paidInFull(receipt.receiptNumber)}
       </AlertTitle>
       <AlertDescription>
-        {checking ? words.checkingStill : stillDue ? words.stillToPay(formatKes(listed.dueCents)) : words.paidInFullHelp}
+        {checking ? words.checkingStill : failed ? words.stillUnknown : dueCents !== null ? words.stillToPay[where](formatKes(dueCents)) : words.paidInFullHelp[where]}
       </AlertDescription>
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pt-1">
         <Button variant="quiet" className="border-done-border text-done-foreground" onClick={onPrint}>{words.printAgain}</Button>

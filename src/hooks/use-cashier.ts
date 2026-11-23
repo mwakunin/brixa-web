@@ -17,6 +17,7 @@ const DUE_PAGE = 200;
 
 export const dueKey = ["cashier", "due"] as const;
 export const unmatchedKey = ["mpesa", "unmatched"] as const;
+export const accountKey = (patientId: string) => ["patients", patientId, "account"] as const;
 export const shiftKey = ["cashier-shifts", "current"] as const;
 export const billKey = (encounterId: string) => ["encounters", encounterId, "charges"] as const;
 
@@ -103,5 +104,21 @@ export function usePayment(id: string | null) {
     queryFn: async () => unwrap(api.GET("/payments/{id}", { params: { path: { id: id! } } })),
     enabled: id !== null,
     staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+/**
+ * A patient's account (`GET /patients/{id}/account`): credit not yet applied,
+ * and every bill out with what it still owes, oldest first. Audited, so read
+ * when the patient's record or what they owe is opened, not again because
+ * the window was looked at. Only those who handle money may read it.
+ */
+export function useAccount(patientId: string, enabled = true) {
+  return useQuery({
+    queryKey: accountKey(patientId),
+    queryFn: async () => unwrap(api.GET("/patients/{id}/account", { params: { path: { id: patientId } } })),
+    enabled,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: false,
   });
 }

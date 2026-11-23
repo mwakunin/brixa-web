@@ -1,4 +1,5 @@
 import type { paths } from "@/lib/api/schema";
+import type { MembershipRole } from "@/lib/facility";
 
 import { businessDate, dayBefore, printedDateThisYear } from "@/lib/dates";
 import { centsFromShillings, formatKes } from "@/lib/money";
@@ -128,4 +129,51 @@ export function paymentFieldProblem(path: string): { field: PaymentField; proble
   if (path === "amountCents")
     return { field: "amount", problem: words.amount };
   return null;
+}
+
+/**
+ * Who may read a patient's account, as the API allows it (brixa-api's
+ * receipt readers). The screens ask for it only for them; the API checks
+ * every call all the same.
+ */
+const ACCOUNT_READERS: readonly MembershipRole[] = ["cashier", "billing_clerk", "finance_manager", "facility_admin", "auditor"];
+
+export function mayReadAccount(roles: readonly MembershipRole[]): boolean {
+  return roles.some(role => ACCOUNT_READERS.includes(role));
+}
+
+/** The choice of a bill for a waiver that stands for the visit's charges not billed yet, which are billed first. */
+export const NOT_BILLED = "not-billed";
+
+/** What the cashier has chosen and typed to ask for a waiver. */
+export interface WaiverDraft {
+  /** A bill's id, or `NOT_BILLED`. */
+  billId: string | null;
+  /** In shillings, as typed. */
+  amount: string;
+  reason: string;
+}
+
+export const emptyWaiver: WaiverDraft = { billId: null, amount: "", reason: "" };
+
+export type WaiverField = "bill" | "amount" | "reason";
+
+/** As long as the API takes a reason. */
+const REASON_LENGTH = { min: 3, max: 200 };
+
+/** The waiver the draft asks for, or what must be put right first, at its field. */
+export function waiverFor(draft: WaiverDraft): { ok: true; waiver: { invoiceId: string | null; amountCents: number; reason: string } } | { ok: false; problems: Partial<Record<WaiverField, string>> } {
+  const words = en.cashier.waiver.problems;
+  const problems: Partial<Record<WaiverField, string>> = {};
+  if (!draft.billId)
+    problems.bill = words.bill;
+  const amountCents = centsFromShillings(draft.amount);
+  if (!amountCents)
+    problems.amount = words.amount;
+  const reason = draft.reason.trim();
+  if (reason.length < REASON_LENGTH.min || reason.length > REASON_LENGTH.max)
+    problems.reason = words.reason;
+  if (!draft.billId || !amountCents || Object.keys(problems).length > 0)
+    return { ok: false, problems };
+  return { ok: true, waiver: { invoiceId: draft.billId === NOT_BILLED ? null : draft.billId, amountCents, reason } };
 }

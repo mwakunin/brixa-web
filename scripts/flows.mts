@@ -1100,7 +1100,7 @@ const registerFlow: Flow = {
 
 const cashierFlow: Flow = {
   name: "cashier",
-  about: "the cashier sees who has money due, opens a patient's bill, reads their shift, and takes the money in two parts",
+  about: "the cashier sees who has money due, opens a patient's bill, takes part in cash, asks for a waiver, takes the rest of what the patient owes, and closes the shift",
   async run(browser, step) {
     const { context } = await freshContext(browser);
     const page = await context.newPage();
@@ -1111,6 +1111,8 @@ const cashierFlow: Flow = {
     const row = page.getByRole("button", { name: new RegExp(`^${name}`) });
     let facilityId = "";
     let visitId = "";
+    let patientId = "";
+    let waiverId = "";
     let testItems: string[] = [];
     let paid = false;
     const asClerk = { "x-facility-id": "", "origin": APP_URL };
@@ -1129,7 +1131,7 @@ const cashierFlow: Flow = {
       asClerk["x-facility-id"] = facilityId;
       const registered = await clerk.post(`${API_URL}/patients`, { headers: asClerk, data: { givenName: "Neema", familyName, sex: "female", dateOfBirth: "1993-02-17", noPhoneReason: "no_phone", noIdReason: "not_carried" } });
       expect("registering the patient", registered.status(), 201);
-      const patientId = (await registered.json() as { id: string }).id;
+      patientId = (await registered.json() as { id: string }).id;
       const opened = await clerk.post(`${API_URL}/encounters`, { headers: asClerk, data: { patientId, kind: "opd", queueAt: null } });
       expect("opening the visit", opened.status(), 201);
       visitId = (await opened.json() as { id: string }).id;
@@ -1216,22 +1218,61 @@ const cashierFlow: Flow = {
       expect("the row on Money due", await row.getByText(/^KES /).innerText(), "KES 200");
     });
 
-    await step("the rest by bank transfer settles the visit: paid in full, and it leaves Money due", async () => {
+    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due", async () => {
+      await page.getByRole("button", { name: "Ask for a waiver" }).click();
+      const bill = page.getByRole("button", { name: /^INV-\S+, KES 200 owed$/ });
+      await bill.click();
+      const amount = page.getByLabel("Amount to waive, in shillings");
+      expect("the amount, at first all the bill owes", await amount.inputValue(), "200");
+      await amount.fill("50");
+      await page.getByLabel("Why").fill("Flows: the in-charge said so");
+      const [asked] = await Promise.all([
+        page.waitForResponse(response => /\/invoices\/[\w-]+\/adjustments$/.test(new URL(response.url()).pathname) && response.request().method() === "POST"),
+        page.getByRole("button", { name: "Ask for a waiver of KES 50" }).click(),
+      ]);
+      waiverId = (await asked.json() as { id: string }).id;
+      await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
+      expect("the row on Money due, the waiver not approved yet", await row.getByText(/^KES /).innerText(), "KES 200");
+      await page.getByRole("button", { name: "Back to taking payment" }).click();
+    });
+
+    await step("what the patient owes on bills out opens at the cashier for them, and the rest by bank transfer settles it", async () => {
+      await page.goto(`${APP_URL}/cashier?patient=${patientId}`);
+      await heading(page).filter({ hasText: name }).waitFor();
+      const bill = page.getByRole("button", { name: /^INV-.*KES 200 still owed, of KES 300/ });
+      expect("the oldest bill owing, chosen", await bill.getAttribute("aria-pressed"), "true");
       await page.getByRole("button", { name: "Card or bank" }).click();
       await page.getByRole("button", { name: "Bank transfer" }).click();
       await page.getByLabel("The transfer's reference").fill(`FT FLOWS ${RUN}`);
-      expect("the amount, what is due once again", await page.getByLabel("Amount, in shillings").inputValue(), "200");
+      expect("the amount, what the bill owes", await page.getByLabel("Amount, in shillings").inputValue(), "200");
       const [receipt] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 200 by bank transfer and print the receipt" }).click()]);
       await page.getByRole("status").filter({ hasText: /^Paid in full\. Receipt RCT-/ }).waitFor();
+      await page.getByText("Nothing more is owed on this bill.").waitFor();
       await receipt.waitForURL(/^blob:/);
       await receipt.close();
       await row.waitFor({ state: "detached" });
-      await page.getByRole("button", { name: "Choose the next patient" }).waitFor();
       const owed = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string }[] };
       expect("the visit, on the API's list of money due", owed.visits.some(visit => visit.encounterId === visitId), false);
     });
 
-    await step("the test and the visit are cancelled, unless paid for, so no list keeps a made-up patient", async () => {
+    await step("closing the shift with the drawer counted says it is right, and a new shift opens with its float", async () => {
+      const shift = page.getByRole("region", { name: "Your shift" });
+      const expected = (await shift.getByText("Should be in the drawer").locator("xpath=following-sibling::dd").innerText()).replace(/^KES /, "");
+      await shift.getByRole("button", { name: "Close my shift and count the drawer" }).click();
+      await shift.getByLabel("Cash counted in the drawer, in shillings").fill(expected);
+      await shift.getByRole("button", { name: "Close my shift", exact: true }).click();
+      await shift.getByRole("status").filter({ hasText: "Your shift is closed" }).filter({ hasText: "The drawer is right." }).waitFor();
+      await shift.getByLabel("Cash in the drawer now, in shillings").fill("2,000");
+      await shift.getByRole("button", { name: "Open my shift" }).click();
+      await shift.getByText(/^\d\d:\d\d, float KES 2,000$/).waitFor();
+      expect("the closed shift's message, once the next is open", await shift.getByText("Your shift is closed").count(), 0);
+    });
+
+    await step("the waiver is withdrawn, and the test and the visit cancelled unless paid for, so no list keeps a made-up patient", async () => {
+      if (waiverId) {
+        const withdrawn = await context.request.post(`${API_URL}/adjustments/${waiverId}/withdraw`, { headers: { "x-facility-id": facilityId, "origin": APP_URL } });
+        expect("withdrawing the waiver", withdrawn.status(), 200);
+      }
       // A paid visit keeps its payments: only finance reverses one, and a re-seed clears them.
       if (!visitId || paid)
         return;

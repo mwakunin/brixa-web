@@ -1,17 +1,25 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { Banknote } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useWorking } from "@/components/facility-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAccount } from "@/hooks/use-cashier";
 import { servicePointsKey } from "@/hooks/use-desk";
 import { usePatient, usePatientVisits, visitsKey } from "@/hooks/use-patients";
 import { hasAction, useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
+import { mayReadAccount } from "@/lib/cashier";
 import { businessDate, clockTime } from "@/lib/dates";
+import { desksFor } from "@/lib/desks";
+import { formatKes } from "@/lib/money";
 import { type Fact, type FoundPatient, fullName, opNumberOf, recordFacts } from "@/lib/patients";
 import { hasOpenOutpatientVisit, type Visit, visitFact } from "@/lib/visits";
 import { emptyWalkIn, type WalkInDraft } from "@/lib/walk-in";
@@ -65,6 +73,10 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
 }) {
   const record = usePatient(id);
   const visits = usePatientVisits(id);
+  const { facility } = useWorking();
+  // What they owe on bills already out, for whoever handles money; the cashier's desk takes it.
+  const account = useAccount(id, mayReadAccount(facility.roles));
+  const cashierDesk = desksFor(facility.roles).find(desk => desk.id === "cashier");
   const queryClient = useQueryClient();
   const main = useRef<HTMLButtonElement>(null);
   const today = businessDate();
@@ -214,6 +226,19 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
               </dl>
             )
           : !record.isError && <p role="status" className="text-muted-foreground">{en.frontDesk.opening}</p>}
+        {record.data && account.data && account.data.owedCents > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <Badge kind="desk" className="text-base">
+                <Banknote aria-hidden="true" strokeWidth={2.25} />
+                {en.frontDesk.owes(formatKes(account.data.owedCents))}
+              </Badge>
+              {cashierDesk && <Link href={`${cashierDesk.path}?patient=${id}`} className="flex min-h-11 items-center text-link underline underline-offset-2">{en.frontDesk.takeAtCashier}</Link>}
+            </div>
+            <p className="text-sm text-muted-foreground">{en.frontDesk.owesHelp}</p>
+          </div>
+        )}
+        {record.data && account.isError && <p className="text-sm text-muted-foreground">{en.frontDesk.owedUnknown}</p>}
         {/* A read of the record that failed says so, beside what was read before when there is some. */}
         {record.isError && (
           <Alert variant="problem">

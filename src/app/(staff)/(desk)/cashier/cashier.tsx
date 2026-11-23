@@ -10,6 +10,7 @@ import { idParam } from "@/lib/navigation";
 import { en } from "@/strings/en";
 
 import { MoneyDue } from "./money-due";
+import { OwedBills } from "./owed-bills";
 import { VisitBill } from "./visit-bill";
 import { YourShift } from "./your-shift";
 
@@ -18,11 +19,14 @@ import { YourShift } from "./your-shift";
  * under it, and the patient's bill on the right.
  *
  * The visit chosen is in the address as an id, so a reload or a slow
- * connection's retry comes back to it.
+ * connection's retry comes back to it. The front desk sends a patient who
+ * owes on bills already out as `?patient=`, for those bills.
  */
 export function Cashier() {
   const params = useSearchParams();
   const visitId = idParam(params.get("visit"));
+  // A patient sent from the front desk, for what they owe on bills already out.
+  const patientId = visitId ? null : idParam(params.get("patient"));
   const due = useMoneyDue();
   const queryClient = useQueryClient();
 
@@ -48,7 +52,9 @@ export function Cashier() {
               listRead={due.isSuccess}
             />
           )
-        : (
+        : patientId
+          ? <OwedBills key={patientId} patientId={patientId} />
+          : (
             <section aria-label={en.cashier.patient} className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-6 text-center">
               <h1 className="text-title font-bold">{en.cashier.nobodyChosen}</h1>
               <p className="max-w-[420px] text-secondary-foreground">{en.cashier.nobodyChosenHelp}</p>
