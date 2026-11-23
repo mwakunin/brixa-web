@@ -221,8 +221,12 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
             <Button variant="link" className="self-start" onClick={() => void record.refetch()}>{en.errors.tryAgain}</Button>
           </Alert>
         )}
+        {/* A read of the visits that failed says so, beside what was read before when there is some. */}
         {record.data && visits.isError && (
-          <Button variant="link" className="self-start" onClick={() => void visits.refetch()}>{en.errors.tryAgain}</Button>
+          <Alert variant="problem">
+            <AlertDescription>{en.visits.readFailed(failureText(visits.error))}</AlertDescription>
+            <Button variant="link" className="self-start" onClick={() => void visits.refetch()}>{en.errors.tryAgain}</Button>
+          </Alert>
         )}
         {/* While a visit waits for its answer, the only way on is Try again. */}
         {state.kind !== "sending" && state.kind !== "no_answer" && (

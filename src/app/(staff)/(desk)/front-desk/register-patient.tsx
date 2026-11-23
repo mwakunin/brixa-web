@@ -50,6 +50,26 @@ interface Registered {
 /** A patient already on file who looks like the one being registered, and why. */
 type Candidate = FoundPatient & { reasons: (keyof typeof en.register.sameReasons)[] };
 
+/** The API's likely-duplicate refusal: what was checked, what was to follow, and who is already on file. */
+interface DuplicateCheck {
+  request: RegisterBody;
+  then: Then;
+  message: string;
+  candidates: Candidate[];
+}
+
+/** The likely duplicate a registration was refused for, if that is what `state` holds. */
+function duplicateIn(state: WriteState<Registering, Registered>): DuplicateCheck | null {
+  if (state.kind !== "refused" || !(state.error instanceof ApiError))
+    return null;
+  const { refusal } = state.error;
+  if (refusal.kind !== "refused" || refusal.code !== "possible_duplicate")
+    return null;
+  const candidates = Array.isArray(refusal.fields.candidates) ? refusal.fields.candidates as Candidate[] : [];
+  const { request, then } = state.action.body;
+  return { request: { ...request, confirmNotDuplicate: false }, then, message: refusal.message, candidates };
+}
+
 interface Props {
   draft: RegistrationDraft;
   onDraft: (draft: RegistrationDraft) => void;
@@ -105,7 +125,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   const today = businessDate();
   const [problems, setProblems] = useState<Problems>({});
   const [refused, setRefused] = useState<string | null>(null);
-  const [duplicate, setDuplicate] = useState<{ request: RegisterBody; then: Then; message: string; candidates: Candidate[] } | null>(null);
+  const [told, setDuplicate] = useState<DuplicateCheck | null>(null);
   const [otherId, setOtherId] = useState(draft.idType !== "national_id");
   // Bumped each time problems are found, to bring the first into view: some fields sit below the fold.
   const [checked, setChecked] = useState(0);
@@ -118,7 +138,8 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
 
   const register = useRepeatSafe<Registering, Registered>("register", async ({ key, body }, signal) => {
     const record = await unwrap(api.POST("/patients", { body: body.request, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
-    // The answer is the whole record, which is not read again. Their visits are read as the record opens.
+    // The answer is the whole record, shown at once as the patient's panel opens; that opening then reads it
+    // again, as every opening of a record is read and recorded, with their visits.
     queryClient.setQueryData(patientKey(record.id), record);
     return { record, then: body.then };
   });
@@ -132,6 +153,8 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }, [state, onRegistered]);
   const waiting = state.kind === "sending" || state.kind === "no_answer" ? state.action.body : null;
 
+  // A likely duplicate this screen was told of, else one that came while it was left (Back mid-send), from the state.
+  const duplicate = told ?? (refused === null ? duplicateIn(state) : null);
   // The duplicate check stands while the form is as it was when checked: a change is checked again.
   const now = registrationBody(draft, today);
   const stillChecked = duplicate !== null && now.ok && JSON.stringify(now.body) === JSON.stringify(duplicate.request);
@@ -150,15 +173,15 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }
 
   /** What the answer to registering means for the screen. */
-  function answered(ended: WriteState<Registering, Registered>, request: RegisterBody, then: Then) {
+  function answered(ended: WriteState<Registering, Registered>) {
     if (ended.kind !== "refused")
       return;
-    const refusal = ended.error instanceof ApiError ? ended.error.refusal : null;
-    if (refusal?.kind === "refused" && refusal.code === "possible_duplicate") {
-      const candidates = Array.isArray(refusal.fields.candidates) ? refusal.fields.candidates as Candidate[] : [];
-      setDuplicate({ request: { ...request, confirmNotDuplicate: false }, then, message: refusal.message, candidates });
+    const found = duplicateIn(ended);
+    if (found) {
+      setDuplicate(found);
       return;
     }
+    const refusal = ended.error instanceof ApiError ? ended.error.refusal : null;
     if (refusal?.kind === "invalid") {
       const found = refusal.issues.map(issue => fieldProblem(issue.path, draft)).filter(found => found !== null);
       setProblems(Object.fromEntries(found.map(({ field, problem }) => [field, problem])));
@@ -180,14 +203,13 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
       return;
     }
     setProblems({});
-    answered(await register.press({ request: built.body, then, draft }), built.body, then);
+    answered(await register.press({ request: built.body, then, draft }));
   }
 
   async function tryAgain() {
     if (!waiting)
       return;
-    const { request, then } = waiting;
-    answered(await register.press(waiting), request, then);
+    answered(await register.press(waiting));
   }
 
   const held = waiting !== null;

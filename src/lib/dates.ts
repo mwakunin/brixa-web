@@ -39,6 +39,16 @@ function ageInYears(dateOfBirth: string, today: string): number {
   return ty - by - (hadBirthday ? 0 : 1);
 }
 
+/**
+ * How long until the next Kenyan day begins, at Nairobi's midnight: for a
+ * screen left open overnight to move to the new day by itself. Kenya has
+ * kept +03:00 since 1942, so the next midnight is fixed.
+ */
+export function msUntilNextBusinessDay(at: Date = new Date()): number {
+  const [y, m, d] = businessDate(at).split("-").map(Number);
+  return Date.UTC(y, m - 1, d + 1) - 3 * 3_600_000 - at.getTime();
+}
+
 /** An age as staff say it, and as the API prints it on a document: "34 years", "8 months", "12 days". */
 export function printedAge(dateOfBirth: string, today: string): string {
   const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;

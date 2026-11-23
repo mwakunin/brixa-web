@@ -202,6 +202,7 @@ export const en = {
     none: "Not here before",
     checking: "Checking…",
     notChecked: "Could not be checked",
+    readFailed: (why: string) => `The visits could not be read: ${why}`,
     kinds: { opd: "outpatient visit", emergency: "emergency", ipd: "admission" },
     kindsNow: { opd: "Outpatient visit", emergency: "Emergency", ipd: "Admission" },
     before: (day: string, kind: string) => `${day}, ${kind}`,
