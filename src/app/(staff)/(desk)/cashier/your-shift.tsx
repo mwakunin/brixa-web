@@ -223,6 +223,8 @@ function OpenShift() {
     // A read begun before the shift opened would show none, so it is stopped first.
     await queryClient.cancelQueries({ queryKey: shiftKey, exact: true });
     queryClient.setQueryData(shiftKey, opened);
+    // Read again all the same: a Try again is answered with the opening's first answer, and that shift may have closed since.
+    void queryClient.invalidateQueries({ queryKey: shiftKey, exact: true });
     return opened;
   });
   const { state } = open;
