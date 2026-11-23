@@ -1123,6 +1123,18 @@ const cashierFlow: Flow = {
       if (url.origin === new URL(API_URL).origin && sent.method() === "GET" && /^\/encounters\/[\w-]+\/charges$/.test(url.pathname))
         billReads.push(url.pathname);
     });
+    // What the API's list of money due says of the made-up visit. The list comes oldest first, 200 at a time, so pages are read until it is found or the list ends.
+    const dueOnVisit = async (): Promise<{ encounterId: string; dueCents: number } | undefined> => {
+      for (let offset = 0; ;) {
+        const answered = await context.request.get(`${API_URL}/cashier/due?offset=${offset}`, { headers: { "x-facility-id": facilityId } });
+        expect("reading the list of money due", answered.status(), 200);
+        const { visits } = await answered.json() as { visits: { encounterId: string; dueCents: number }[] };
+        const visit = visits.find(due => due.encounterId === visitId);
+        if (visit || visits.length < 200)
+          return visit;
+        offset += visits.length;
+      }
+    };
 
     await step("the front desk sends a made-up patient to the lab with tests they asked for, which are charged", async () => {
       await apiSignIn(clerk, seeded("frontdesk"), SEED_PASSWORD);
@@ -1190,6 +1202,12 @@ const cashierFlow: Flow = {
       await amount.fill("100");
       const keys: Record<string, string[]> = { bill: [], pay: [] };
       let answerLost = false;
+      // A refused payment fails the step at once, with its status, instead of waiting for the lost answer.
+      let refused: (status: number) => void = () => {};
+      const refusal = new Promise<never>((_, reject) => {
+        refused = status => reject(new Error(`the payment, before its answer is lost: expected it recorded, got HTTP ${status}`));
+      });
+      refusal.catch(() => {});
       const billOrPay = (url: URL) => url.pathname === `/encounters/${visitId}/bill-now` || url.pathname === "/payments";
       await page.route(billOrPay, async (route) => {
         const pay = new URL(route.request().url()).pathname === "/payments";
@@ -1197,16 +1215,18 @@ const cashierFlow: Flow = {
         if (!pay || answerLost)
           return route.continue();
         answerLost = true;
-        // Billed and paid, but the answer never reaches the page. A refusal goes through, for the step to fail on it.
+        // Billed and paid, but the answer never reaches the page. A refusal goes through to the page.
         const answered = await route.fetch();
-        if (!answered.ok())
+        if (!answered.ok()) {
+          refused(answered.status());
           return route.fulfill({ response: answered });
+        }
         paid = true;
         await route.abort("connectionreset");
       });
       // The receipt's tab opens at the press, and closes when no answer comes.
       const [lost] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 100 in cash and print the receipt" }).click()]);
-      await alert(page, "No answer: the connection dropped").waitFor();
+      await Promise.race([alert(page, "No answer: the connection dropped").waitFor(), refusal]);
       if (!lost.isClosed())
         await lost.waitForEvent("close");
       expect("the amount, held as sent", [await amount.inputValue(), await amount.isDisabled()], ["100", true]);
@@ -1240,8 +1260,7 @@ const cashierFlow: Flow = {
       ]);
       waiverId = (await asked.json() as { id: string }).id;
       await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
-      const { visits } = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string; dueCents: number }[] };
-      expect("what the API says is due, the waiver not approved yet", visits.find(visit => visit.encounterId === visitId)?.dueCents, 20_000);
+      expect("what the API says is due, the waiver not approved yet", (await dueOnVisit())?.dueCents, 20_000);
       await page.getByRole("button", { name: "Back to taking payment" }).click();
     });
 
@@ -1260,8 +1279,7 @@ const cashierFlow: Flow = {
       await receipt.waitForURL(/^blob:/);
       await receipt.close();
       await row.waitFor({ state: "detached" });
-      const owed = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string }[] };
-      expect("the visit, on the API's list of money due", owed.visits.some(visit => visit.encounterId === visitId), false);
+      expect("the visit, on the API's list of money due", await dueOnVisit(), undefined);
     });
 
     await step("closing the shift with the drawer counted says it is right, and a new shift opens with its float", async () => {
@@ -1285,8 +1303,7 @@ const cashierFlow: Flow = {
       }
       // A paid visit keeps its payments, which only finance reverses: what a failed run left owing is paid off instead.
       if (visitId && paid) {
-        const { visits } = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string; dueCents: number }[] };
-        const owing = visits.find(visit => visit.encounterId === visitId);
+        const owing = await dueOnVisit();
         if (owing) {
           const settled = await context.request.post(`${API_URL}/payments`, { headers: asCashier, data: { patientId, method: "bank", reference: `FT FLOWS ${RUN} CLEAN`, amountCents: owing.dueCents, encounterId: visitId } });
           expect(`settling the ${owing.dueCents / 100} shillings a failed run left owing on visit ${visitId}`, settled.status(), 201);
