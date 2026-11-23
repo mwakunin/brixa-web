@@ -842,16 +842,57 @@ const frontDeskFlow: Flow = {
         await held;
         await route.fulfill({ response: answered });
       });
-      await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
-      await search.fill("Amina Njeri");
-      await page.getByRole("button", { name: /^Amina Njeri/ }).click();
-      await heading(page).filter({ hasText: "Amina Njeri" }).waitFor();
-      await search.fill(familyName);
-      await match.click();
-      await page.getByRole("button", { name: "Entering the tests…" }).waitFor();
-      release();
+      try {
+        await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
+        await search.fill("Amina Njeri");
+        await page.getByRole("button", { name: /^Amina Njeri/ }).click();
+        await heading(page).filter({ hasText: "Amina Njeri" }).waitFor();
+        await search.fill(familyName);
+        await match.click();
+        await page.getByRole("button", { name: "Entering the tests…" }).waitFor();
+      }
+      finally {
+        // Let the answer through even if a check failed, so the tests' ids reach clean-up.
+        release();
+      }
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
       await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      expect("the form, to send a second time", await page.getByRole("heading", { name: "Tests from an outside request" }).count(), 0);
+    });
+
+    await step("an outside request answered while its patient was left shows its Done when chosen again, not its form", async () => {
+      await page.getByRole("button", { name: "Find the next patient" }).click();
+      await search.fill(familyName);
+      await match.click();
+      await page.getByRole("button", { name: "Tests only, from an outside doctor's request" }).click();
+      await page.getByLabel("Doctor's name").fill("Dr Flows");
+      await page.getByLabel("Their hospital or clinic").fill("Riverside Clinic");
+      await page.getByRole("checkbox", { name: /^Malaria rapid test/ }).check();
+      // The answer is held back until the clerk is on another patient, then let through while they are away.
+      let release = () => {};
+      const held = new Promise<void>(resolve => (release = resolve));
+      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+        if (route.request().method() !== "POST")
+          return route.continue();
+        const answered = await route.fetch();
+        testItems.push(...(await answered.json() as { items: { id: string }[] }).items.map(item => item.id));
+        await held;
+        await route.fulfill({ response: answered });
+      });
+      try {
+        await page.getByRole("button", { name: `Enter 1 test and send ${name} to the lab` }).click();
+        await search.fill("Amina Njeri");
+        await page.getByRole("button", { name: /^Amina Njeri/ }).click();
+        await heading(page).filter({ hasText: "Amina Njeri" }).waitFor();
+      }
+      finally {
+        release();
+      }
+      await page.waitForResponse(response => response.url().endsWith("/walk-in-orders") && response.request().method() === "POST");
+      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      await search.fill(familyName);
+      await match.click();
+      await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
       expect("the form, to send a second time", await page.getByRole("heading", { name: "Tests from an outside request" }).count(), 0);
     });
 

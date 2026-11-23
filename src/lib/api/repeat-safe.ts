@@ -9,7 +9,7 @@
  * could repeat a write that did go through. Once any answer arrives, done or
  * refused, the action is over, and the next press makes a new key.
  */
-import { EmptyAnswer } from "./refusal";
+import { ApiError, EmptyAnswer } from "./refusal";
 
 export const IDEMPOTENCY_HEADER = "Idempotency-Key";
 
@@ -32,16 +32,23 @@ export function toSend<Body>(waiting: Action<Body> | null, body: Body): Action<B
   return waiting ?? { key: newKey(), body };
 }
 
+/** A gateway's answer in front of the API (502, 503, 504): it cannot say whether the write behind it was done. */
+const GATEWAY_FAILURES = new Set([502, 503, 504]);
+
 /**
  * Whether a write's failure means that no answer came, so the write may or
  * may not have been done: the request did not get through (`fetch` throws a
- * TypeError), its answer did not come back in time, or a success's body
- * could not be read or came empty (a `SyntaxError`, an `EmptyAnswer`: the
- * write went through, but what it returned is unknown). Only an answer the
- * API gave ends the action.
+ * TypeError), its answer did not come back in time, a gateway in front of
+ * the API failed, or a success's body could not be read or came empty (a
+ * `SyntaxError`, an `EmptyAnswer`: the write went through, but what it
+ * returned is unknown). Only an answer the API gave ends the action. Sending
+ * again under the same key is safe whichever it was: the API answers a write
+ * it did with its first answer, and does one it did not.
  */
 export function noAnswer(error: unknown): boolean {
   if (error instanceof TypeError || error instanceof SyntaxError || error instanceof EmptyAnswer)
+    return true;
+  if (error instanceof ApiError && error.refusal.kind === "failed" && error.status !== null && GATEWAY_FAILURES.has(error.status))
     return true;
   return error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
 }
@@ -72,23 +79,22 @@ export const READY: WriteState<never, never> = { kind: "ready" };
  * A tab's actions by name ("start:<patient id>", "register"), kept apart
  * from the screens that send them. A screen left while its action waits for
  * an answer (another patient chosen, the browser's Back) finds it again when
- * shown again, with its key and what it sent, and offers Try again. An action
- * that has ended is kept only while a screen shows it: its Done goes with
- * the patient it was for.
+ * shown again, with its key and what it sent, and offers Try again. An
+ * action that has ended is kept until a screen has shown it, and forgotten
+ * once that screen is left: its Done goes with the patient it was for, and
+ * an answer that came while nobody watched is still shown, never lost, so
+ * nobody sends again what was done.
  */
 export class ActionStore {
-  private readonly states = new Map<string, WriteState<unknown, unknown>>();
+  private readonly states = new Map<string, { state: WriteState<unknown, unknown>; seen: boolean }>();
   private readonly watchers = new Map<string, Set<() => void>>();
 
   get(name: string): WriteState<unknown, unknown> {
-    return this.states.get(name) ?? READY;
+    return this.states.get(name)?.state ?? READY;
   }
 
   set(name: string, state: WriteState<unknown, unknown>): void {
-    if (waitingIn(state) === null && !this.watchers.has(name))
-      this.states.delete(name);
-    else
-      this.states.set(name, state);
+    this.states.set(name, { state, seen: this.watchers.has(name) });
     this.watchers.get(name)?.forEach(changed => changed());
   }
 
@@ -97,12 +103,16 @@ export class ActionStore {
     const watching = this.watchers.get(name) ?? new Set();
     watching.add(changed);
     this.watchers.set(name, watching);
+    const kept = this.states.get(name);
+    if (kept)
+      kept.seen = true;
     return () => {
       watching.delete(changed);
       if (watching.size > 0)
         return;
       this.watchers.delete(name);
-      if (waitingIn(this.get(name)) === null)
+      const left = this.states.get(name);
+      if (left && left.seen && waitingIn(left.state) === null)
         this.states.delete(name);
     };
   }

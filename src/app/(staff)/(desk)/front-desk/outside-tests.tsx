@@ -18,7 +18,6 @@ import { formatKes } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import type { Visit } from "@/lib/visits";
 import {
-  emptyWalkIn,
   offeredTests,
   testsMatching,
   WALK_IN_LIMITS,
@@ -29,6 +28,11 @@ import {
   type WalkInProblems,
 } from "@/lib/walk-in";
 import { en } from "@/strings/en";
+
+/** What an outside request waiting for its answer sent, for the panel to show its form again as it was. */
+export function waitingOutsideTests(patientId: string): WalkInDraft | null {
+  return waitingBody<Entry>(`outside-tests:${patientId}`)?.draft ?? null;
+}
 
 export type WalkInOrder = paths["/encounters/{id}/walk-in-orders"]["post"]["responses"][201]["content"]["application/json"];
 
@@ -56,10 +60,13 @@ const words = en.walkIn;
  * It fills the patient panel below the name: the form scrolls, the buttons
  * stay at the bottom.
  */
-export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }: {
+export function OutsideTests({ patientId, name, openVisitId, draft, setDraft, onEntered, onBack }: {
   patientId: string;
   name: string;
   openVisitId: string | null;
+  /** The form, kept by the panel, so going back to the record and returning finds it as it was left. */
+  draft: WalkInDraft;
+  setDraft: React.Dispatch<React.SetStateAction<WalkInDraft>>;
   onEntered: (order: WalkInOrder) => void;
   onBack: () => void;
 }) {
@@ -68,7 +75,6 @@ export function OutsideTests({ patientId, name, openVisitId, onEntered, onBack }
   const tests = useLabTests();
   const prices = usePriceList();
   const action = `outside-tests:${patientId}`;
-  const [draft, setDraft] = useState<WalkInDraft>(() => waitingBody<Entry>(action)?.draft ?? emptyWalkIn);
   const [problems, setProblems] = useState<WalkInProblems>({});
   const [refused, setRefused] = useState<string | null>(null);
   const [find, setFind] = useState("");

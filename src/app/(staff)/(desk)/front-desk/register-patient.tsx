@@ -34,6 +34,13 @@ import { FoundLine } from "./found-line";
 /** What follows registering: the visit started, an emergency, or nothing yet. */
 export type Then = "opd" | "emergency" | null;
 
+/** A registration as sent: the request, what is to follow, and the form it came from, to show again as it was. */
+export interface Registering {
+  request: RegisterBody;
+  then: Then;
+  draft: RegistrationDraft;
+}
+
 /** What registering led to: the new record, and what the clerk asked to follow. */
 interface Registered {
   record: PatientRecord;
@@ -109,7 +116,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
       body.current?.querySelector("[data-problem]")?.scrollIntoView({ block: "center" });
   }, [checked]);
 
-  const register = useRepeatSafe<{ request: RegisterBody; then: Then }, Registered>("register", async ({ key, body }, signal) => {
+  const register = useRepeatSafe<Registering, Registered>("register", async ({ key, body }, signal) => {
     const record = await unwrap(api.POST("/patients", { body: body.request, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
     // The answer is the whole record, which is not read again. Their visits are read as the record opens.
     queryClient.setQueryData(patientKey(record.id), record);
@@ -143,7 +150,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
   }
 
   /** What the answer to registering means for the screen. */
-  function answered(ended: WriteState<{ request: RegisterBody; then: Then }, Registered>, request: RegisterBody, then: Then) {
+  function answered(ended: WriteState<Registering, Registered>, request: RegisterBody, then: Then) {
     if (ended.kind !== "refused")
       return;
     const refusal = ended.error instanceof ApiError ? ended.error.refusal : null;
@@ -173,7 +180,7 @@ export function RegisterPatient({ draft, onDraft, onBack, onRegistered, onOpen }
       return;
     }
     setProblems({});
-    answered(await register.press({ request: built.body, then }), built.body, then);
+    answered(await register.press({ request: built.body, then, draft }), built.body, then);
   }
 
   async function tryAgain() {

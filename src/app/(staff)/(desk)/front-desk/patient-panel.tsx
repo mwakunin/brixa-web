@@ -7,16 +7,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { servicePointsKey } from "@/hooks/use-desk";
 import { usePatient, usePatientVisits, visitsKey } from "@/hooks/use-patients";
-import { useRepeatSafe, waitingBody } from "@/hooks/use-repeat-safe";
+import { hasAction, useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
 import { businessDate, clockTime } from "@/lib/dates";
 import { type Fact, type FoundPatient, fullName, opNumberOf, recordFacts } from "@/lib/patients";
 import { hasOpenOutpatientVisit, type Visit, visitFact } from "@/lib/visits";
+import { emptyWalkIn, type WalkInDraft } from "@/lib/walk-in";
 import { en } from "@/strings/en";
 
-import { OutsideTests, type WalkInOrder } from "./outside-tests";
+import { OutsideTests, type WalkInOrder, waitingOutsideTests } from "./outside-tests";
 import { WaitingNow } from "./waiting-now";
 
 interface Start {
@@ -67,12 +68,16 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
   const queryClient = useQueryClient();
   const main = useRef<HTMLButtonElement>(null);
   const today = businessDate();
-  // An outside request still waiting for its answer opens again where it was left, with Try again.
-  const [mode, setMode] = useState<"record" | "outside-tests">(() => (waitingBody(`outside-tests:${id}`) ? "outside-tests" : "record"));
+  // An outside request still waiting for its answer opens again where it was left, with Try again; one
+  // answered while nobody watched opens to show its answer, so nobody enters the same tests again.
+  const [mode, setMode] = useState<"record" | "outside-tests">(() => (hasAction(`outside-tests:${id}`) ? "outside-tests" : "record"));
+  // The outside request's form, kept here so going back to the record and returning finds it as it was left.
+  const [testsDraft, setTestsDraft] = useState<WalkInDraft>(() => waitingOutsideTests(id) ?? emptyWalkIn);
   // The tests entered from an outside request, for the Done message.
   const [entered, setEntered] = useState<WalkInOrder | null>(null);
   const enteredTests = useCallback((order: WalkInOrder) => {
     setEntered(order);
+    setTestsDraft(emptyWalkIn);
     setMode("record");
   }, []);
 
@@ -81,7 +86,8 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
     // Kept even when the list was never read: an outside request goes on this visit rather than opening another.
     // A read of the visits begun before it opened would not have it, so it is stopped first.
     await queryClient.cancelQueries({ queryKey: visitsKey(body.patientId), exact: true });
-    queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => [opened, ...(known ?? []).filter(visit => visit.id !== opened.id)]);
+    // A visit already known by its id is kept as known: a replayed answer may be older than it.
+    queryClient.setQueryData<Visit[]>(visitsKey(body.patientId), known => (known?.some(visit => visit.id === opened.id) ? known : [opened, ...(known ?? [])]));
     void queryClient.invalidateQueries({ queryKey: servicePointsKey });
     return opened;
   });
@@ -164,6 +170,8 @@ export function PatientPanel({ id, found, arrival, onArrivalSent, onNext }: {
               patientId={id}
               name={name ?? en.frontDesk.patient}
               openVisitId={openVisitId}
+              draft={testsDraft}
+              setDraft={setTestsDraft}
               onEntered={enteredTests}
               onBack={() => setMode("record")}
             />

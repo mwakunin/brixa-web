@@ -37,9 +37,9 @@ function issuesOf(body: Record<string, unknown>): { path: string; message: strin
   }));
 }
 
-/** A refusal, thrown, so a query or mutation holds it as its error. */
+/** A refusal, thrown, so a query or mutation holds it as its error, with the status it came with when known. */
 export class ApiError extends Error {
-  constructor(readonly refusal: Refusal) {
+  constructor(readonly refusal: Refusal, readonly status: number | null = null) {
     super(`The API answered ${refusal.kind}`);
     this.name = "ApiError";
   }
@@ -63,7 +63,7 @@ export async function unwrap<T>(call: Promise<{ data?: T; error?: unknown; respo
   if (error === undefined && data === undefined && response.ok)
     throw new EmptyAnswer(response.status);
   if (error !== undefined || data === undefined)
-    throw new ApiError(refusalOf(response.status, error));
+    throw new ApiError(refusalOf(response.status, error), response.status);
   return data;
 }
 

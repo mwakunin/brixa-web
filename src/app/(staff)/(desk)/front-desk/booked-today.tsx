@@ -64,6 +64,8 @@ function Booking({ appointment, date }: { appointment: Appointment; date: string
   const queryClient = useQueryClient();
   const checkIn = useRepeatSafe<{ id: string }, CheckedIn>(`check-in:${appointment.id}`, async ({ key, body }, signal) => {
     const answer = await unwrap(api.POST("/appointments/{id}/check-in", { params: { path: { id: body.id } }, body: {}, headers: { [IDEMPOTENCY_HEADER]: key }, signal }));
+    // A read of the list begun before the check-in would mark the row booked again, so it is stopped first.
+    await queryClient.cancelQueries({ queryKey: appointmentsKey(date), exact: true });
     queryClient.setQueryData<Appointment[]>(appointmentsKey(date), list => list?.map(listed => (listed.id === body.id ? { ...listed, status: answer.appointment.status, encounterId: answer.encounterId } : listed)));
     // Someone now waits at triage, and the patient has a visit open.
     void queryClient.invalidateQueries({ queryKey: servicePointsKey });

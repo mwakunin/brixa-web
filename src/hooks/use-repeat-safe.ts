@@ -60,6 +60,11 @@ export function useRepeatSafe<Body, Result>(name: string, send: (action: Action<
   return { state, press };
 }
 
+/** Whether the action `name` has anything to show: an answer still awaited, or one that came while no screen showed it. */
+export function hasAction(name: string): boolean {
+  return actions.get(atFacility(name)).kind !== "ready";
+}
+
 /** What the action `name` sent, while it waits for its answer: for a screen shown again to show it as it was sent. */
 export function waitingBody<Body>(name: string): Body | null {
   return (waitingIn(actions.get(atFacility(name)))?.body as Body | undefined) ?? null;

@@ -52,13 +52,18 @@ describe("no answer", () => {
     expect(noAnswer(new DOMException("The operation was aborted.", "AbortError"))).toBe(true);
   });
 
+  it("is a gateway's failure in front of the API, which cannot say whether the write was done", () => {
+    for (const status of [502, 503, 504])
+      expect(noAnswer(new ApiError(refusalOf(status, "<html>Bad gateway</html>"), status)), String(status)).toBe(true);
+  });
+
   it("is a success whose body could not be read, or came empty: the write went through, what it returned is unknown", () => {
     expect(noAnswer(new SyntaxError("Unexpected end of JSON input"))).toBe(true);
     expect(noAnswer(new EmptyAnswer(201))).toBe(true);
   });
 
   it("is not an answer the API gave, even our own failure", () => {
-    expect(noAnswer(new ApiError(refusalOf(500, { message: "Internal Server Error", requestId: "req-1" })))).toBe(false);
+    expect(noAnswer(new ApiError(refusalOf(500, { message: "Internal Server Error", requestId: "req-1" }), 500))).toBe(false);
     expect(noAnswer(new ApiError(refusalOf(409, { message: "Refused", code: "refused" })))).toBe(false);
     expect(noAnswer(new Error("something else"))).toBe(false);
   });
@@ -87,16 +92,20 @@ describe("the actions a tab keeps", () => {
     expect(store.get("start:p-1")).toEqual({ kind: "ready" });
   });
 
-  it("forget an answer that comes after the screen was left, but keep a missing one", () => {
+  it("keep an answer that comes after the screen was left until a screen has shown it, then forget it", () => {
     const store = new ActionStore();
     store.set("tests:p-1", { kind: "sending", action: sent });
-    store.set("tests:p-1", { kind: "refused", error: new Error("refused") });
-    store.set("tests:p-2", { kind: "sending", action: sent });
-    store.set("tests:p-2", settle(sent, { ok: false, error: new TypeError("Failed to fetch") }));
+    store.set("tests:p-1", { kind: "done", result: { id: "o-1" } });
+
+    expect(store.get("tests:p-1").kind).toBe("done");
+
+    const leave = store.watch("tests:p-1", () => {});
+    leave();
 
     expect(store.get("tests:p-1").kind).toBe("ready");
-    expect(store.get("tests:p-2").kind).toBe("no_answer");
   });
+
+
 
   it("tell each screen watching an action of its changes, and only that action's", () => {
     const store = new ActionStore();

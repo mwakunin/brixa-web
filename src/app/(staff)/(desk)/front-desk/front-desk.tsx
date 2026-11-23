@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 
 import { patientKey } from "@/hooks/use-patients";
+import { waitingBody } from "@/hooks/use-repeat-safe";
 import { type FoundPatient, opNumberOf, type PatientRecord } from "@/lib/patients";
 import { emptyDraft, namesFromSearch, type RegistrationDraft } from "@/lib/registration";
 import { en } from "@/strings/en";
@@ -12,7 +13,7 @@ import { en } from "@/strings/en";
 import { BookedToday } from "./booked-today";
 import { type Arrival, PatientPanel } from "./patient-panel";
 import { PatientSearch } from "./patient-search";
-import { RegisterPatient, type Then } from "./register-patient";
+import { type Registering, RegisterPatient, type Then } from "./register-patient";
 
 const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
@@ -35,7 +36,8 @@ export function FrontDesk() {
   const [term, setTerm] = useState("");
   // The search's own row for the patient chosen, shown while their record opens.
   const [chosen, setChosen] = useState<FoundPatient | null>(null);
-  const [draft, setDraft] = useState<RegistrationDraft>(emptyDraft);
+  // A registration still waiting for its answer shows its form as it was sent, though the desk was left meanwhile.
+  const [draft, setDraft] = useState<RegistrationDraft>(() => waitingBody<Registering>("register")?.draft ?? emptyDraft);
   // A patient just registered, with what the clerk asked to follow.
   const [arrival, setArrival] = useState<(Arrival & { patientId: string }) | null>(null);
   const searchInput = useRef<HTMLInputElement>(null);
