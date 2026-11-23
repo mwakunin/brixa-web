@@ -1371,7 +1371,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1470,7 +1470,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1614,7 +1614,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1717,7 +1717,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1728,7 +1728,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already a member, or already invited */
+                /** @description Already a member, or already invited; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1881,7 +1881,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1892,7 +1892,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not pending */
+                /** @description Not pending; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2032,7 +2032,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2145,7 +2145,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2156,7 +2156,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The member holds no clinical role */
+                /** @description The member holds no clinical role; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2313,7 +2313,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2324,7 +2324,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The last admin would lose the admin role */
+                /** @description The last admin would lose the admin role; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2460,7 +2460,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2600,7 +2600,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2745,7 +2745,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2952,7 +2952,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2963,7 +2963,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Possibly already registered, or an Idempotency-Key already used for another request */
+                /** @description Possibly already registered, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -3169,7 +3169,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3348,7 +3348,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3534,7 +3534,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3545,7 +3545,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Another patient has this number, or an Idempotency-Key already used for another request */
+                /** @description Another patient has this number, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -3760,7 +3760,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3960,7 +3960,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4137,7 +4137,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4208,7 +4208,7 @@ export interface paths {
                         kind: "opd" | "emergency";
                         /**
                          * Format: uuid
-                         * @description Where the patient waits first. Left out: the facility's only triage point, or for an emergency the emergency area while one is marked. `null`: no queue (a walk-in for the lab).
+                         * @description Where the patient waits first. Left out: the facility's triage point when it has exactly one in use, or for an emergency the emergency area while one is marked and in use; with neither, no queue (`queue` is null). `null`: no queue, whatever the facility has (a walk-in for the lab).
                          */
                         queueAt?: string | null;
                     };
@@ -4302,7 +4302,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4313,7 +4313,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4485,7 +4485,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4656,7 +4656,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4667,7 +4667,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4841,7 +4841,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4852,7 +4852,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5032,7 +5032,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5043,7 +5043,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5225,7 +5225,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5236,7 +5236,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5411,7 +5411,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5422,7 +5422,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5558,7 +5558,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5653,7 +5653,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5664,7 +5664,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5825,7 +5825,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5836,7 +5836,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5997,7 +5997,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6063,7 +6063,7 @@ export interface paths {
         put?: never;
         /**
          * Send a patient to a queue
-         * @description For an open outpatient visit or emergency attendance whose patient is in no queue: back to a clinic with results, or straight to one. Opening a visit already joins triage; finishing in one queue can send the patient to the next. Joining a clinic with a fee charges it, once per visit.
+         * @description For an open outpatient visit or emergency attendance whose patient is in no queue: back to a clinic with results, or straight to one. Opening a visit already joins its first queue, as its `queueAt` says (triage, or for an emergency the emergency area, while one is in use); finishing in one queue can send the patient to the next. Joining a clinic with a fee charges it, once per visit.
          */
         post: {
             parameters: {
@@ -6149,7 +6149,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6160,7 +6160,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6307,7 +6307,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6318,7 +6318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6497,7 +6497,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6508,7 +6508,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6573,7 +6573,7 @@ export interface paths {
         put?: never;
         /**
          * Triage a patient in one step
-         * @description Records today's complaint, the vital signs and the allergies asked about, sets how soon the patient must be seen, and sends them to the next clinic: all of it, or, on any refusal, none of it. Each part is checked as its own route checks it. Send an Idempotency-Key, so a press sent again after a dropped connection records it once.
+         * @description Records today's complaint, the vital signs and the allergies asked about, sets how soon the patient must be seen, and sends them to the clinic named in `nextServicePointId`; with none named, triage ends and the patient joins no other queue (`next` is null). All of it, or, on any refusal, none of it. Each part is checked as its own route checks it. Send an Idempotency-Key, so a press sent again after a dropped connection records it once.
          */
         post: {
             parameters: {
@@ -6619,7 +6619,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Triaged and sent on */
+                /** @description Triaged: sent on to the clinic named (`next`), or to none (`next` null) */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -6704,7 +6704,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6715,7 +6715,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6863,7 +6863,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6874,7 +6874,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7033,7 +7033,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7179,7 +7179,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7190,7 +7190,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7360,7 +7360,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7371,7 +7371,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7522,7 +7522,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7533,7 +7533,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7598,7 +7598,7 @@ export interface paths {
         put?: never;
         /**
          * Check a patient in
-         * @description On the appointment's own day. Opens the patient's outpatient visit, or uses the one already open, and sends them to triage like any visit, or straight to the clinic named. Joining a clinic with a fee charges it.
+         * @description On the appointment's own day. Opens the patient's outpatient visit, or uses the one already open, and sends them where `queueAt` says: triage like any visit, while the facility has one triage point in use, or straight to the clinic named. Joining a clinic with a fee charges it.
          */
         post: {
             parameters: {
@@ -7618,7 +7618,10 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description Where the patient goes. Left out: the facility's triage point when exactly one is in use, as for any visit; otherwise no queue. A clinic's id: straight there. `null`: no queue. A patient already in a queue stays in it: left out or `null` leaves them there, and naming a queue is refused (`already_queued`).
+                         */
                         queueAt?: string | null;
                     };
                 };
@@ -7693,7 +7696,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7704,7 +7707,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7862,7 +7865,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7996,7 +7999,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8151,7 +8154,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8315,7 +8318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8453,7 +8456,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8464,7 +8467,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already reviewed */
+                /** @description Already reviewed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8607,7 +8610,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8754,7 +8757,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8765,7 +8768,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The encounter is not open */
+                /** @description The encounter is not open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8908,7 +8911,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8919,7 +8922,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already marked */
+                /** @description Already marked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9065,7 +9068,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9214,7 +9217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9225,7 +9228,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description "No known allergies" while an allergy stands */
+                /** @description "No known allergies" while an allergy stands; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9379,7 +9382,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9390,7 +9393,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already removed */
+                /** @description Already removed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9794,7 +9797,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9940,7 +9943,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9951,7 +9954,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The visit is no longer open */
+                /** @description The visit is no longer open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10082,7 +10085,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10232,7 +10235,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10377,7 +10380,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10388,7 +10391,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10545,7 +10548,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10556,7 +10559,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10706,7 +10709,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10717,7 +10720,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10875,7 +10878,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10886,7 +10889,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11055,7 +11058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11225,7 +11228,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11236,7 +11239,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11416,7 +11419,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11427,7 +11430,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11598,7 +11601,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11609,7 +11612,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11739,7 +11742,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11750,7 +11753,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11927,7 +11930,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11938,7 +11941,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12115,7 +12118,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12126,7 +12129,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12304,7 +12307,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12315,7 +12318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12472,7 +12475,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12630,7 +12633,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12641,7 +12644,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12826,7 +12829,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13033,7 +13036,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13044,7 +13047,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13220,7 +13223,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13231,7 +13234,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13404,7 +13407,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13415,7 +13418,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13606,7 +13609,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13798,7 +13801,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13809,7 +13812,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14013,7 +14016,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14024,7 +14027,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14221,7 +14224,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14232,7 +14235,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14423,7 +14426,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14434,7 +14437,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14569,7 +14572,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14779,7 +14782,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14790,7 +14793,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's or patient's state */
+                /** @description Not possible in the encounter's or patient's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14990,7 +14993,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15001,7 +15004,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Nothing left to cancel */
+                /** @description Nothing left to cancel; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15352,7 +15355,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15500,7 +15503,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15511,7 +15514,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15680,7 +15683,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15691,7 +15694,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15872,7 +15875,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15883,7 +15886,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16055,7 +16058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16066,7 +16069,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16273,7 +16276,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16284,7 +16287,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16498,7 +16501,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16509,7 +16512,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16715,7 +16718,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16726,7 +16729,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16927,7 +16930,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17058,7 +17061,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17145,7 +17148,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17156,7 +17159,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17307,7 +17310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17318,7 +17321,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17456,7 +17459,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17589,7 +17592,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17718,7 +17721,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17729,7 +17732,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17876,7 +17879,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18016,7 +18019,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18027,7 +18030,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18189,7 +18192,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18200,7 +18203,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not a file this reads, or an Idempotency-Key already used for another request */
+                /** @description Not a file this reads, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18358,7 +18361,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18369,7 +18372,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not imported, or an Idempotency-Key already used for another request */
+                /** @description Not imported, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18547,7 +18550,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18558,7 +18561,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Still in stock */
+                /** @description Still in stock; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18692,7 +18695,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18860,7 +18863,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18871,7 +18874,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not receivable as given */
+                /** @description Not receivable as given; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19038,7 +19041,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19203,7 +19206,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19214,7 +19217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not reversible */
+                /** @description Not reversible; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19363,7 +19366,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19552,7 +19555,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19563,7 +19566,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19760,7 +19763,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19970,7 +19973,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19981,7 +19984,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20203,7 +20206,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20214,7 +20217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20418,7 +20421,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20429,7 +20432,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20626,7 +20629,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20637,7 +20640,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20836,7 +20839,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20847,7 +20850,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21046,7 +21049,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21057,7 +21060,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21284,7 +21287,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21485,7 +21488,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21696,7 +21699,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21707,7 +21710,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21880,7 +21883,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21891,7 +21894,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22088,7 +22091,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22099,7 +22102,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22296,7 +22299,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22307,7 +22310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22444,7 +22447,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22455,7 +22458,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22612,7 +22615,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22623,7 +22626,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22781,7 +22784,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22925,7 +22928,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22936,7 +22939,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23079,7 +23082,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23090,7 +23093,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23240,7 +23243,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23391,7 +23394,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23402,7 +23405,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23572,7 +23575,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23583,7 +23586,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23732,7 +23735,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23743,7 +23746,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23892,7 +23895,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23903,7 +23906,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24031,7 +24034,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24122,7 +24125,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24133,7 +24136,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such drug */
+                /** @description No such drug; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24307,7 +24310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24456,7 +24459,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24604,7 +24607,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24615,7 +24618,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24765,7 +24768,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24932,7 +24935,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24943,7 +24946,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25105,7 +25108,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25116,7 +25119,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25279,7 +25282,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25290,7 +25293,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25459,7 +25462,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25617,7 +25620,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25756,7 +25759,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25767,7 +25770,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not reviewable now */
+                /** @description Not reviewable now; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25904,7 +25907,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25989,7 +25992,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26000,7 +26003,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description A ward already has that name */
+                /** @description A ward already has that name; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26134,7 +26137,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26145,7 +26148,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The ward already has a bed with that label */
+                /** @description The ward already has a bed with that label; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26289,7 +26292,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26300,7 +26303,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not a bed-day item */
+                /** @description Not a bed-day item; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26426,7 +26429,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26521,7 +26524,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26532,7 +26535,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Another item has that code */
+                /** @description Another item has that code; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26681,7 +26684,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26835,7 +26838,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26973,7 +26976,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26984,7 +26987,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27139,7 +27142,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27150,7 +27153,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27291,7 +27294,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27302,7 +27305,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27443,7 +27446,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27454,7 +27457,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27595,7 +27598,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27732,7 +27735,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27743,7 +27746,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27890,7 +27893,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27901,7 +27904,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already cancelled */
+                /** @description Already cancelled; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28038,7 +28041,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28198,7 +28201,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28209,7 +28212,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28371,7 +28374,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28539,7 +28542,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28550,7 +28553,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28724,7 +28727,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28735,7 +28738,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already voided */
+                /** @description Already voided; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28902,7 +28905,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28913,7 +28916,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Nothing to bill, or a final invoice still in draft */
+                /** @description Nothing to bill, or a final invoice still in draft; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29054,7 +29057,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29213,7 +29216,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29224,7 +29227,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29386,7 +29389,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29535,7 +29538,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29546,7 +29549,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29691,7 +29694,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29702,7 +29705,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29847,7 +29850,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29858,7 +29861,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30009,7 +30012,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30020,7 +30023,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30165,7 +30168,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30307,7 +30310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30318,7 +30321,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30459,7 +30462,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30470,7 +30473,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30611,7 +30614,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30622,7 +30625,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30762,7 +30765,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30857,7 +30860,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30868,7 +30871,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description A shift is already open */
+                /** @description A shift is already open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31005,7 +31008,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31112,7 +31115,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31262,7 +31265,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31273,7 +31276,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31454,7 +31457,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31465,7 +31468,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31641,7 +31644,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31816,7 +31819,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31827,7 +31830,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32000,7 +32003,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32011,7 +32014,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32185,7 +32188,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32196,7 +32199,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already reversed */
+                /** @description Already reversed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32339,7 +32342,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32500,7 +32503,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32511,7 +32514,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32664,7 +32667,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32817,7 +32820,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32828,7 +32831,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32977,7 +32980,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32988,7 +32991,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33137,7 +33140,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33148,7 +33151,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33309,7 +33312,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33320,7 +33323,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33479,7 +33482,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33490,7 +33493,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33626,7 +33629,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33724,7 +33727,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33735,7 +33738,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The paybill is another facility's */
+                /** @description The paybill is another facility's; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33895,7 +33898,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33906,7 +33909,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description M-Pesa is not set up */
+                /** @description M-Pesa is not set up; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33915,6 +33918,40 @@ export interface paths {
                         "application/json": {
                             message: string;
                             code: string;
+                        };
+                    };
+                };
+                /** @description A malformed Idempotency-Key */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "x-facility-id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
                         };
                     };
                 };
@@ -34010,7 +34047,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34021,7 +34058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description M-Pesa is not set up */
+                /** @description M-Pesa is not set up; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34030,6 +34067,40 @@ export interface paths {
                         "application/json": {
                             message: string;
                             code: string;
+                        };
+                    };
+                };
+                /** @description A malformed Idempotency-Key */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "x-facility-id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
                         };
                     };
                 };
@@ -34117,7 +34188,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34212,7 +34283,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34223,7 +34294,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Replayed already */
+                /** @description Replayed already; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34366,7 +34437,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34520,7 +34591,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34531,7 +34602,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34679,7 +34750,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34690,7 +34761,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34846,7 +34917,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34857,7 +34928,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -35010,7 +35081,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not found, or not yours: the facility, a membership there, or what the path names */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
