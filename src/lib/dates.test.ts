@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { businessDate, clockTime, msUntilNextBusinessDay, printedAge, printedDate, printedDay, printedSince } from "./dates";
+import { businessDate, clockTime, msUntilDayAfter, msUntilNextBusinessDay, printedAge, printedDate, printedDay, printedSince } from "./dates";
 
 // A desk computer set to another zone: every answer below must still be Nairobi's.
 const devicesZone = process.env.TZ;
@@ -38,6 +38,11 @@ describe("the next day, in Nairobi", () => {
     expect(msUntilNextBusinessDay(new Date("2026-11-22T20:59:30Z"))).toBe(30_000);
     // Nairobi's midnight itself: a whole day to the next.
     expect(msUntilNextBusinessDay(new Date("2026-11-22T21:00:00Z"))).toBe(86_400_000);
+  });
+
+  it("after a day already ended is due at once: a day read before midnight, and looked at after it", () => {
+    expect(msUntilDayAfter("2026-11-22", new Date("2026-11-22T20:59:30Z"))).toBe(30_000);
+    expect(msUntilDayAfter("2026-11-22", new Date("2026-11-22T21:00:05Z"))).toBe(-5_000);
   });
 });
 

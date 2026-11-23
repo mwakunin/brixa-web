@@ -101,6 +101,11 @@ describe("an M-Pesa payment waiting to be matched", () => {
     expect(matchingPayments(waiting, "678").map(t => t.transactionId)).toEqual(["QK72HD91XZ"]);
   });
 
+  it("is found by the digits of its code as well as by phone", () => {
+    expect(matchingPayments(waiting, "91").map(t => t.transactionId)).toEqual(["QK72HD91XZ"]);
+    expect(matchingPayments(waiting, "00").map(t => t.transactionId)).toEqual(["QK72HE00AB"]);
+  });
+
   it("is every one waiting when nothing is typed", () => {
     expect(matchingPayments(waiting, " ")).toHaveLength(2);
   });

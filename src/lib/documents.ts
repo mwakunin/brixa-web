@@ -1,5 +1,5 @@
 import { api } from "@/lib/api/client";
-import { ApiError, refusalOf } from "@/lib/api/refusal";
+import { ApiError, failureText, refusalOf } from "@/lib/api/refusal";
 import { en } from "@/strings/en";
 
 /** How long a document's PDF stays in memory once its tab has it. */
@@ -19,11 +19,25 @@ export function documentTab(): Window | null {
   return tab;
 }
 
+/** The browser refused to open a tab for a document: pop-ups are blocked. */
+export class TabBlocked extends Error {
+  constructor() {
+    super("The browser blocked the document's tab");
+    this.name = "TabBlocked";
+  }
+}
+
+/** Why a document did not open, in words for the member of staff. */
+export function documentFailureText(error: unknown): string {
+  return error instanceof TabBlocked ? en.documents.blocked : failureText(error);
+}
+
 /**
  * Opens a printed document's PDF (`GET /documents/{id}/pdf`, audited) in
  * `tab`, or in a new one, for the browser to print. The PDF is held in
  * memory only, and let go once the tab has it. A tab given is closed if
- * the document cannot be read.
+ * the document cannot be read; with no tab to open it in, it fails with
+ * `TabBlocked`, so the screen can say so.
  */
 export async function openDocument(documentId: string, tab: Window | null = null): Promise<void> {
   try {
@@ -31,10 +45,13 @@ export async function openDocument(documentId: string, tab: Window | null = null
     if (!data)
       throw new ApiError(refusalOf(response.status, error), response.status);
     const url = URL.createObjectURL(data);
-    if (tab && !tab.closed)
+    if (tab && !tab.closed) {
       tab.location.replace(url);
-    else
-      window.open(url, "_blank");
+    }
+    else if (!window.open(url, "_blank")) {
+      URL.revokeObjectURL(url);
+      throw new TabBlocked();
+    }
     setTimeout(() => URL.revokeObjectURL(url), KEPT_MS);
   }
   catch (error) {

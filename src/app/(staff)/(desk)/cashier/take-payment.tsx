@@ -18,7 +18,7 @@ import { IDEMPOTENCY_HEADER, waitingIn, type WriteState } from "@/lib/api/repeat
 import { emptyPayment, matchingPayments, type Paying, type PaymentDraft, type PaymentField, paymentFieldProblem, payingFor } from "@/lib/cashier";
 import { printedSince } from "@/lib/dates";
 import { desksFor } from "@/lib/desks";
-import { documentTab, openDocument } from "@/lib/documents";
+import { documentFailureText, documentTab, openDocument } from "@/lib/documents";
 import { centsFromShillings, formatKes } from "@/lib/money";
 import { printedPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -104,7 +104,9 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
   const [amountTyped, setAmountTyped] = useState(() => sentBody<Pay>(actionName) !== null);
   const [problems, setProblems] = useState<Partial<Record<PaymentField, string>>>({});
   const [printProblem, setPrintProblem] = useState<string | null>(null);
+  // The receipt's tab, opened at the press, and whether that press asked for a receipt.
   const tab = useRef<Window | null>(null);
+  const receiptWanted = useRef(false);
   const main = useRef<HTMLButtonElement>(null);
 
   const pay = useRepeatSafe<Pay, Paid>(actionName, async ({ key, body }, signal) => {
@@ -157,16 +159,18 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
   const promptPayment = usePayment(promptStatus === "completed" ? (prompt.data?.paymentId ?? null) : null);
   const promptOpen = prompted !== null && promptStatus !== "completed" && promptStatus !== "failed";
 
-  // The receipt goes to the tab opened at the press; a press that ended any other way leaves it nothing to show.
+  // The receipt goes to the tab opened at the press, and says so when the browser blocked it; a press that ended
+  // any other way leaves the tab nothing to show.
   useEffect(() => {
-    if (state.kind === "sending" || !tab.current)
+    if (state.kind === "sending" || !receiptWanted.current)
       return;
+    receiptWanted.current = false;
     const opened = tab.current;
     tab.current = null;
     if (state.kind === "done" && state.result.kind === "paid")
-      openDocument(state.result.documentId, opened).catch(error => setPrintProblem(failureText(error)));
+      openDocument(state.result.documentId, opened).catch(error => setPrintProblem(documentFailureText(error)));
     else
-      opened.close();
+      opened?.close();
   }, [state]);
   // A tab still waiting when the bill is left has nothing coming.
   useEffect(() => () => tab.current?.close(), []);
@@ -220,8 +224,10 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
 
   async function press() {
     if (waiting) {
-      if (waiting.body.paying.method !== "prompt")
+      if (waiting.body.paying.method !== "prompt") {
+        receiptWanted.current = true;
         tab.current = documentTab();
+      }
       answered(await pay.press(waiting.body));
       return;
     }
@@ -233,8 +239,10 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
     setProblems({});
     setPrintProblem(null);
     // Opened now, while the press counts as the cashier's: a prompt's receipt comes later, from the Done message.
-    if (result.paying.method !== "prompt")
+    if (result.paying.method !== "prompt") {
+      receiptWanted.current = true;
       tab.current = documentTab();
+    }
     const body: Pay = towards.kind === "visit"
       ? { patientId: patient.id, towards: { encounterId: towards.encounterId }, bill: towards.unbilledCents > 0, paying: result.paying }
       : { patientId: patient.id, towards: { invoiceId: towards.invoiceId }, bill: false, paying: result.paying };
@@ -243,7 +251,7 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
 
   function printAgain(documentId: string) {
     setPrintProblem(null);
-    openDocument(documentId, documentTab()).catch(error => setPrintProblem(failureText(error)));
+    openDocument(documentId, documentTab()).catch(error => setPrintProblem(documentFailureText(error)));
   }
 
   function mainLabel(): string {
@@ -277,6 +285,23 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
             <AlertDescription>{words.waitingHelp(formatKes(prompted.amountCents), prompted.phone)}</AlertDescription>
             {prompt.isError && <AlertDescription>{words.waitingReadFailed(failureText(prompt.error))}</AlertDescription>}
           </Alert>
+        )}
+        {/* Paid on the phone: the payment is recorded, and its receipt is read to print. */}
+        {prompted && promptStatus === "completed" && !promptPayment.data && (
+          promptPayment.isError
+            ? (
+                <Alert variant="problem">
+                  <AlertTitle>{words.promptPaid(name)}</AlertTitle>
+                  <AlertDescription>{words.receiptReadFailed(failureText(promptPayment.error))}</AlertDescription>
+                  <Button variant="link" className="self-start" onClick={() => void promptPayment.refetch()}>{en.errors.tryAgain}</Button>
+                </Alert>
+              )
+            : (
+                <Alert variant="done">
+                  <AlertTitle>{words.promptPaid(name)}</AlertTitle>
+                  <AlertDescription>{words.readingReceipt}</AlertDescription>
+                </Alert>
+              )
         )}
         {prompted && promptStatus === "failed" && (
           <Alert variant="problem">

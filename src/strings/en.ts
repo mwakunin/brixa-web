@@ -463,6 +463,9 @@ export const en = {
       waitingTitle: (name: string) => `Waiting for ${name} to pay on the phone`,
       waitingHelp: (amount: string, phone: string) => `A prompt for ${amount} went to ${phone}. M-Pesa asks for the PIN there. This is checked every few seconds.`,
       waitingReadFailed: (why: string) => `The prompt could not be checked: ${why}`,
+      promptPaid: (name: string) => `${name} paid on the phone`,
+      readingReceipt: "Reading the receipt…",
+      receiptReadFailed: (why: string) => `The payment is recorded, but its receipt could not be read: ${why}`,
       promptFailed: "The prompt was not paid",
       promptFailedHelp: "Send it again, or take the payment another way.",
       howItWorks: "How this works",
@@ -530,6 +533,7 @@ export const en = {
   /** A printed document, opened for the browser to print. */
   documents: {
     preparing: "Preparing the document…",
+    blocked: "the browser blocked the tab it opens in. Allow pop-ups for this site, then try again.",
   },
   /** What a write said, beside the button that sent it. */
   writes: {

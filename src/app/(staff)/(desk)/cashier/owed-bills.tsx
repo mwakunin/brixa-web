@@ -91,14 +91,15 @@ export function OwedBills({ patientId }: { patientId: string }) {
           )
         : (
             <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-6 py-5">
-              {account.data
+              {/* Nothing owed only once the account says so; a bill owing waits for the patient's record, read beside it. */}
+              {account.data && !chosen
                 ? (
                     <>
                       <p className="font-semibold">{words.owedNone}</p>
                       <p className="text-secondary-foreground">{words.owedNoneHelp}</p>
                     </>
                   )
-                : !account.isError && <p role="status" className="text-muted-foreground">{words.owedChecking}</p>}
+                : !account.isError && !record.isError && <p role="status" className="text-muted-foreground">{words.owedChecking}</p>}
             </div>
           )}
       {/* A read that failed says so, beside what was read before when there is some. */}

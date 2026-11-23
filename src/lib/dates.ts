@@ -45,7 +45,12 @@ function ageInYears(dateOfBirth: string, today: string): number {
  * kept +03:00 since 1942, so the next midnight is fixed.
  */
 export function msUntilNextBusinessDay(at: Date = new Date()): number {
-  const [y, m, d] = businessDate(at).split("-").map(Number);
+  return msUntilDayAfter(businessDate(at), at);
+}
+
+/** How long until the Kenyan day after `date` begins: less than nothing once it has. */
+export function msUntilDayAfter(date: string, at: Date = new Date()): number {
+  const [y, m, d] = date.split("-").map(Number);
   return Date.UTC(y, m - 1, d + 1) - 3 * 3_600_000 - at.getTime();
 }
 

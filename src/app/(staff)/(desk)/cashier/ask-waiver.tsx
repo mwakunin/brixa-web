@@ -101,17 +101,20 @@ export function AskWaiver({ visit, listed, onBack, children }: {
   }
 
   async function press() {
+    let ended;
     if (waiting) {
-      await ask.press(waiting.body);
-      return;
+      ended = await ask.press(waiting.body);
     }
-    const result = waiverFor({ ...draft, amount });
-    if (!result.ok) {
-      setProblems(result.problems);
-      return;
+    else {
+      const result = waiverFor({ ...draft, amount });
+      if (!result.ok) {
+        setProblems(result.problems);
+        return;
+      }
+      setProblems({});
+      ended = await ask.press({ encounterId: visit.encounterId, ...result.waiver });
     }
-    setProblems({});
-    const ended = await ask.press({ encounterId: visit.encounterId, ...result.waiver });
+    // Asked for, at the first press or a Try again: the form is left empty, so the same waiver is not asked twice.
     if (ended.kind === "done")
       setDraft(emptyWaiver);
   }

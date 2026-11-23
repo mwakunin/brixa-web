@@ -43,20 +43,32 @@ export function YourShift() {
         void queryClient.invalidateQueries({ queryKey: shiftKey });
       throw error;
     }
-    // A read begun before the close would show the shift open, so it is stopped first.
+    // A read begun before the close would show the shift open, so it is stopped first. The shift read is cleared
+    // only while it still shows the shift closed: a replayed answer may come after a newer shift was read.
     await queryClient.cancelQueries({ queryKey: shiftKey, exact: true });
-    queryClient.setQueryData(shiftKey, null);
+    queryClient.setQueryData<Shift | null>(shiftKey, known => (known?.id === closed.id ? null : known));
+    void queryClient.invalidateQueries({ queryKey: shiftKey });
     return closed;
   });
-  // Shown until the next shift opens.
-  const closed = shift.data === null && close.state.kind === "done" ? close.state.result : null;
+  const waitingClose = waitingIn(close.state);
+  const done = close.state.kind === "done" ? close.state.result : null;
+  // A close is shown until a shift after it has been seen: one closed elsewhere later is not this close.
+  const [succeeded, setSucceeded] = useState<string | null>(null);
+  if (done && shift.data && shift.data.id !== done.id && succeeded !== done.id)
+    setSucceeded(done.id);
+  const closed = done && shift.data === null && succeeded !== done.id ? done : null;
+  // A close still waiting for its answer stays with its Try again, whatever the shift read now says.
+  const closeElsewhere = waitingClose && shift.data?.id !== waitingClose.body.shiftId ? waitingClose.body.shiftId : null;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-5">
       <h2 id={id} className="text-lg font-semibold">{words.title}</h2>
       {closed && <ClosedMessage shift={closed} />}
+      {closeElsewhere && <CloseForm shiftId={closeElsewhere} close={close} onCancel={() => {}} />}
       {shift.data === undefined
         ? !shift.isError && <p role="status" className="text-muted-foreground">{words.checking}</p>
-        : shift.data === null ? <OpenShift /> : <Takings shift={shift.data} close={close} />}
+        : shift.data === null
+          ? !closeElsewhere && <OpenShift />
+          : <Takings key={shift.data.id} shift={shift.data} close={close} />}
       {/* A read that failed says so, beside the shift last read when there is one. */}
       {shift.isError && (
         <Alert variant="problem">
@@ -88,32 +100,14 @@ interface Closing {
   declaredCashCents: number;
 }
 
-function Takings({ shift, close }: { shift: Shift; close: ReturnType<typeof useRepeatSafe<Closing, Shift>> }) {
-  const today = useBusinessDate();
-  const { state } = close;
-  const waiting = waitingIn(state);
-  // Counting the drawer opens the form; a close still waiting for its answer, or refused, shows it as it was sent.
-  const [counting, setCounting] = useState(() => sentBody<Closing>("close-shift") !== null);
-  const [typed, setTyped] = useState(() => {
-    const sent = sentBody<Closing>("close-shift");
-    return sent ? String(sent.declaredCashCents / 100) : "";
-  });
-  const [problem, setProblem] = useState<string | null>(null);
+type Close = ReturnType<typeof useRepeatSafe<Closing, Shift>>;
 
-  function submit(event: React.FormEvent) {
-    event.preventDefault();
-    if (waiting) {
-      void close.press(waiting.body);
-      return;
-    }
-    const cents = centsFromShillings(typed);
-    if (cents === null) {
-      setProblem(words.countedProblem);
-      return;
-    }
-    setProblem(null);
-    void close.press({ shiftId: shift.id, declaredCashCents: cents });
-  }
+/** The shift open now, with what it has taken, and closing it once the drawer is counted. */
+function Takings({ shift, close }: { shift: Shift; close: Close }) {
+  const today = useBusinessDate();
+  const waiting = waitingIn(close.state);
+  // Counting the drawer opens the form; a close of this shift waiting for its answer, or refused, shows it as sent.
+  const [counting, setCounting] = useState(() => sentBody<Closing>("close-shift")?.shiftId === shift.id);
 
   const figures = [
     { label: words.opened, value: words.openedAt(printedSince(new Date(shift.openedAt), today), formatKes(shift.openingFloatCents)) },
@@ -133,43 +127,74 @@ function Takings({ shift, close }: { shift: Shift; close: ReturnType<typeof useR
           </div>
         ))}
       </dl>
-      {counting || waiting
-        ? (
-            <form onSubmit={submit} noValidate className="flex flex-col gap-3 border-t border-secondary pt-3">
-              <TextField
-                label={words.counted}
-                hint={words.countedHint}
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={AMOUNT_MAX_LENGTH}
-                value={waiting ? String(waiting.body.declaredCashCents / 100) : typed}
-                disabled={waiting !== null}
-                onChange={event => setTyped(event.target.value)}
-                problem={problem ?? undefined}
-              />
-              {state.kind === "no_answer" && (
-                <Alert variant="problem">
-                  <AlertTitle>{en.writes.noAnswerTitle}</AlertTitle>
-                  <AlertDescription>{en.writes.noAnswer}</AlertDescription>
-                </Alert>
-              )}
-              {state.kind === "refused" && (
-                <Alert variant="problem">
-                  <AlertTitle>{en.writes.notDone}</AlertTitle>
-                  <AlertDescription>{failureText(state.error)}</AlertDescription>
-                </Alert>
-              )}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <Button type="submit" variant="second" disabled={state.kind === "sending"} className="min-h-12 text-base">
-                  {state.kind === "sending" ? words.closing : state.kind === "no_answer" ? words.tryAgainClose : words.closeNow}
-                </Button>
-                {/* While the close waits for its answer, the only way on is Try again. */}
-                {!waiting && <Button type="button" variant="link" onClick={() => setCounting(false)}>{words.notNow}</Button>}
-              </div>
-            </form>
-          )
+      {counting || waiting?.body.shiftId === shift.id
+        ? <CloseForm shiftId={shift.id} close={close} onCancel={() => setCounting(false)} />
         : <Button variant="second" onClick={() => setCounting(true)} className="min-h-12 text-base">{words.close}</Button>}
     </>
+  );
+}
+
+/**
+ * Closing a shift with the cash counted. Repeat-safe: with no answer, the
+ * count is held as sent and the button sends it again, under the same key.
+ */
+function CloseForm({ shiftId, close, onCancel }: { shiftId: string; close: Close; onCancel: () => void }) {
+  const { state } = close;
+  const waiting = waitingIn(state);
+  const [typed, setTyped] = useState(() => {
+    const sent = sentBody<Closing>("close-shift");
+    return sent?.shiftId === shiftId ? String(sent.declaredCashCents / 100) : "";
+  });
+  const [problem, setProblem] = useState<string | null>(null);
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (waiting) {
+      void close.press(waiting.body);
+      return;
+    }
+    const cents = centsFromShillings(typed);
+    if (cents === null) {
+      setProblem(words.countedProblem);
+      return;
+    }
+    setProblem(null);
+    void close.press({ shiftId, declaredCashCents: cents });
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="flex flex-col gap-3 border-t border-secondary pt-3">
+      <TextField
+        label={words.counted}
+        hint={words.countedHint}
+        inputMode="numeric"
+        autoComplete="off"
+        maxLength={AMOUNT_MAX_LENGTH}
+        value={waiting ? String(waiting.body.declaredCashCents / 100) : typed}
+        disabled={waiting !== null}
+        onChange={event => setTyped(event.target.value)}
+        problem={problem ?? undefined}
+      />
+      {state.kind === "no_answer" && (
+        <Alert variant="problem">
+          <AlertTitle>{en.writes.noAnswerTitle}</AlertTitle>
+          <AlertDescription>{en.writes.noAnswer}</AlertDescription>
+        </Alert>
+      )}
+      {state.kind === "refused" && (
+        <Alert variant="problem">
+          <AlertTitle>{en.writes.notDone}</AlertTitle>
+          <AlertDescription>{failureText(state.error)}</AlertDescription>
+        </Alert>
+      )}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Button type="submit" variant="second" disabled={state.kind === "sending"} className="min-h-12 text-base">
+          {state.kind === "sending" ? words.closing : state.kind === "no_answer" ? words.tryAgainClose : words.closeNow}
+        </Button>
+        {/* While the close waits for its answer, the only way on is Try again. */}
+        {!waiting && <Button type="button" variant="link" onClick={onCancel}>{words.notNow}</Button>}
+      </div>
+    </form>
   );
 }
 

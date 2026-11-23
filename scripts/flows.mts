@@ -1173,6 +1173,12 @@ const cashierFlow: Flow = {
 
     await step("the shift shows what should be in the drawer", async () => {
       const shift = page.getByRole("region", { name: "Your shift" });
+      await shift.getByText(/^(Should be in the drawer|No shift open)$/).first().waitFor();
+      // A run stopped between closing the shift and opening the next leaves none: one is opened, as at a shift's start.
+      if (await shift.getByText("No shift open").count() > 0) {
+        await shift.getByLabel("Cash in the drawer now, in shillings").fill("2000");
+        await shift.getByRole("button", { name: "Open my shift" }).click();
+      }
       await shift.getByText("Should be in the drawer").waitFor();
       await shift.getByText(/^KES [\d,]+$/).first().waitFor();
     });
@@ -1191,8 +1197,10 @@ const cashierFlow: Flow = {
         if (!pay || answerLost)
           return route.continue();
         answerLost = true;
-        // Billed and paid, but the answer never reaches the page.
-        await route.fetch();
+        // Billed and paid, but the answer never reaches the page. A refusal goes through, for the step to fail on it.
+        const answered = await route.fetch();
+        if (!answered.ok())
+          return route.fulfill({ response: answered });
         paid = true;
         await route.abort("connectionreset");
       });
@@ -1232,7 +1240,8 @@ const cashierFlow: Flow = {
       ]);
       waiverId = (await asked.json() as { id: string }).id;
       await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
-      expect("the row on Money due, the waiver not approved yet", await row.getByText(/^KES /).innerText(), "KES 200");
+      const { visits } = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string; dueCents: number }[] };
+      expect("what the API says is due, the waiver not approved yet", visits.find(visit => visit.encounterId === visitId)?.dueCents, 20_000);
       await page.getByRole("button", { name: "Back to taking payment" }).click();
     });
 
@@ -1268,13 +1277,23 @@ const cashierFlow: Flow = {
       expect("the closed shift's message, once the next is open", await shift.getByText("Your shift is closed").count(), 0);
     });
 
-    await step("the waiver is withdrawn, and the test and the visit cancelled unless paid for, so no list keeps a made-up patient", async () => {
+    await step("the waiver is withdrawn, and the visit cancelled, or settled once paid into, so no list keeps a made-up patient", async () => {
+      const asCashier = { "x-facility-id": facilityId, "origin": APP_URL };
       if (waiverId) {
-        const withdrawn = await context.request.post(`${API_URL}/adjustments/${waiverId}/withdraw`, { headers: { "x-facility-id": facilityId, "origin": APP_URL } });
+        const withdrawn = await context.request.post(`${API_URL}/adjustments/${waiverId}/withdraw`, { headers: asCashier });
         expect("withdrawing the waiver", withdrawn.status(), 200);
       }
-      // A paid visit keeps its payments: only finance reverses one, and a re-seed clears them.
-      if (!visitId || paid)
+      // A paid visit keeps its payments, which only finance reverses: what a failed run left owing is paid off instead.
+      if (visitId && paid) {
+        const { visits } = await (await context.request.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } })).json() as { visits: { encounterId: string; dueCents: number }[] };
+        const owing = visits.find(visit => visit.encounterId === visitId);
+        if (owing) {
+          const settled = await context.request.post(`${API_URL}/payments`, { headers: asCashier, data: { patientId, method: "bank", reference: `FT FLOWS ${RUN} CLEAN`, amountCents: owing.dueCents, encounterId: visitId } });
+          expect(`settling the ${owing.dueCents / 100} shillings a failed run left owing on visit ${visitId}`, settled.status(), 201);
+        }
+        return;
+      }
+      if (!visitId)
         return;
       for (const item of testItems) {
         const cancelled = await clerk.post(`${API_URL}/order-items/${item}/cancel`, { headers: asClerk, data: { reason: "Entered by pnpm flows" } });

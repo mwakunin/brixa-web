@@ -88,8 +88,9 @@ describe("reading a query parameter that may repeat", () => {
 });
 
 describe("the record a desk's address names", () => {
-  it("is an id", () => {
+  it("is an id, in lower case as the API gives ids", () => {
     expect(idParam("0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f")).toBe("0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f");
+    expect(idParam("0F6C2B1E-9A4D-4C3B-8E2F-1A2B3C4D5E6F")).toBe("0f6c2b1e-9a4d-4c3b-8e2f-1a2b3c4d5e6f");
   });
 
   it("is nothing for anything else", () => {

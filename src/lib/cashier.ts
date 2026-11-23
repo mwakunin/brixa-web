@@ -107,7 +107,7 @@ export function payingFor(draft: PaymentDraft, transactionCents: number | null):
 /**
  * The M-Pesa payments waiting to be matched that fit what the cashier
  * typed: part of the M-Pesa code, or of the phone that paid, as dialled at
- * home (0712…) or with the country code.
+ * home (0712…) or with the country code. Digits alone may be either.
  */
 export function matchingPayments<T extends { transactionId: string; msisdn: string }>(waiting: readonly T[], typed: string): T[] {
   const text = typed.trim();
@@ -115,8 +115,9 @@ export function matchingPayments<T extends { transactionId: string; msisdn: stri
     return [...waiting];
   if (/[a-z]/i.test(text))
     return waiting.filter(payment => payment.transactionId.toUpperCase().includes(text.toUpperCase()));
-  const digits = text.replace(/\D/g, "").replace(/^0/, "");
-  return waiting.filter(payment => payment.msisdn.replace(/\D/g, "").includes(digits));
+  const digits = text.replace(/\D/g, "");
+  const phone = digits.replace(/^0/, "");
+  return waiting.filter(payment => payment.msisdn.replace(/\D/g, "").includes(phone) || payment.transactionId.includes(digits));
 }
 
 /** The field a value the API did not accept belongs to, from the path it gave, with what to say there in our words. */
