@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { en } from "@/strings/en";
 
-import { ApiError, failureText, refusalOf, unwrap } from "./refusal";
+import { ApiError, EmptyAnswer, failureText, refusalOf, unwrap } from "./refusal";
 
 describe("what the API refused", () => {
   it("is a refusal with its own words and code, and whatever else it carried", () => {
@@ -25,6 +25,12 @@ describe("what the API refused", () => {
     const body = { success: false, error: { name: "ValidationError", issues: [{ path: ["lines", 0, "quantity"], message: "Too small" }, { path: [], message: "Nothing to change" }] } };
 
     expect(refusalOf(422, body)).toEqual({ kind: "invalid", issues: [{ path: "lines.0.quantity", message: "Too small" }, { path: "", message: "Nothing to change" }] });
+  });
+
+  it("is too many requests on 429, with the limiter's words, which are written for staff", () => {
+    expect(refusalOf(429, { message: "Too many requests. Please slow down and try again shortly.", retryAfterSeconds: 30 })).toEqual({ kind: "too_many", message: "Too many requests. Please slow down and try again shortly." });
+    expect(failureText(new ApiError(refusalOf(429, { message: "Too many requests. Please slow down and try again shortly." })))).toBe("Too many requests. Please slow down and try again shortly.");
+    expect(failureText(new ApiError(refusalOf(429, "")))).toBe(en.errors.tooMany);
   });
 
   it("is our failure, with the reference to quote, for anything it cannot read", () => {
@@ -69,5 +75,10 @@ describe("unwrapping a typed call", () => {
   it("throws the refusal", async () => {
     const call = Promise.resolve({ error: { message: "Unauthorized" }, response: new Response(null, { status: 401 }) });
     await expect(unwrap(call)).rejects.toMatchObject({ refusal: { kind: "signed_out" } });
+  });
+
+  it("throws a success that came with no body as an empty answer, not a refusal: the write went through", async () => {
+    const call = Promise.resolve({ data: undefined, response: new Response(null, { status: 201 }) });
+    await expect(unwrap(call)).rejects.toBeInstanceOf(EmptyAnswer);
   });
 });

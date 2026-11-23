@@ -1308,6 +1308,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -1369,7 +1371,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1397,6 +1399,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -1466,7 +1470,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1474,6 +1478,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -1527,6 +1544,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -1595,7 +1614,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1619,6 +1638,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -1696,7 +1717,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1707,7 +1728,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already a member, or already invited */
+                /** @description Already a member, or already invited; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1803,6 +1824,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -1858,7 +1881,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -1869,7 +1892,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not pending */
+                /** @description Not pending; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -1940,6 +1963,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -2007,7 +2032,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2046,6 +2071,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -2118,7 +2145,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2129,7 +2156,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The member holds no clinical role */
+                /** @description The member holds no clinical role; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2209,6 +2236,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -2284,7 +2313,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2295,7 +2324,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The last admin would lose the admin role */
+                /** @description The last admin would lose the admin role; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2368,6 +2397,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -2429,7 +2460,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2437,6 +2468,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -2500,6 +2544,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -2554,7 +2600,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2629,6 +2675,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -2697,7 +2745,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2767,6 +2815,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -2902,7 +2952,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -2913,7 +2963,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Possibly already registered */
+                /** @description Possibly already registered, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2943,6 +2993,10 @@ export interface paths {
                                 } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
+                        } | {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -3019,6 +3073,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -3113,7 +3169,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3175,6 +3231,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -3290,7 +3348,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3298,6 +3356,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -3356,6 +3427,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -3461,7 +3534,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3472,7 +3545,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Another patient has this number */
+                /** @description Another patient has this number, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -3502,6 +3575,10 @@ export interface paths {
                                 } | null;
                                 reasons: ("same_id" | "same_name_and_phone" | "same_name_and_birth_date")[];
                             }[];
+                        } | {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -3573,6 +3650,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -3681,7 +3760,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3689,6 +3768,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -3757,6 +3849,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -3866,7 +3960,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -3874,6 +3968,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -3933,6 +4040,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -4028,7 +4137,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4083,6 +4192,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -4095,7 +4206,10 @@ export interface paths {
                         patientId: string;
                         /** @enum {string} */
                         kind: "opd" | "emergency";
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description Where the patient waits first. Left out: the facility's triage point when it has exactly one in use, or for an emergency the emergency area while one is marked and in use; with neither, no queue (`queue` is null). `null`: no queue, whatever the facility has (a walk-in for the lab).
+                         */
                         queueAt?: string | null;
                     };
                 };
@@ -4188,7 +4302,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4199,7 +4313,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4274,6 +4388,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -4369,7 +4485,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4443,6 +4559,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -4538,7 +4656,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4549,7 +4667,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4619,6 +4737,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -4721,7 +4841,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4732,7 +4852,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4805,6 +4925,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -4910,7 +5032,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -4921,7 +5043,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -4998,6 +5120,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -5101,7 +5225,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5112,7 +5236,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5182,6 +5306,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -5285,7 +5411,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5296,7 +5422,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's current state */
+                /** @description Not possible in the encounter's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5367,6 +5493,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -5390,6 +5518,7 @@ export interface paths {
                                 consultationItemId: string | null;
                                 /** @enum {string|null} */
                                 sensitiveCategory: "hiv" | "mental_health" | "gbv" | null;
+                                emergencyArea: boolean;
                                 isActive: boolean;
                                 waiting: number;
                             }[];
@@ -5429,7 +5558,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5453,6 +5582,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -5484,6 +5615,7 @@ export interface paths {
                             consultationItemId: string | null;
                             /** @enum {string|null} */
                             sensitiveCategory: "hiv" | "mental_health" | "gbv" | null;
+                            emergencyArea: boolean;
                             isActive: boolean;
                         };
                     };
@@ -5521,7 +5653,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5532,7 +5664,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5608,7 +5740,7 @@ export interface paths {
         head?: never;
         /**
          * Change a service point
-         * @description Rename it, retire it, or set a clinic's consultation fee. A point with patients still in its queue, or a clinic with appointments booked from today on, cannot be retired.
+         * @description Rename it, retire it, set a clinic's consultation fee, or mark a clinic as the emergency area (`emergency_area_taken` while another is). A point with patients still in its queue, or a clinic with appointments booked from today on, cannot be retired.
          */
         patch: {
             parameters: {
@@ -5616,6 +5748,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -5632,6 +5766,7 @@ export interface paths {
                         consultationItemId?: string | null;
                         /** @enum {string|null} */
                         sensitiveCategory?: "hiv" | "mental_health" | "gbv" | null;
+                        emergencyArea?: boolean;
                     };
                 };
             };
@@ -5652,6 +5787,7 @@ export interface paths {
                             consultationItemId: string | null;
                             /** @enum {string|null} */
                             sensitiveCategory: "hiv" | "mental_health" | "gbv" | null;
+                            emergencyArea: boolean;
                             isActive: boolean;
                         };
                     };
@@ -5689,7 +5825,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5700,7 +5836,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5728,7 +5864,7 @@ export interface paths {
                              *         {
                              *           "code": "custom",
                              *           "path": [],
-                             *           "message": "Change the name, whether it is in use, the consultation fee, or whether it is sensitive"
+                             *           "message": "Change the name, whether it is in use, the consultation fee, whether it is sensitive, or whether it is the emergency area"
                              *         }
                              *       ]
                              *     }
@@ -5765,6 +5901,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -5790,6 +5928,7 @@ export interface paths {
                                 consultationItemId: string | null;
                                 /** @enum {string|null} */
                                 sensitiveCategory: "hiv" | "mental_health" | "gbv" | null;
+                                emergencyArea: boolean;
                                 isActive: boolean;
                             };
                             entries: {
@@ -5858,7 +5997,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -5924,7 +6063,7 @@ export interface paths {
         put?: never;
         /**
          * Send a patient to a queue
-         * @description For an open outpatient visit or emergency attendance whose patient is in no queue: back to a clinic with results, or straight to one. Opening a visit already joins triage; finishing in one queue can send the patient to the next. Joining a clinic with a fee charges it, once per visit.
+         * @description For an open outpatient visit or emergency attendance whose patient is in no queue: back to a clinic with results, or straight to one. Opening a visit already joins its first queue, as its `queueAt` says (triage, or for an emergency the emergency area, while one is in use); finishing in one queue can send the patient to the next. Joining a clinic with a fee charges it, once per visit.
          */
         post: {
             parameters: {
@@ -5932,6 +6071,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -6008,7 +6149,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6019,7 +6160,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6092,6 +6233,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -6164,7 +6307,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6175,7 +6318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6248,6 +6391,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -6352,7 +6497,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6363,7 +6508,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6417,6 +6562,213 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/queue-entries/{id}/triage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Triage a patient in one step
+         * @description Records today's complaint, the vital signs and the allergies asked about, sets how soon the patient must be seen, and sends them to the clinic named in `nextServicePointId`; with none named, triage ends and the patient joins no other queue (`next` is null). All of it, or, on any refusal, none of it. Each part is checked as its own route checks it. Send an Idempotency-Key, so a press sent again after a dropped connection records it once.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description The facility this request acts in */
+                    "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            /** @description The triage */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        complaint?: string;
+                        readings?: {
+                            /** @enum {string} */
+                            code: "temperature" | "pulse" | "respiratory_rate" | "bp_systolic" | "bp_diastolic" | "spo2" | "weight" | "height" | "muac" | "blood_glucose" | "pain_score";
+                            value: number;
+                        }[];
+                        allergies?: ({
+                            /** @enum {string} */
+                            category: "drug" | "food" | "environment" | "other";
+                            allergen: string;
+                            drugCode?: string;
+                            reaction?: string;
+                            /** @enum {string} */
+                            severity?: "mild" | "moderate" | "severe";
+                        } | {
+                            /** @enum {boolean} */
+                            noKnownAllergies: true;
+                        })[];
+                        /** @enum {string} */
+                        priority: "emergency" | "urgent" | "routine";
+                        /** Format: uuid */
+                        nextServicePointId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Triaged: sent on to the clinic named (`next`), or to none (`next` null) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            finished: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                encounterId: string;
+                                /** Format: uuid */
+                                servicePointId: string;
+                                /** @enum {string} */
+                                status: "waiting" | "serving" | "done" | "left" | "cancelled";
+                                joinedAt: string;
+                                servingAt: string | null;
+                                /** Format: uuid */
+                                servedBy: string | null;
+                                endedAt: string | null;
+                                /** @enum {string|null} */
+                                priority: "emergency" | "urgent" | "routine" | null;
+                                comeBackWithResults: boolean;
+                                returnedWithResults: boolean;
+                            };
+                            next: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                encounterId: string;
+                                /** Format: uuid */
+                                servicePointId: string;
+                                /** @enum {string} */
+                                status: "waiting" | "serving" | "done" | "left" | "cancelled";
+                                joinedAt: string;
+                                servingAt: string | null;
+                                /** Format: uuid */
+                                servedBy: string | null;
+                                endedAt: string | null;
+                                /** @enum {string|null} */
+                                priority: "emergency" | "urgent" | "routine" | null;
+                                comeBackWithResults: boolean;
+                                returnedWithResults: boolean;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description No facility named */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Facility suspended, role not allowed, or a lapsed licence (`licence_expired`) */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "licence_expired";
+                        } | {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            code: string;
+                        };
+                    };
+                };
+                /** @description Invalid triage */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_value",
+                             *           "path": [
+                             *             "priority"
+                             *           ],
+                             *           "message": "Invalid option: expected one of \"emergency\"|\"urgent\"|\"routine\""
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/queue-entries/{id}/remove": {
         parameters: {
             query?: never;
@@ -6433,6 +6785,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -6509,7 +6863,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6520,7 +6874,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the queue's current state */
+                /** @description Not possible in the queue's current state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6596,6 +6950,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -6677,7 +7033,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6735,6 +7091,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -6821,7 +7179,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -6832,7 +7190,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -6919,6 +7277,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7000,7 +7360,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7011,7 +7371,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7081,6 +7441,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7160,7 +7522,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7171,7 +7533,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7236,7 +7598,7 @@ export interface paths {
         put?: never;
         /**
          * Check a patient in
-         * @description On the appointment's own day. Opens the patient's outpatient visit, or uses the one already open, and sends them to triage like any visit, or straight to the clinic named. Joining a clinic with a fee charges it.
+         * @description On the appointment's own day. Opens the patient's outpatient visit, or uses the one already open, and sends them where `queueAt` says: triage like any visit, while the facility has one triage point in use, or straight to the clinic named. Joining a clinic with a fee charges it.
          */
         post: {
             parameters: {
@@ -7244,6 +7606,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7254,7 +7618,10 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
+                        /**
+                         * Format: uuid
+                         * @description Where the patient goes. Left out: the facility's triage point when exactly one is in use, as for any visit; otherwise no queue. A clinic's id: straight there. `null`: no queue. A patient already in a queue stays in it: left out or `null` leaves them there, and naming a queue is refused (`already_queued`).
+                         */
                         queueAt?: string | null;
                     };
                 };
@@ -7329,7 +7696,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7340,7 +7707,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as things stand */
+                /** @description Not possible as things stand; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -7413,6 +7780,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7496,7 +7865,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7569,6 +7938,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7628,7 +7999,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7636,6 +8007,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -7701,6 +8085,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -7768,7 +8154,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7776,6 +8162,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -7841,6 +8240,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -7917,7 +8318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -7991,6 +8392,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8053,7 +8456,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8064,7 +8467,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already reviewed */
+                /** @description Already reviewed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8135,6 +8538,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8205,7 +8610,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8263,6 +8668,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8350,7 +8757,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8361,7 +8768,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The encounter is not open */
+                /** @description The encounter is not open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8434,6 +8841,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8502,7 +8911,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8513,7 +8922,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already marked */
+                /** @description Already marked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8586,6 +8995,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8657,7 +9068,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8715,6 +9126,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8804,7 +9217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8815,7 +9228,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description "No known allergies" while an allergy stands */
+                /** @description "No known allergies" while an allergy stands; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -8886,6 +9299,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -8967,7 +9382,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -8978,7 +9393,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already removed */
+                /** @description Already removed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9049,6 +9464,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -9380,7 +9797,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9453,6 +9870,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -9524,7 +9943,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9535,7 +9954,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The visit is no longer open */
+                /** @description The visit is no longer open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -9609,6 +10028,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -9664,7 +10085,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9736,6 +10157,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -9812,7 +10235,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9870,6 +10293,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -9955,7 +10380,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -9966,7 +10391,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10046,6 +10471,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10121,7 +10548,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10132,7 +10559,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10205,6 +10632,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10280,7 +10709,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10291,7 +10720,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10364,6 +10793,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10447,7 +10878,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10458,7 +10889,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the diagnosis's or encounter's state */
+                /** @description Not possible in the diagnosis's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10529,6 +10960,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10625,7 +11058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10683,6 +11116,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10793,7 +11228,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10804,7 +11239,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -10876,6 +11311,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -10982,7 +11419,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -10993,7 +11430,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11067,6 +11504,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -11162,7 +11601,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11173,7 +11612,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11246,6 +11685,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -11301,7 +11742,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11312,7 +11753,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11385,6 +11826,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -11487,7 +11930,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11498,7 +11941,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11571,6 +12014,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -11673,7 +12118,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11684,7 +12129,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11757,6 +12202,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -11860,7 +12307,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -11871,7 +12318,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the note's or encounter's state */
+                /** @description Not possible in the note's or encounter's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -11942,6 +12389,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -12026,7 +12475,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12050,6 +12499,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -12182,7 +12633,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12193,7 +12644,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12281,6 +12732,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -12376,7 +12829,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12384,6 +12837,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -12442,6 +12908,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -12568,7 +13036,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12579,7 +13047,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12656,6 +13124,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -12753,7 +13223,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12764,7 +13234,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -12830,6 +13300,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -12935,7 +13407,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12946,7 +13418,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13018,6 +13490,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -13135,7 +13609,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13193,6 +13667,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -13325,7 +13801,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13336,7 +13812,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13409,6 +13885,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -13538,7 +14016,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13549,7 +14027,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13622,6 +14100,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -13744,7 +14224,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13755,7 +14235,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -13828,6 +14308,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -13944,7 +14426,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -13955,7 +14437,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's, item's or catalogue's state */
+                /** @description Not possible in the encounter's, item's or catalogue's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14028,6 +14510,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -14088,7 +14572,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14162,6 +14646,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -14296,7 +14782,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14307,7 +14793,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the encounter's or patient's state */
+                /** @description Not possible in the encounter's or patient's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14386,6 +14872,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -14505,7 +14993,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14516,7 +15004,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Nothing left to cancel */
+                /** @description Nothing left to cancel; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -14587,6 +15075,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -14865,7 +15355,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -14905,6 +15395,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15011,7 +15503,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15022,7 +15514,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15092,6 +15584,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15189,7 +15683,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15200,7 +15694,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15273,6 +15767,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15379,7 +15875,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15390,7 +15886,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15463,6 +15959,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15560,7 +16058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15571,7 +16069,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15644,6 +16142,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15776,7 +16276,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -15787,7 +16287,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -15867,6 +16367,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -15999,7 +16501,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16010,7 +16512,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16083,6 +16585,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -16214,7 +16718,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16225,7 +16729,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible in the specimen's or order's state */
+                /** @description Not possible in the specimen's or order's state; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16298,6 +16802,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -16424,7 +16930,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16496,6 +17002,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -16553,7 +17061,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16574,6 +17082,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -16638,7 +17148,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16649,7 +17159,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16733,6 +17243,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -16798,7 +17310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -16809,7 +17321,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -16874,6 +17386,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -16945,7 +17459,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17017,6 +17531,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -17076,7 +17592,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17133,6 +17649,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -17203,7 +17721,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17214,7 +17732,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the stores as they are */
+                /** @description Not possible with the stores as they are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17288,6 +17806,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -17359,7 +17879,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17417,6 +17937,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -17497,7 +18019,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17508,7 +18030,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible with the catalogue as it is */
+                /** @description Not possible with the catalogue as it is; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17595,6 +18117,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -17668,7 +18192,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17679,7 +18203,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not a file this reads */
+                /** @description Not a file this reads, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17704,6 +18228,10 @@ export interface paths {
                                     form: string;
                                 }[];
                             }[];
+                        } | {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -17768,6 +18296,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -17831,7 +18361,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -17842,7 +18372,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not imported */
+                /** @description Not imported, or an Idempotency-Key already used for another request; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -17867,6 +18397,10 @@ export interface paths {
                                     form: string;
                                 }[];
                             }[];
+                        } | {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -17935,6 +18469,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -18014,7 +18550,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18025,7 +18561,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Still in stock */
+                /** @description Still in stock; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18093,6 +18629,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -18157,7 +18695,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18215,6 +18753,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -18323,7 +18863,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18334,7 +18874,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not receivable as given */
+                /** @description Not receivable as given; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18417,6 +18957,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -18499,7 +19041,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18573,6 +19115,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -18662,7 +19206,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18673,7 +19217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not reversible */
+                /** @description Not reversible; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -18750,6 +19294,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -18820,7 +19366,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -18878,6 +19424,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -19007,7 +19555,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19018,7 +19566,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19101,6 +19649,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -19213,7 +19763,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19287,6 +19837,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -19421,7 +19973,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19432,7 +19984,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19520,6 +20072,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -19652,7 +20206,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19663,7 +20217,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19737,6 +20291,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -19865,7 +20421,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -19876,7 +20432,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -19950,6 +20506,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -20071,7 +20629,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20082,7 +20640,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20156,6 +20714,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -20279,7 +20839,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20290,7 +20850,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20364,6 +20924,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -20487,7 +21049,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20498,7 +21060,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the transfer and stores are */
+                /** @description Not possible as the transfer and stores are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -20572,6 +21134,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -20723,7 +21287,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20808,6 +21372,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -20922,7 +21488,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -20996,6 +21562,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -21131,7 +21699,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21142,7 +21710,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21223,6 +21791,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -21313,7 +21883,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21324,7 +21894,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21405,6 +21975,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -21519,7 +22091,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21530,7 +22102,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21604,6 +22176,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -21725,7 +22299,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21736,7 +22310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21810,6 +22384,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -21871,7 +22447,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -21882,7 +22458,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the prescription, visit or stock are */
+                /** @description Not possible as the prescription, visit or stock are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -21956,6 +22532,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -22037,7 +22615,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22048,7 +22626,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22136,6 +22714,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -22204,7 +22784,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22278,6 +22858,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -22346,7 +22928,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22357,7 +22939,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22430,6 +23012,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -22498,7 +23082,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22509,7 +23093,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the medicine and its bill are */
+                /** @description Not possible as the medicine and its bill are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22584,6 +23168,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -22657,7 +23243,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22715,6 +23301,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -22806,7 +23394,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22817,7 +23405,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -22912,6 +23500,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -22985,7 +23575,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -22996,7 +23586,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23070,6 +23660,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -23143,7 +23735,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23154,7 +23746,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23228,6 +23820,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -23301,7 +23895,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23312,7 +23906,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the store and batches are */
+                /** @description Not possible as the store and batches are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23381,6 +23975,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -23438,7 +24034,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23461,6 +24057,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -23527,7 +24125,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23538,7 +24136,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such drug */
+                /** @description No such drug; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -23623,6 +24221,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -23710,7 +24310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23793,6 +24393,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -23857,7 +24459,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -23915,6 +24517,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -24003,7 +24607,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24014,7 +24618,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24085,6 +24689,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -24162,7 +24768,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24235,6 +24841,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -24327,7 +24935,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24338,7 +24946,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24412,6 +25020,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -24498,7 +25108,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24509,7 +25119,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24582,6 +25192,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -24670,7 +25282,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24681,7 +25293,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as the count and store are */
+                /** @description Not possible as the count and store are; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -24754,6 +25366,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -24848,7 +25462,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -24923,6 +25537,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -25004,7 +25620,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25078,6 +25694,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -25141,7 +25759,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25152,7 +25770,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not reviewable now */
+                /** @description Not reviewable now; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25223,6 +25841,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -25287,7 +25907,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25308,6 +25928,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -25370,7 +25992,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25381,7 +26003,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description A ward already has that name */
+                /** @description A ward already has that name; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25451,6 +26073,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -25513,7 +26137,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25524,7 +26148,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The ward already has a bed with that label */
+                /** @description The ward already has a bed with that label; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25601,6 +26225,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -25666,7 +26292,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25677,7 +26303,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not a bed-day item */
+                /** @description Not a bed-day item; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25741,6 +26367,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -25801,7 +26429,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25825,6 +26453,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -25894,7 +26524,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -25905,7 +26535,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Another item has that code */
+                /** @description Another item has that code; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -25991,6 +26621,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -26052,7 +26684,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26060,6 +26692,19 @@ export interface paths {
                     content: {
                         "application/json": {
                             message: string;
+                        };
+                    };
+                };
+                /** @description An Idempotency-Key already used for another request (`idempotency_key_reused`) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            message: string;
+                            /** @enum {string} */
+                            code: "idempotency_key_reused";
                         };
                     };
                 };
@@ -26125,6 +26770,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -26191,7 +26838,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26249,6 +26896,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -26327,7 +26976,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26338,7 +26987,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26425,6 +27074,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -26491,7 +27142,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26502,7 +27153,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26575,6 +27226,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -26641,7 +27294,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26652,7 +27305,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26725,6 +27378,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -26791,7 +27446,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26802,7 +27457,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -26873,6 +27528,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -26941,7 +27598,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -26999,6 +27656,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27076,7 +27735,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27087,7 +27746,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27171,6 +27830,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27232,7 +27893,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27243,7 +27904,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already cancelled */
+                /** @description Already cancelled; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27311,6 +27972,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27378,7 +28041,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27436,6 +28099,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27536,7 +28201,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27547,7 +28212,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27615,6 +28280,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27707,7 +28374,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27781,6 +28448,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -27873,7 +28542,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -27884,7 +28553,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -27957,6 +28626,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -28056,7 +28727,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28067,7 +28738,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already voided */
+                /** @description Already voided; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28140,6 +28811,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -28232,7 +28905,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28243,7 +28916,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Nothing to bill, or a final invoice still in draft */
+                /** @description Nothing to bill, or a final invoice still in draft; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28316,6 +28989,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -28382,7 +29057,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28456,6 +29131,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -28539,7 +29216,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28550,7 +29227,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28637,6 +29314,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -28710,7 +29389,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28784,6 +29463,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -28857,7 +29538,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -28868,7 +29549,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -28938,6 +29619,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29011,7 +29694,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29022,7 +29705,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29092,6 +29775,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29165,7 +29850,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29176,7 +29861,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29249,6 +29934,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29325,7 +30012,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29336,7 +30023,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29410,6 +30097,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -29479,7 +30168,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29550,6 +30239,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29619,7 +30310,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29630,7 +30321,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29700,6 +30391,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29769,7 +30462,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29780,7 +30473,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -29850,6 +30543,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -29919,7 +30614,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -29930,7 +30625,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30001,6 +30696,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -30068,7 +30765,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30089,6 +30786,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -30161,7 +30860,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30172,7 +30871,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description A shift is already open */
+                /** @description A shift is already open; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30240,6 +30939,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -30307,7 +31008,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30345,6 +31046,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -30412,7 +31115,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30486,6 +31189,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -30560,7 +31265,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30571,7 +31276,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30644,6 +31349,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -30750,7 +31457,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -30761,7 +31468,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -30843,6 +31550,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -30935,7 +31644,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31009,6 +31718,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -31108,7 +31819,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31119,7 +31830,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31189,6 +31900,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -31290,7 +32003,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31301,7 +32014,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31374,6 +32087,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -31473,7 +32188,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31484,7 +32199,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Already reversed */
+                /** @description Already reversed; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31555,6 +32270,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -31625,7 +32342,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31699,6 +32416,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -31784,7 +32503,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -31795,7 +32514,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -31869,6 +32588,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -31946,7 +32667,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32020,6 +32741,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -32097,7 +32820,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32108,7 +32831,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32178,6 +32901,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -32255,7 +32980,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32266,7 +32991,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32336,6 +33061,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -32413,7 +33140,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32424,7 +33151,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32497,6 +33224,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -32583,7 +33312,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32594,7 +33323,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32667,6 +33396,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -32751,7 +33482,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32762,7 +33493,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -32833,6 +33564,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -32896,7 +33629,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -32919,6 +33652,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -32992,7 +33727,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33003,7 +33738,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description The paybill is another facility's */
+                /** @description The paybill is another facility's; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33098,6 +33833,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -33161,7 +33898,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33172,7 +33909,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description M-Pesa is not set up */
+                /** @description M-Pesa is not set up; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33181,6 +33918,40 @@ export interface paths {
                         "application/json": {
                             message: string;
                             code: string;
+                        };
+                    };
+                };
+                /** @description A malformed Idempotency-Key */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "x-facility-id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
                         };
                     };
                 };
@@ -33211,6 +33982,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -33274,7 +34047,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33285,7 +34058,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description M-Pesa is not set up */
+                /** @description M-Pesa is not set up; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33294,6 +34067,40 @@ export interface paths {
                         "application/json": {
                             message: string;
                             code: string;
+                        };
+                    };
+                };
+                /** @description A malformed Idempotency-Key */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example false */
+                            success: boolean;
+                            /**
+                             * @example {
+                             *       "name": "ZodError",
+                             *       "issues": [
+                             *         {
+                             *           "code": "invalid_type",
+                             *           "path": [
+                             *             "x-facility-id"
+                             *           ],
+                             *           "message": "Invalid input: expected string, received undefined"
+                             *         }
+                             *       ]
+                             *     }
+                             */
+                            error: {
+                                issues: {
+                                    code: string;
+                                    path: (string | number)[];
+                                    message?: string;
+                                }[];
+                                name: string;
+                            };
                         };
                     };
                 };
@@ -33322,6 +34129,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -33379,7 +34188,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33419,6 +34228,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -33472,7 +34283,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33483,7 +34294,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Replayed already */
+                /** @description Replayed already; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33558,6 +34369,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -33624,7 +34437,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33698,6 +34511,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -33776,7 +34591,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33787,7 +34602,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -33860,6 +34675,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -33933,7 +34750,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -33944,7 +34761,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34017,6 +34834,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path?: never;
                 cookie?: never;
@@ -34098,7 +34917,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -34109,7 +34928,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Not possible as asked */
+                /** @description Not possible as asked; or an Idempotency-Key already sent with another request (`idempotency_key_reused`) */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -34191,6 +35010,8 @@ export interface paths {
                 header: {
                     /** @description The facility this request acts in */
                     "x-facility-id": string;
+                    /** @description On a write: a key made once per action (8 to 200 letters, digits, or . _ : -) and sent again with any retry. A repeat is answered with the first answer (`Idempotent-Replayed: true`) and not done again; a key sent with another request is refused (`idempotency_key_reused`). A refused write keeps nothing, so its retry runs afresh. Keys are kept a day. */
+                    "idempotency-key"?: string;
                 };
                 path: {
                     id: string;
@@ -34260,7 +35081,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description No such facility, or no membership there */
+                /** @description Not found, or not yours: the facility, a membership there, or what the request names, in its path, query or body (a `patientId`, for one) */
                 404: {
                     headers: {
                         [name: string]: unknown;

@@ -3,6 +3,7 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { signingOut } from "@/hooks/use-sign-out";
 import { ApiError } from "@/lib/api/refusal";
 import { setUpSignInHref, signInHref } from "@/lib/navigation";
 
@@ -13,7 +14,7 @@ import { setUpSignInHref, signInHref } from "@/lib/navigation";
  * answered "set up two-step sign-in first" goes to that page the same way.
  */
 function whenNotSignedIn(error: Error) {
-  if (!(error instanceof ApiError))
+  if (!(error instanceof ApiError) || signingOut())
     return;
   const here = window.location.pathname + window.location.search;
   const { refusal } = error;

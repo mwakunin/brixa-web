@@ -30,7 +30,19 @@ export const facilityHeader: Middleware = {
   },
 };
 
-export const api = createClient<paths>({
+/**
+ * An operation as a screen calls it: the API requires the facility header on
+ * every tenant route, and `facilityHeader` adds it, so a call need not.
+ */
+type FacilityAdded<Operation> = Operation extends { parameters: { header: infer Header } }
+  ? Omit<Operation, "parameters"> & {
+    parameters: Omit<Operation["parameters"], "header"> & { header?: Omit<Header, "x-facility-id"> & { "x-facility-id"?: string } };
+  }
+  : Operation;
+
+type ClientPaths = { [Path in keyof paths]: { [Method in keyof paths[Path]]: FacilityAdded<paths[Path][Method]> } };
+
+export const api = createClient<ClientPaths>({
   baseUrl: API_URL,
   // The session is a cookie the API set; it is sent on every call.
   credentials: "include",
