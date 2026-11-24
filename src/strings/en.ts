@@ -617,6 +617,7 @@ export const en = {
       tryAgain: "Try again: use the credit",
       used: (amount: string, bill: string) => `${amount} of the credit went on ${bill}`,
       usedHelp: "Anything still owed shows above.",
+      readFailed: (why: string) => `Any credit on the patient's account could not be checked: ${why}`,
     },
     shift: {
       title: "Your shift",

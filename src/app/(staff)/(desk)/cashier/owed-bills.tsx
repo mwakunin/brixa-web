@@ -29,8 +29,8 @@ export function OwedBills({ patientId }: { patientId: string }) {
   const id = useId();
   const record = usePatient(patientId);
   const account = useAccount(patientId);
-  // A bill paid off by a payment still to show stays listed, and is chosen at first, so its Try again or its Done is reached.
-  const { listed: owing, first } = billsToChoose(account.data?.invoices ?? [], billId => hasAction(paymentAction("bill", billId)));
+  // A bill paid off by a payment or credit still to show stays listed, and is chosen at first, so its Try again or its Done is reached.
+  const { listed: owing, first } = billsToChoose(account.data?.invoices ?? [], bill => hasAction(paymentAction("bill", bill.id)) || creditToShow(bill.encounterId));
   // The bill chosen; kept once paid, so its Done stays.
   const [chosenId, setChosenId] = useState<string | null>(null);
   if (chosenId === null && first)

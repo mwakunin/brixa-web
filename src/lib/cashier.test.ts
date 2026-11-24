@@ -155,7 +155,7 @@ describe("the bills out a payment can be taken against", () => {
   });
 
   it("keep one paid off whose payment is still to show, and choose it at first, so its Try again or its Done is reached", () => {
-    const { listed, first } = billsToChoose([bill("a", 0), bill("b", 20_000), bill("c", 0)], id => id === "c");
+    const { listed, first } = billsToChoose([bill("a", 0), bill("b", 20_000), bill("c", 0)], shown => shown.id === "c");
     expect(listed.map(b => b.id)).toEqual(["b", "c"]);
     expect(first?.id).toBe("c");
   });
