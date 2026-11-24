@@ -49,7 +49,7 @@ export function VisitBill({ id, listed, listRead }: {
   listRead: boolean;
 }) {
   // The row last seen for this visit: it still names the patient once the visit leaves the list.
-  const [known, setKnown] = useState(() => listed ?? (hasAction(paymentAction("visit", id)) ? (lastListed.get(id) ?? null) : null));
+  const [known, setKnown] = useState(() => listed ?? (hasAction(paymentAction("visit", id)) || creditToShow(id) ? (lastListed.get(id) ?? null) : null));
   if (listed && listed !== known)
     setKnown(listed);
   useEffect(() => {
@@ -154,6 +154,13 @@ export function VisitBill({ id, listed, listRead }: {
         </Alert>
       )}
       {waivers.isError && <p className="text-sm text-muted-foreground">{words.waiver.waitingReadFailed(failureText(waivers.error))}</p>}
+      {/* What the patient has as credit is not known: said so, with a way to read it again. */}
+      {account.isError && (
+        <Alert variant="problem" className="max-w-[900px]">
+          <AlertDescription>{words.credit.readFailed(failureText(account.error))}</AlertDescription>
+          <Button variant="link" className="self-start" onClick={() => void account.refetch()}>{en.errors.tryAgain}</Button>
+        </Alert>
+      )}
       {(creditUsable || creditToShow(id)) && (
         <UseCredit
           patientId={visit.patient.id}

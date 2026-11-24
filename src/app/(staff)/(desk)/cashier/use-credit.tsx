@@ -64,8 +64,10 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
     try {
       const invoiceId = body.invoiceId ?? (await unwrap(api.POST("/encounters/{id}/bill-now", { params: { path: { id: body.encounterId } }, headers: keyed("bill"), signal }))).id;
       const payment = await unwrap(api.POST("/payments/{id}/allocations", { params: { path: { id: body.paymentId } }, body: { invoiceId }, headers: keyed("use"), signal }));
-      // The one just made: the latest on this bill.
-      const made = payment.allocations.filter(allocation => allocation.invoiceId === invoiceId && allocation.reversedAt === null).at(-1);
+      // The one just made: the latest still standing on this bill, by when it was made, whatever order the list comes in.
+      const made = payment.allocations
+        .filter(allocation => allocation.invoiceId === invoiceId && allocation.reversedAt === null)
+        .reduce<(typeof payment.allocations)[number] | undefined>((latest, allocation) => (!latest || allocation.allocatedAt > latest.allocatedAt ? allocation : latest), undefined);
       return { amountCents: made?.amountCents ?? 0, invoiceNumber: made?.invoiceNumber ?? "" };
     }
     finally {

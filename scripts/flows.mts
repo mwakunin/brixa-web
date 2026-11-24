@@ -1361,10 +1361,17 @@ const waiversFlow: Flow = {
     let cashierName = "";
     const waivers: { id: string; amountCents: number; reason: string }[] = [];
     const as = () => ({ "x-facility-id": facilityId, "origin": APP_URL });
+    // What the API's list of money due says is due on the made-up visit: the list comes oldest first, 200 at a time.
     const dueOnVisit = async () => {
-      const answered = await cashier.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } });
-      expect("reading the list of money due", answered.status(), 200);
-      return (await answered.json() as { visits: { encounterId: string; dueCents: number }[] }).visits.find(visit => visit.encounterId === visitId)?.dueCents;
+      for (let offset = 0; ;) {
+        const answered = await cashier.get(`${API_URL}/cashier/due?offset=${offset}`, { headers: { "x-facility-id": facilityId } });
+        expect("reading the list of money due", answered.status(), 200);
+        const { visits } = await answered.json() as { visits: { encounterId: string; dueCents: number }[] };
+        const visit = visits.find(due => due.encounterId === visitId);
+        if (visit || visits.length < 200)
+          return visit?.dueCents;
+        offset += visits.length;
+      }
     };
 
     await step("the front desk sends a made-up patient to the lab, and the cashier bills the test and asks for two waivers on it", async () => {
@@ -1421,11 +1428,15 @@ const waiversFlow: Flow = {
       await list.getByText(/^Decided today/).waitFor();
       await list.getByRole("listitem").filter({ hasText: name }).filter({ hasText: /Approved\s*by .+, \d\d:\d\d/ }).waitFor();
       expect("what the API says is due, the waiver approved", await dueOnVisit(), 20_000);
-      await page.getByRole("button", { name: `Next: ${name}` }).waitFor();
+      // Next is the waiver that has waited longest: this flow's second, unless another patient's waits from before.
+      const { adjustments } = await (await context.request.get(`${API_URL}/adjustments?status=pending`, { headers: { "x-facility-id": facilityId } })).json() as { adjustments: { kind: string; requestedAt: string; patient: { name: string } | null }[] };
+      const oldest = adjustments.filter(adjustment => adjustment.kind === "waiver").sort((a, b) => a.requestedAt.localeCompare(b.requestedAt))[0];
+      await page.getByRole("button", { name: `Next: ${oldest?.patient?.name ?? name}` }).waitFor();
     });
 
     await step("the next is rejected, and the bill stays due in full", async () => {
-      await page.getByRole("button", { name: `Next: ${name}` }).click();
+      // This flow's second waiver, chosen from the list, whichever Next offers.
+      await page.getByRole("region", { name: /^Waiting for you/ }).getByRole("button", { name: new RegExp(`^${name}.*KES 50$`) }).click();
       expect("the address", new URL(page.url()).search, `?waiver=${waivers[1].id}`);
       await page.locator("dt", { hasText: "Why" }).locator("xpath=following-sibling::dd").filter({ hasText: "Flows: to reject" }).waitFor();
       await page.getByRole("button", { name: "Reject the waiver" }).click();
