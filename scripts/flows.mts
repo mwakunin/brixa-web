@@ -1358,6 +1358,7 @@ const waiversFlow: Flow = {
     let visitId = "";
     let patientId = "";
     let invoiceId = "";
+    let testItems: string[] = [];
     let cashierName = "";
     const waivers: { id: string; amountCents: number; reason: string }[] = [];
     const as = () => ({ "x-facility-id": facilityId, "origin": APP_URL });
@@ -1387,6 +1388,7 @@ const waiversFlow: Flow = {
       const { tests } = await (await clerk.get(`${API_URL}/lab-tests`, { headers: { "x-facility-id": facilityId } })).json() as { tests: { id: string; name: string }[] };
       const entered = await clerk.post(`${API_URL}/encounters/${visitId}/walk-in-orders`, { headers: as(), data: { selfRequested: true, labTestIds: [tests.find(test => test.name === "Malaria rapid test")?.id] } });
       expect("entering the test", entered.status(), 201);
+      testItems = (await entered.json() as { items: { id: string }[] }).items.map(item => item.id);
       await apiSignIn(cashier, seeded("cashier"), SEED_PASSWORD);
       const billed = await cashier.post(`${API_URL}/encounters/${visitId}/bill-now`, { headers: as() });
       expect("billing the test", billed.status(), 201);
@@ -1441,13 +1443,23 @@ const waiversFlow: Flow = {
       expect("the address", new URL(page.url()).search, `?waiver=${waivers[1].id}`);
       await page.locator("dt", { hasText: "Why" }).locator("xpath=following-sibling::dd").filter({ hasText: "Flows: to reject" }).waitFor();
       await page.getByRole("button", { name: "Reject the waiver" }).click();
-      await page.getByRole("status").filter({ hasText: /^Rejected: INV-\S+ stays due in full/ }).waitFor();
+      await page.getByRole("status").filter({ hasText: /^Rejected: what is unpaid on INV-\S+ stays due/ }).waitFor();
       expect("what the API says is due, the waiver rejected", await dueOnVisit(), 20_000);
     });
 
-    await step("the waivers left waiting are withdrawn, and what the visit owes is paid, so no list keeps a made-up patient", async () => {
+    await step("the waivers left waiting are withdrawn, and what the visit owes is paid, or the visit cancelled if never billed, so no list keeps a made-up patient", async () => {
       if (!facilityId || !visitId)
         return;
+      // Never billed, as when the cashier could not sign in: the front desk cancels the test and the visit.
+      if (!invoiceId) {
+        for (const item of testItems) {
+          const cancelled = await clerk.post(`${API_URL}/order-items/${item}/cancel`, { headers: as(), data: { reason: "Entered by pnpm flows" } });
+          expect("cancelling the test", cancelled.status(), 200);
+        }
+        const cancelled = await clerk.post(`${API_URL}/encounters/${visitId}/cancel`, { headers: as(), data: { reason: "Opened by pnpm flows" } });
+        expect("cancelling the visit", cancelled.status(), 200);
+        return;
+      }
       for (const waiver of waivers) {
         const withdrawn = await cashier.post(`${API_URL}/adjustments/${waiver.id}/withdraw`, { headers: as() });
         // Decided already, by the in-charge: nothing to withdraw.

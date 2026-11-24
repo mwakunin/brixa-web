@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { en } from "@/strings/en";
 
 import { paymentAction, TakePayment } from "./take-payment";
-import { creditToShow, UseCredit } from "./use-credit";
+import { creditToShow, UseCredit, useCreditAwaited } from "./use-credit";
 
 const words = en.cashier;
 
@@ -37,6 +37,8 @@ export function OwedBills({ patientId }: { patientId: string }) {
     setChosenId(first.id);
   const chosen = account.data?.invoices.find(bill => bill.id === chosenId) ?? null;
   const name = record.data ? fullName(record.data) : null;
+  // Credit put on the chosen bill's visit, its answer still awaited: no payment is taken meanwhile.
+  const creditAwaited = useCreditAwaited(chosen?.encounterId ?? "");
   // Credit for the bill chosen: the patient's own, or a deposit towards its visit.
   const credit = account.data && chosen && chosen.balanceCents > 0 ? creditFor(account.data.credit, chosen.encounterId) : [];
   const opNumber = record.data ? opNumberOf(record.data) : null;
@@ -64,6 +66,7 @@ export function OwedBills({ patientId }: { patientId: string }) {
               dueCents={chosen.balanceCents > 0 ? chosen.balanceCents : null}
               dueRead={{ read: account.isSuccess, checking: account.isFetching, failed: account.isError }}
               nothingDue={{ title: words.owedBillPaid, help: words.owedBillPaidHelp }}
+              held={creditAwaited}
             >
               {chosen && (credit.length > 0 || creditToShow(chosen.encounterId)) && (
                 <UseCredit patientId={patientId} encounterId={chosen.encounterId} bill={{ id: chosen.id, number: chosen.number }} credit={credit} />

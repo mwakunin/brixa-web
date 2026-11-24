@@ -93,7 +93,7 @@ function payerPhone(msisdn: string): string {
  * through. A prompt is paid on the patient's phone, so its receipt is
  * printed from the Done message once it is.
  */
-export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, children }: {
+export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, held = false, children }: {
   patient: { id: string; name: string };
   towards: Towards;
   /** What is due now, as the API last said: null once nothing is. */
@@ -102,6 +102,11 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
   dueRead: { read: boolean; checking: boolean; failed: boolean };
   /** What to say when nothing is due here any more, though nothing was paid here. */
   nothingDue: { title: string; help: string };
+  /**
+   * Credit is being put on this bill and its answer is awaited: what is due
+   * may already be less, so no new payment is taken until it comes.
+   */
+  held?: boolean;
   /** The bill. */
   children: React.ReactNode;
 }) {
@@ -334,7 +339,7 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
         )}
         {children}
         {dueCents !== null && !promptOpen && (
-          <fieldset disabled={waiting !== null} className="flex min-w-0 flex-col gap-4">
+          <fieldset disabled={waiting !== null || held} className="flex min-w-0 flex-col gap-4">
             <legend className="pb-2.5 text-lg font-semibold">{words.how(name)}</legend>
             <Choices
               options={(["paybill", "prompt", "cash", "card_or_bank"] as const).map(method => ({ value: method, label: method === "card_or_bank" ? words.methods.cardOrBank : words.methods[method] }))}
@@ -429,7 +434,8 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, c
           ? (
               <>
                 {needsShift && !waiting && <p className="font-semibold text-caution-foreground">{words.noShift}</p>}
-                <Button ref={main} disabled={state.kind === "sending" || promptOpen || (needsShift && !waiting)} onClick={() => void press()}>
+                {held && !waiting && <p className="font-semibold text-caution-foreground">{words.heldByCredit}</p>}
+                <Button ref={main} disabled={state.kind === "sending" || promptOpen || (needsShift && !waiting) || (held && !waiting)} onClick={() => void press()}>
                   {promptOpen ? words.waitingTitle(name) : mainLabel()}
                 </Button>
                 {shown.method !== "paybill" && !promptOpen && <p className="text-sm text-muted-foreground">{words.partHint(name)}</p>}

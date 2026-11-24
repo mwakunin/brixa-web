@@ -60,6 +60,17 @@ export function useRepeatSafe<Body, Result>(name: string, send: (action: Action<
   return { state, press };
 }
 
+/**
+ * Whether the action `name` is being sent or waits for its answer, kept up
+ * to date: for another write on the same thing to wait with it.
+ */
+export function useAwaited(name: string): boolean {
+  const scoped = atFacility(name);
+  const watch = useCallback((changed: () => void) => actions.watch(scoped, changed), [scoped]);
+  const read = useCallback(() => waitingIn(actions.get(scoped)) !== null, [scoped]);
+  return useSyncExternalStore(watch, read, () => false);
+}
+
 /** Whether the action `name` has anything to show: an answer still awaited, or one that came while no screen showed it. */
 export function hasAction(name: string): boolean {
   return actions.get(atFacility(name)).kind !== "ready";

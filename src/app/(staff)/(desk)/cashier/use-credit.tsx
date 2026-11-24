@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useBusinessDate } from "@/hooks/use-business-date";
 import { accountKey, billKey, dueKey } from "@/hooks/use-cashier";
-import { hasAction, useRepeatSafe } from "@/hooks/use-repeat-safe";
+import { hasAction, useAwaited, useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER, waitingIn } from "@/lib/api/repeat-safe";
@@ -37,6 +37,11 @@ const creditAction = (encounterId: string) => `credit:${encounterId}`;
 /** Whether a visit's credit has anything to show: an answer still awaited, or one not shown yet. */
 export function creditToShow(encounterId: string): boolean {
   return hasAction(creditAction(encounterId));
+}
+
+/** Whether credit is being put on a visit's bill and its answer is still awaited, kept up to date. */
+export function useCreditAwaited(encounterId: string): boolean {
+  return useAwaited(creditAction(encounterId));
 }
 
 /**

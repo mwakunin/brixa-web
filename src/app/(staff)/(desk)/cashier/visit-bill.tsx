@@ -16,7 +16,7 @@ import { en } from "@/strings/en";
 
 import { AskWaiver, waiverDraftFor } from "./ask-waiver";
 import { paymentAction, TakePayment } from "./take-payment";
-import { creditToShow, UseCredit } from "./use-credit";
+import { creditToShow, UseCredit, useCreditAwaited } from "./use-credit";
 
 const words = en.cashier;
 
@@ -60,6 +60,8 @@ export function VisitBill({ id, listed, listRead }: {
   const bill = useBill(id, visit !== null);
   const account = useAccount(visit?.patient.id ?? "", visit !== null);
   const waivers = useVisitWaivers(id, visit !== null);
+  // Credit put on this visit's bill, its answer still awaited: no payment is taken meanwhile.
+  const creditAwaited = useCreditAwaited(id);
   const due = useMoneyDue();
   const today = useBusinessDate();
   const dueNow = listed !== null;
@@ -205,6 +207,7 @@ export function VisitBill({ id, listed, listRead }: {
           dueCents={listed?.dueCents ?? null}
           dueRead={{ read: due.isSuccess, checking: due.isFetching, failed: due.isError }}
           nothingDue={{ title: words.notDue, help: words.notDueHelp }}
+          held={creditAwaited}
         >
           {!asking && billBlock}
         </TakePayment>
