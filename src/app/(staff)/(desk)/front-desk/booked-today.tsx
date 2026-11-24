@@ -9,13 +9,13 @@ import type { paths } from "@/lib/api/schema";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useBusinessDate } from "@/hooks/use-business-date";
 import { appointmentsKey, servicePointsKey, useAppointments } from "@/hooks/use-desk";
 import { visitsKey } from "@/hooks/use-patients";
 import { useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER } from "@/lib/api/repeat-safe";
-import { businessDate } from "@/lib/dates";
 import { en } from "@/strings/en";
 
 type Appointment = paths["/appointments"]["get"]["responses"][200]["content"]["application/json"]["appointments"][number];
@@ -30,7 +30,8 @@ const words = en.frontDesk;
  */
 export function BookedToday() {
   const id = useId();
-  const today = businessDate();
+  // The day's bookings move to the next day's at Nairobi's midnight, on a desk left open overnight.
+  const today = useBusinessDate();
   const appointments = useAppointments(today);
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-5">

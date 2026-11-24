@@ -39,6 +39,21 @@ function ageInYears(dateOfBirth: string, today: string): number {
   return ty - by - (hadBirthday ? 0 : 1);
 }
 
+/**
+ * How long until the next Kenyan day begins, at Nairobi's midnight: for a
+ * screen left open overnight to move to the new day by itself. Kenya has
+ * kept +03:00 since 1942, so the next midnight is fixed.
+ */
+export function msUntilNextBusinessDay(at: Date = new Date()): number {
+  return msUntilDayAfter(businessDate(at), at);
+}
+
+/** How long until the Kenyan day after `date` begins: less than nothing once it has. */
+export function msUntilDayAfter(date: string, at: Date = new Date()): number {
+  const [y, m, d] = date.split("-").map(Number);
+  return Date.UTC(y, m - 1, d + 1) - 3 * 3_600_000 - at.getTime();
+}
+
 /** An age as staff say it, and as the API prints it on a document: "34 years", "8 months", "12 days". */
 export function printedAge(dateOfBirth: string, today: string): string {
   const plural = (n: number, unit: string) => `${n} ${unit}${n === 1 ? "" : "s"}`;
@@ -72,17 +87,22 @@ export function printedDate(date: string): string {
 }
 
 /** A date in words, without its year when it is this year's: "3 March", "30 December 2025". */
-function printedDateThisYear(date: string, today: string): string {
+export function printedDateThisYear(date: string, today: string): string {
   const printed = printedDate(date);
   return date.slice(0, 4) === today.slice(0, 4) ? printed.slice(0, printed.lastIndexOf(" ")) : printed;
+}
+
+/** The calendar day before `date`, both `YYYY-MM-DD`. */
+export function dayBefore(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10);
 }
 
 /** A recent day, as said at a desk: "Today", "Yesterday", else the date ("3 March"). */
 export function printedDay(date: string, today: string): string {
   if (date === today)
     return en.dates.today;
-  const [y, m, d] = today.split("-").map(Number);
-  if (date === new Date(Date.UTC(y, m - 1, d - 1)).toISOString().slice(0, 10))
+  if (date === dayBefore(today))
     return en.dates.yesterday;
   return printedDateThisYear(date, today);
 }

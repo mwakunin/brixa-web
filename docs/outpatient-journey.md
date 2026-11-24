@@ -78,7 +78,8 @@ None of the screens is dropped. A waivers list for the in-charge is added. Gap n
   7. the pharmacy.
 
   Each desk waits for its gaps below.
-- **Money owed at the front desk:** when a returning patient owes money, the front desk shows how much. A button opens the cashier desk with that patient.
+- **Money owed at the front desk:** decided by the owner on 2026-11-23, and built in web #18. When a returning patient owes money on bills already out, the front desk shows how much. For someone who is also the cashier, a link opens the cashier's desk with that patient's bills.
+  - It reads `GET /patients/{id}/account`, which the API keeps to those who handle money. A records clerk without the cashier's role sees nothing there yet (gap 17).
 
 ## What the design review decided (2026-11-21)
 
@@ -125,14 +126,14 @@ Paths are `brixa-api`'s. Each read that names a patient is audited by the API, s
 | 1 | Sign in | Everyone | | Better Auth `sign-in/email`, then the code: `two-factor/verify-totp`, or `two-factor/verify-backup-code` |
 | 1b | Set up two-step sign-in | Everyone, once, before any desk | | `two-factor/enable` (the password again; the app's QR code and the backup codes), then `two-factor/verify-totp` (the app's first code) |
 | 2 | Where are you working | Staff at more than one facility | `GET /me/facilities` | Keeps the facility id for `X-Facility-Id` |
-| 3 | Front desk | Records clerk | `GET /patients?q=` (with the ID number, gap 8), `GET /appointments?date=`, `GET /service-points`, `GET /encounters?patientId=` | `POST /encounters` (`opd` joins triage; `emergency` joins the emergency area, gap 13), `POST /appointments/{id}/check-in`, `POST /encounters/{id}/walk-in-orders` (an outside doctor's request) |
+| 3 | Front desk | Records clerk | `GET /patients?q=` (with the ID number, gap 8), `GET /appointments?date=`, `GET /service-points`, `GET /encounters?patientId=`, and for staff who handle money `GET /patients/{id}/account` (what the patient owes) | `POST /encounters` (`opd` joins triage; `emergency` joins the emergency area, gap 13), `POST /appointments/{id}/check-in`, `POST /encounters/{id}/walk-in-orders` (an outside doctor's request) |
 | 3b | A new patient | Records clerk | | `POST /patients` (409 with `candidates` for a likely duplicate; again with `confirmNotDuplicate`; a child's guardian, gap 9), then `POST /encounters` |
 | 4 | Triage | Nurse | `GET /service-points/{id}/queue`, `GET /service-points`, `GET /patients/{id}/allergies` | `POST /queue-entries/{id}/serve`, then `POST /queue-entries/{id}/triage`: today's complaint (gap 10), the vital signs, the allergies, how soon and the next clinic, in one call (gap 14) |
 | 5 | Consultation | Doctor, clinical officer | The clinic's queue, then the consultation read for the patient (gap 3); `GET /icd-codes?q=`, `GET /lab-tests` with `GET /billable-items` (each test's price) | `POST /encounters/{id}/notes`, `PUT /notes/{id}`, `POST /encounters/{id}/diagnoses`, `POST /encounters/{id}/orders`, `POST /patients/{id}/allergies` |
 | 6 | Lab | Lab technician, supervisor | `GET /lab/worklist`, `GET /lab-tests` (analytes and ranges) | `POST /orders/{id}/specimens`, `POST /specimens/{id}/results`, `POST /lab-results/{id}/release` (alone, with a reason) or `/verify` (a second lab member), each with `told` for a critical result; `GET /documents/{id}/pdf` for the lab report |
 | 7 | Back with results | Doctor, clinical officer | The consultation read (gap 3), `GET /drugs?q=`, `GET /results-to-review` | `POST /diagnoses/{id}/confirm`, `POST /encounters/{id}/prescriptions`, `POST /notes/{id}/sign`, `POST /lab-results/{id}/reviewed`, `POST /queue-entries/{id}/finish` |
 | 8 | Pharmacy | Pharmacist, pharmacy technician | `GET /pharmacy/worklist` (with a stock flag, gap 4); on opening a prescription, `GET /stock-items?drugCode=`, `GET /stores/{id}/stock`, `GET /billable-items`, and the quote (gap 11) | `POST /dispenses`, `POST /dispenses/{id}/hand-over`, `POST /dispenses/{id}/cancel`, `POST /order-items/{id}/not-supplied` |
-| 9 | Cashier | Cashier | `GET /cashier/due`, `GET /encounters/{id}/charges`, `GET /cashier-shifts/current`, `GET /mpesa/transactions` | `POST /encounters/{id}/bill-now`, `POST /payments` or `POST /mpesa/stk`, `POST /mpesa/transactions/{id}/assign`, `POST /invoices/{id}/adjustments` (a waiver), `POST /cashier-shifts/{id}/close`, `GET /documents/{id}/pdf` for the receipt (gap 12) |
+| 9 | Cashier | Cashier | `GET /cashier/due`, `GET /encounters/{id}/charges`, `GET /cashier-shifts/current`, `GET /patients/{id}/account` (bills out, for `?patient=` and a waiver), `GET /mpesa/transactions?status=unmatched`, `GET /mpesa/stk/{id}` (a prompt, until paid or failed), `GET /payments/{id}` (a receipt not given with its payment) | `POST /encounters/{id}/bill-now`, `POST /payments` or `POST /mpesa/stk`, `POST /mpesa/transactions/{id}/assign`, `POST /invoices/{id}/adjustments` (a waiver), `POST /cashier-shifts`, `POST /cashier-shifts/{id}/close`, `GET /documents/{id}/pdf` for the receipt (gap 12) |
 | 9b | Waivers waiting | The in-charge, as finance manager or facility admin | `GET /adjustments?status=pending` | `POST /adjustments/{id}/approve`, `POST /adjustments/{id}/reject` |
 
 ## What the sketch asks of the API
@@ -176,6 +177,10 @@ Found while drawing each screen against the API, settled by the walkthrough and 
     - once an answer arrives, done or refused, the action is over, and the next press makes a new key.
 16. **A refusal on a closed visit did not say why.** brixa-api #39 gives every one the same sentence: what happened, when, by whom and what to do. For example: "This visit was cancelled at 09:40 by Joyce Mwangi. Ask the front desk whether to start a new one."
    - The refused-triage board (4d) first showed a visit cancelled at the front desk. That cannot happen while the patient is with the nurse, as the API refuses to cancel a visit whose patient is being seen. Since 2026-11-22 it shows a refusal that can: the chosen clinic's consultation fee has no price yet, in the API's own words, with what was typed kept.
+
+17. **A records clerk alone cannot see what a patient owes.** `GET /patients/{id}/account` is for those who handle money, and the front desk shows money owed only to them. At the pilot the front desk is usually also the cashier, so it shows there. Open: does a clerk without the cashier's role need the figure, and from which read?
+18. ~~**A visit paid as it goes could not be paid in one payment.**~~ Fixed in brixa-api #42 (decided by the owner on 2026-11-23). `bill-now` makes a bill at each point. A payment towards the visit settled only its final bill, so money paid towards a visit with an earlier bill part-paid and new charges since waited as a deposit. A payment towards a visit now settles each of its bills that still owes, oldest first, and its receipt lists them all.
+19. **A paybill payment that names a patient number lands as credit on the patient's account,** not on the bills of their visit. Open: should it be paid towards their open visit, when they have exactly one?
 
 **Still open:**
 - whether a patient who buys the rest of a medicine elsewhere needs a printed note of what is left;

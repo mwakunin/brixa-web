@@ -211,14 +211,14 @@ export function OutsideTests({ patientId, name, openVisitId, draft, setDraft, on
                     })}
                   </ul>
                 )
-            : catalogueFailed
-              ? (
-                  <Alert variant="problem">
-                    <AlertDescription>{failureText(tests.error ?? prices.error)}</AlertDescription>
-                    <Button variant="link" className="self-start" onClick={() => void Promise.all([tests.refetch(), prices.refetch()])}>{en.errors.tryAgain}</Button>
-                  </Alert>
-                )
-              : <p role="status" className="text-muted-foreground">{words.testsLoading}</p>}
+            : !catalogueFailed && <p role="status" className="text-muted-foreground">{words.testsLoading}</p>}
+          {/* A read of the tests or prices that failed says so, beside the list last read when there is one. */}
+          {catalogueFailed && (
+            <Alert variant="problem">
+              <AlertDescription>{failureText(tests.error ?? prices.error)}</AlertDescription>
+              <Button variant="link" className="self-start" onClick={() => void Promise.all([tests.refetch(), prices.refetch()])}>{en.errors.tryAgain}</Button>
+            </Alert>
+          )}
         </fieldset>
         <label className="flex min-h-11 items-center gap-2.5">
           <input type="checkbox" checked={draft.urgent} onChange={event => change({ urgent: event.target.checked })} className="size-[22px] accent-selected" />

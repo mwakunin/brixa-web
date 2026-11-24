@@ -261,6 +261,8 @@ async function newcomer(what: string): Promise<Newcomer> {
 }
 
 const alert = (page: Page, text: string) => page.getByRole("alert").filter({ hasText: text });
+/** A route's test for an outside request's tests, one function so `unroute` finds the route it set. */
+const walkInOrders = (url: URL) => url.pathname.endsWith("/walk-in-orders");
 const heading = (page: Page) => page.getByRole("heading", { level: 1 });
 
 /** On the front desk, where a records clerk lands, working where the header says. */
@@ -797,7 +799,9 @@ const frontDeskFlow: Flow = {
       await page.getByRole("checkbox", { name: /^Malaria rapid test/ }).check();
       const keys: Record<string, string[]> = { visit: [], tests: [] };
       let answerLost = false;
-      await page.route(url => url.href === `${API_URL}/encounters` || /\/encounters\/[\w-]+\/walk-in-orders$/.test(url.pathname), async (route) => {
+      // Kept, as `unroute` removes only the route registered with this same function.
+      const visitOrTests = (url: URL) => url.href === `${API_URL}/encounters` || /\/encounters\/[\w-]+\/walk-in-orders$/.test(url.pathname);
+      await page.route(visitOrTests, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const tests = route.request().url().endsWith("/walk-in-orders");
@@ -818,7 +822,7 @@ const frontDeskFlow: Flow = {
       const answer = await replayed;
       expect("the tests' answer, replayed", answer.headers()["idempotent-replayed"], "true");
       expect("the tests replayed, as first entered", (await answer.json() as { items: { id: string }[] }).items.map(item => item.id), testItems);
-      await page.unroute(url => url.href === `${API_URL}/encounters` || url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(visitOrTests);
       const [first] = keys.visit;
       expect("one key for the action, sent twice for each request", [keys.visit.length, keys.tests.length, keys.visit[1] === first, keys.tests[1] === keys.tests[0], first.endsWith(".visit"), keys.tests[0] === `${first.slice(0, -".visit".length)}.tests`], [2, 2, true, true, true, true]);
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
@@ -837,7 +841,7 @@ const frontDeskFlow: Flow = {
       // The tests' answer is held back until the clerk has left the patient and come back.
       let release = () => {};
       const held = new Promise<void>(resolve => (release = resolve));
-      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+      await page.route(walkInOrders, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const answered = await route.fetch();
@@ -859,7 +863,7 @@ const frontDeskFlow: Flow = {
         release();
       }
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
-      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(walkInOrders);
       expect("the form, to send a second time", await page.getByRole("heading", { name: "Tests from an outside request" }).count(), 0);
     });
 
@@ -874,7 +878,7 @@ const frontDeskFlow: Flow = {
       // The answer is held back until the clerk is on another patient, then let through while they are away.
       let release = () => {};
       const held = new Promise<void>(resolve => (release = resolve));
-      await page.route(url => url.pathname.endsWith("/walk-in-orders"), async (route) => {
+      await page.route(walkInOrders, async (route) => {
         if (route.request().method() !== "POST")
           return route.continue();
         const answered = await route.fetch();
@@ -892,7 +896,7 @@ const frontDeskFlow: Flow = {
         release();
       }
       await page.waitForResponse(response => response.url().endsWith("/walk-in-orders") && response.request().method() === "POST");
-      await page.unroute(url => url.pathname.endsWith("/walk-in-orders"));
+      await page.unroute(walkInOrders);
       await search.fill(familyName);
       await match.click();
       await page.getByRole("status").filter({ hasText: `${name} can go to the lab: 1 test is entered.` }).waitFor();
@@ -1094,7 +1098,241 @@ const registerFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow];
+const cashierFlow: Flow = {
+  name: "cashier",
+  about: "the cashier sees who has money due, opens a patient's bill, takes part in cash, asks for a waiver, takes the rest of what the patient owes, and closes the shift",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    // The front desk, at another computer: it sends a made-up patient to the lab, so a visit has money due.
+    const clerk = await request.newContext();
+    const familyName = `Flows${RUN}`;
+    const name = `Neema ${familyName}`;
+    const row = page.getByRole("button", { name: new RegExp(`^${name}`) });
+    let facilityId = "";
+    let visitId = "";
+    let patientId = "";
+    let waiverId = "";
+    let testItems: string[] = [];
+    let paid = false;
+    const asClerk = { "x-facility-id": "", "origin": APP_URL };
+    // A visit's bill is part of the patient's record, and reading it is audited: the page reads none until one is chosen.
+    const billReads: string[] = [];
+    page.on("request", (sent) => {
+      const url = new URL(sent.url());
+      if (url.origin === new URL(API_URL).origin && sent.method() === "GET" && /^\/encounters\/[\w-]+\/charges$/.test(url.pathname))
+        billReads.push(url.pathname);
+    });
+    // What the API's list of money due says of the made-up visit. The list comes oldest first, 200 at a time, so pages are read until it is found or the list ends.
+    const dueOnVisit = async (): Promise<{ encounterId: string; dueCents: number } | undefined> => {
+      for (let offset = 0; ;) {
+        const answered = await context.request.get(`${API_URL}/cashier/due?offset=${offset}`, { headers: { "x-facility-id": facilityId } });
+        expect("reading the list of money due", answered.status(), 200);
+        const { visits } = await answered.json() as { visits: { encounterId: string; dueCents: number }[] };
+        const visit = visits.find(due => due.encounterId === visitId);
+        if (visit || visits.length < 200)
+          return visit;
+        offset += visits.length;
+      }
+    };
+
+    await step("the front desk sends a made-up patient to the lab with tests they asked for, which are charged", async () => {
+      await apiSignIn(clerk, seeded("frontdesk"), SEED_PASSWORD);
+      const { facilities } = await (await clerk.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+      asClerk["x-facility-id"] = facilityId;
+      const registered = await clerk.post(`${API_URL}/patients`, { headers: asClerk, data: { givenName: "Neema", familyName, sex: "female", dateOfBirth: "1993-02-17", noPhoneReason: "no_phone", noIdReason: "not_carried" } });
+      expect("registering the patient", registered.status(), 201);
+      patientId = (await registered.json() as { id: string }).id;
+      const opened = await clerk.post(`${API_URL}/encounters`, { headers: asClerk, data: { patientId, kind: "opd", queueAt: null } });
+      expect("opening the visit", opened.status(), 201);
+      visitId = (await opened.json() as { id: string }).id;
+      const { tests } = await (await clerk.get(`${API_URL}/lab-tests`, { headers: { "x-facility-id": facilityId } })).json() as { tests: { id: string; name: string }[] };
+      const malaria = tests.find(test => test.name === "Malaria rapid test");
+      const entered = await clerk.post(`${API_URL}/encounters/${visitId}/walk-in-orders`, { headers: asClerk, data: { selfRequested: true, labTestIds: [malaria?.id] } });
+      expect("entering the test", entered.status(), 201);
+      testItems = (await entered.json() as { items: { id: string }[] }).items.map(item => item.id);
+    });
+
+    await step("the cashier lands on the cashier's desk, named in the header, with nobody chosen", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("cashier"), SEED_PASSWORD);
+      await page.waitForURL("**/cashier");
+      await page.locator("header").getByText("Cashier", { exact: true }).waitFor();
+      await heading(page).filter({ hasText: "Nobody chosen yet" }).waitFor();
+    });
+
+    await step("the money due list names the patient with what is due, and no bill is read before one is chosen", async () => {
+      await row.waitFor();
+      expect("the amount due on the row", await row.getByText(/^KES /).innerText(), "KES 300");
+      await row.hover();
+      await page.waitForTimeout(1_000);
+      expect("bills read before choosing", billReads, []);
+    });
+
+    await step("choosing the patient opens their bill: who, which visit, each line, and what is to pay", async () => {
+      await row.click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      expect("the address", new URL(page.url()).search, `?visit=${visitId}`);
+      expect("the row, marked chosen", await row.getAttribute("aria-pressed"), "true");
+      await page.getByText(/· today's outpatient visit$/).waitFor();
+      const bill = page.getByRole("table", { name: "The bill" });
+      await bill.locator("tbody tr").first().waitFor();
+      expect("the lines", await bill.locator("tbody tr").allInnerTexts(), ["Malaria rapid test\t1\tKES 300"]);
+      expect("what is to pay", await bill.locator("tfoot tr").allInnerTexts(), ["To pay\tKES 300"]);
+      expect("bills read", billReads, [`/encounters/${visitId}/charges`]);
+    });
+
+    await step("the shift shows what should be in the drawer", async () => {
+      const shift = page.getByRole("region", { name: "Your shift" });
+      await shift.getByText(/^(Should be in the drawer|No shift open)$/).first().waitFor();
+      // A run stopped between closing the shift and opening the next leaves none: one is opened, as at a shift's start.
+      if (await shift.getByText("No shift open").count() > 0) {
+        await shift.getByLabel("Cash in the drawer now, in shillings").fill("2000");
+        await shift.getByRole("button", { name: "Open my shift" }).click();
+      }
+      await shift.getByText("Should be in the drawer").waitFor();
+      await shift.getByText(/^KES [\d,]+$/).first().waitFor();
+    });
+
+    await step("part paid in cash through a lost answer is billed and recorded once, under one key, and its receipt opens", async () => {
+      await page.getByRole("button", { name: "Cash", exact: true }).click();
+      const amount = page.getByLabel("Amount, in shillings");
+      expect("the amount, at first what is due", await amount.inputValue(), "300");
+      await amount.fill("100");
+      const keys: Record<string, string[]> = { bill: [], pay: [] };
+      let answerLost = false;
+      // A refused payment fails the step at once, with its status, instead of waiting for the lost answer.
+      let refused: (status: number) => void = () => {};
+      const refusal = new Promise<never>((_, reject) => {
+        refused = status => reject(new Error(`the payment, before its answer is lost: expected it recorded, got HTTP ${status}`));
+      });
+      refusal.catch(() => {});
+      const billOrPay = (url: URL) => url.pathname === `/encounters/${visitId}/bill-now` || url.pathname === "/payments";
+      await page.route(billOrPay, async (route) => {
+        const pay = new URL(route.request().url()).pathname === "/payments";
+        keys[pay ? "pay" : "bill"].push(route.request().headers()["idempotency-key"] ?? "");
+        if (!pay || answerLost)
+          return route.continue();
+        answerLost = true;
+        // Billed and paid, but the answer never reaches the page. A refusal goes through to the page.
+        const answered = await route.fetch();
+        if (!answered.ok()) {
+          refused(answered.status());
+          return route.fulfill({ response: answered });
+        }
+        paid = true;
+        await route.abort("connectionreset");
+      });
+      // The receipt's tab opens at the press, and closes when no answer comes.
+      const [lost] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 100 in cash and print the receipt" }).click()]);
+      await Promise.race([alert(page, "No answer: the connection dropped").waitFor(), refusal]);
+      if (!lost.isClosed())
+        await lost.waitForEvent("close");
+      expect("the amount, held as sent", [await amount.inputValue(), await amount.isDisabled()], ["100", true]);
+      const [receipt, replayed] = await Promise.all([
+        context.waitForEvent("page"),
+        page.waitForResponse(response => new URL(response.url()).pathname === "/payments" && response.request().method() === "POST"),
+        page.getByRole("button", { name: "Try again: record the payment" }).click(),
+      ]);
+      expect("the payment's answer, replayed", replayed.headers()["idempotent-replayed"], "true");
+      await page.unroute(billOrPay);
+      const [first] = keys.bill;
+      expect("one key for the action, sent twice for each request", [keys.bill.length, keys.pay.length, keys.bill[1] === first, keys.pay[1] === keys.pay[0], first.endsWith(".bill"), keys.pay[0] === `${first.slice(0, -".bill".length)}.pay`], [2, 2, true, true, true, true]);
+      await page.getByRole("status").filter({ hasText: /^KES 100 paid\. Receipt RCT-/ }).waitFor();
+      await page.getByText("KES 200 is still to pay on this visit.").waitFor();
+      await receipt.waitForURL(/^blob:/);
+      await receipt.close();
+      expect("the row on Money due", await row.getByText(/^KES /).innerText(), "KES 200");
+    });
+
+    await step("a waiver is asked for on the bill, with the reason, and until approved the amount is still due; what was typed for the payment and the waiver is kept between them", async () => {
+      // Typed for the payment, then the waiver asked for first.
+      await page.getByLabel("Amount, in shillings").fill("150");
+      await page.getByRole("button", { name: "Ask for a waiver" }).click();
+      const bill = page.getByRole("button", { name: /^INV-\S+, KES 200 owed$/ });
+      await bill.click();
+      const amount = page.getByLabel("Amount to waive, in shillings");
+      expect("the amount, at first all the bill owes", await amount.inputValue(), "200");
+      await amount.fill("50");
+      await page.getByLabel("Why").fill("Flows: the in-charge said so");
+      // Back to the payment and here again: what was typed for the waiver is still there.
+      await page.getByRole("button", { name: "Back to taking payment" }).click();
+      await page.getByRole("button", { name: "Ask for a waiver" }).click();
+      expect("the waiver, as typed before going back", [await bill.getAttribute("aria-pressed"), await amount.inputValue(), await page.getByLabel("Why").inputValue()], ["true", "50", "Flows: the in-charge said so"]);
+      const [asked] = await Promise.all([
+        page.waitForResponse(response => /\/invoices\/[\w-]+\/adjustments$/.test(new URL(response.url()).pathname) && response.request().method() === "POST"),
+        page.getByRole("button", { name: "Ask for a waiver of KES 50" }).click(),
+      ]);
+      waiverId = (await asked.json() as { id: string }).id;
+      await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
+      expect("what the API says is due, the waiver not approved yet", (await dueOnVisit())?.dueCents, 20_000);
+      await page.getByRole("button", { name: "Back to taking payment" }).click();
+      expect("the payment's amount, as typed before the waiver", await page.getByLabel("Amount, in shillings").inputValue(), "150");
+    });
+
+    await step("what the patient owes on bills out opens at the cashier for them, and the rest by bank transfer settles it", async () => {
+      await page.goto(`${APP_URL}/cashier?patient=${patientId}`);
+      await heading(page).filter({ hasText: name }).waitFor();
+      const bill = page.getByRole("button", { name: /^INV-.*KES 200 still owed, of KES 300/ });
+      expect("the oldest bill owing, chosen", await bill.getAttribute("aria-pressed"), "true");
+      await page.getByRole("button", { name: "Card or bank" }).click();
+      await page.getByRole("button", { name: "Bank transfer" }).click();
+      await page.getByLabel("The transfer's reference").fill(`FT FLOWS ${RUN}`);
+      expect("the amount, what the bill owes", await page.getByLabel("Amount, in shillings").inputValue(), "200");
+      const [receipt] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 200 by bank transfer and print the receipt" }).click()]);
+      await page.getByRole("status").filter({ hasText: /^Paid in full\. Receipt RCT-/ }).waitFor();
+      await page.getByText("Nothing more is owed on this bill.").waitFor();
+      await receipt.waitForURL(/^blob:/);
+      await receipt.close();
+      await row.waitFor({ state: "detached" });
+      expect("the visit, on the API's list of money due", await dueOnVisit(), undefined);
+    });
+
+    await step("closing the shift with the drawer counted says it is right, and a new shift opens with its float", async () => {
+      const shift = page.getByRole("region", { name: "Your shift" });
+      const expected = (await shift.getByText("Should be in the drawer").locator("xpath=following-sibling::dd").innerText()).replace(/^KES /, "");
+      await shift.getByRole("button", { name: "Close my shift and count the drawer" }).click();
+      await shift.getByLabel("Cash counted in the drawer, in shillings").fill(expected);
+      await shift.getByRole("button", { name: "Close my shift", exact: true }).click();
+      await shift.getByRole("status").filter({ hasText: "Your shift is closed" }).filter({ hasText: "The drawer is right." }).waitFor();
+      await shift.getByLabel("Cash in the drawer now, in shillings").fill("2,000");
+      await shift.getByRole("button", { name: "Open my shift" }).click();
+      await shift.getByText(/^\d\d:\d\d, float KES 2,000$/).waitFor();
+      expect("the closed shift's message, once the next is open", await shift.getByText("Your shift is closed").count(), 0);
+    });
+
+    await step("the waiver is withdrawn, and the visit cancelled, or settled once paid into, so no list keeps a made-up patient", async () => {
+      const asCashier = { "x-facility-id": facilityId, "origin": APP_URL };
+      if (waiverId) {
+        const withdrawn = await context.request.post(`${API_URL}/adjustments/${waiverId}/withdraw`, { headers: asCashier });
+        expect("withdrawing the waiver", withdrawn.status(), 200);
+      }
+      // A paid visit keeps its payments, which only finance reverses: what a failed run left owing is paid off instead.
+      if (visitId && paid) {
+        const owing = await dueOnVisit();
+        if (owing) {
+          const settled = await context.request.post(`${API_URL}/payments`, { headers: asCashier, data: { patientId, method: "bank", reference: `FT FLOWS ${RUN} CLEAN`, amountCents: owing.dueCents, encounterId: visitId } });
+          expect(`settling the ${owing.dueCents / 100} shillings a failed run left owing on visit ${visitId}`, settled.status(), 201);
+        }
+        return;
+      }
+      if (!visitId)
+        return;
+      for (const item of testItems) {
+        const cancelled = await clerk.post(`${API_URL}/order-items/${item}/cancel`, { headers: asClerk, data: { reason: "Entered by pnpm flows" } });
+        expect("cancelling the test", cancelled.status(), 200);
+      }
+      const cancelled = await clerk.post(`${API_URL}/encounters/${visitId}/cancel`, { headers: asClerk, data: { reason: "Opened by pnpm flows" } });
+      expect("cancelling the visit", cancelled.status(), 200);
+    }, { always: true });
+
+    await clerk.dispose();
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, cashierFlow];
 
 // ---------------------------------------------------------------------------
 // The run
