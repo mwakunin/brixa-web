@@ -13,7 +13,7 @@ import { useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { useAllergies } from "@/hooks/use-triage";
 import { api } from "@/lib/api/client";
 import { ApiError, failureText, unwrap } from "@/lib/api/refusal";
-import { IDEMPOTENCY_HEADER, waitingIn } from "@/lib/api/repeat-safe";
+import { IDEMPOTENCY_HEADER, waitingIn, type WriteState } from "@/lib/api/repeat-safe";
 import { businessDate, clockTime, printedDay } from "@/lib/dates";
 import {
   type AllergyCategory,
@@ -39,6 +39,15 @@ type Triaged = paths["/queue-entries/{id}/triage"]["post"]["responses"][200]["co
 
 /** As long as the API takes a complaint, an allergen, a reaction and a reading. */
 const LIMITS = { complaint: 200, allergen: 100, reaction: 200, reading: 6 };
+
+/** The fields a refused triage names, in our words, from the refusal and what was sent: none for any other state. */
+function refusedFields(state: WriteState<TriageBody, Triaged>): TriageProblems {
+  if (state.kind !== "refused" || !(state.error instanceof ApiError) || state.error.refusal.kind !== "invalid")
+    return {};
+  const sent = state.action.body;
+  const found = state.error.refusal.issues.map(issue => triageFieldProblem(issue.path, sent)).filter(field => field !== null);
+  return Object.fromEntries(found.map(({ field, problem }) => [field, problem]));
+}
 
 /** A patient sent on: what their Done says. */
 export interface Sent {
@@ -69,7 +78,6 @@ export function TriageForm({ entry, clinics, clinicsRead, draft, setDraft, onSen
 }) {
   const name = entry.patient.name;
   const allergies = useAllergies(entry.patient.id);
-  const [problems, setProblems] = useState<TriageProblems>({});
   const main = useRef<HTMLButtonElement>(null);
   const form = useRef<HTMLDivElement>(null);
   const chosenClinic = clinics.find(clinic => clinic.id === draft.clinicId) ?? null;
@@ -78,6 +86,8 @@ export function TriageForm({ entry, clinics, clinicsRead, draft, setDraft, onSen
     unwrap(api.POST("/queue-entries/{id}/triage", { params: { path: { id: entry.entryId } }, body, headers: { [IDEMPOTENCY_HEADER]: key }, signal })));
   const { state } = triage;
   const waiting = waitingIn(state);
+  // A form shown again, after a refusal that came while the nurse was with another patient, shows it at its fields too.
+  const [problems, setProblems] = useState<TriageProblems>(() => refusedFields(state));
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {
@@ -116,10 +126,8 @@ export function TriageForm({ entry, clinics, clinicsRead, draft, setDraft, onSen
       return;
     }
     // A refusal naming a field shows at that field, in our words.
-    if (ended.kind === "refused" && ended.error instanceof ApiError && ended.error.refusal.kind === "invalid") {
-      const found = ended.error.refusal.issues.map(issue => triageFieldProblem(issue.path, result.body)).filter(field => field !== null);
-      setProblems(Object.fromEntries(found.map(({ field, problem }) => [field, problem])));
-    }
+    if (ended.kind === "refused")
+      setProblems(refusedFields(ended));
   }
 
   const mainLabel = state.kind === "sending"
