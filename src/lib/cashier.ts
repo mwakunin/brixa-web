@@ -109,14 +109,32 @@ export function payingFor(draft: PaymentDraft, transactionCents: number | null):
 
 /**
  * The bills out a payment can be taken against, in the account's order
- * (oldest first): those still owing, and any with a payment still to show
- * (its answer awaited, or come while nobody watched), paid off or not, so
- * its Try again or its Done is reached. The one chosen at first is a bill
+ * (oldest first): those still owing, and any with a payment or credit still
+ * to show (its answer awaited, or come while nobody watched), paid off or
+ * not, so its Try again or its Done is reached. The one chosen at first is a bill
  * with a payment still to show, else the oldest owing.
  */
-export function billsToChoose<T extends { id: string; balanceCents: number }>(bills: readonly T[], paymentToShow: (id: string) => boolean): { listed: T[]; first: T | null } {
-  const listed = bills.filter(bill => bill.balanceCents > 0 || paymentToShow(bill.id));
-  return { listed, first: listed.find(bill => paymentToShow(bill.id)) ?? listed[0] ?? null };
+export function billsToChoose<T extends { id: string; balanceCents: number }>(bills: readonly T[], paymentToShow: (bill: T) => boolean): { listed: T[]; first: T | null } {
+  const listed = bills.filter(bill => bill.balanceCents > 0 || paymentToShow(bill));
+  return { listed, first: listed.find(paymentToShow) ?? listed[0] ?? null };
+}
+
+/** A patient's account (`GET /patients/{id}/account`): credit not yet applied, and each bill out with what it owes. */
+export type Account = paths["/patients/{id}/account"]["get"]["responses"][200]["content"]["application/json"];
+export type AccountCredit = Account["credit"][number];
+
+/**
+ * The credit the cashier can use on a visit, oldest first as the account
+ * lists it: the patient's own, and deposits paid towards this visit. A
+ * deposit towards another visit is that visit's, and is not offered here.
+ */
+export function creditFor(credit: readonly AccountCredit[], encounterId: string): AccountCredit[] {
+  return credit.filter(entry => entry.unallocatedCents > 0 && (entry.encounterId === null || entry.encounterId === encounterId));
+}
+
+/** The bill out on a visit that credit goes on: its oldest still owing, as payments towards a visit settle them. */
+export function owingBillOf<T extends { encounterId: string; balanceCents: number }>(bills: readonly T[], encounterId: string): T | null {
+  return bills.find(bill => bill.encounterId === encounterId && bill.balanceCents > 0) ?? null;
 }
 
 /**

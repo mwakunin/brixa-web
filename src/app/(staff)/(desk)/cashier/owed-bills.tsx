@@ -8,33 +8,41 @@ import { useAccount } from "@/hooks/use-cashier";
 import { usePatient } from "@/hooks/use-patients";
 import { hasAction } from "@/hooks/use-repeat-safe";
 import { failureText } from "@/lib/api/refusal";
-import { billsToChoose } from "@/lib/cashier";
+import { billsToChoose, creditFor } from "@/lib/cashier";
 import { formatKes } from "@/lib/money";
 import { fullName, opNumberOf } from "@/lib/patients";
 import { cn } from "@/lib/utils";
 import { en } from "@/strings/en";
 
 import { paymentAction, TakePayment } from "./take-payment";
+import { creditToShow, UseCredit, useCreditAwaited } from "./use-credit";
 
 const words = en.cashier;
 
 /**
  * What a patient owes on bills already out, opened from the front desk:
  * each bill still owing, and the payment taken against the one chosen, the
- * oldest at first. Every figure is the API's (`GET /patients/{id}/account`).
+ * oldest at first, with any credit on the account to use on it. Every
+ * figure is the API's (`GET /patients/{id}/account`).
  */
 export function OwedBills({ patientId }: { patientId: string }) {
   const id = useId();
   const record = usePatient(patientId);
   const account = useAccount(patientId);
-  // A bill paid off by a payment still to show stays listed, and is chosen at first, so its Try again or its Done is reached.
-  const { listed: owing, first } = billsToChoose(account.data?.invoices ?? [], billId => hasAction(paymentAction("bill", billId)));
+  // A bill paid off by a payment or credit still to show stays listed, and is chosen at first, so its Try again or its Done is reached.
+  const { listed: owing, first } = billsToChoose(account.data?.invoices ?? [], bill => hasAction(paymentAction("bill", bill.id)) || creditToShow(bill.encounterId));
   // The bill chosen; kept once paid, so its Done stays.
   const [chosenId, setChosenId] = useState<string | null>(null);
   if (chosenId === null && first)
     setChosenId(first.id);
   const chosen = account.data?.invoices.find(bill => bill.id === chosenId) ?? null;
   const name = record.data ? fullName(record.data) : null;
+  // Credit put on the chosen bill's visit, its answer still awaited: no payment is taken meanwhile.
+  const creditAwaited = useCreditAwaited(chosen?.encounterId ?? "");
+  // A prompt open on the patient's phone for the chosen bill: no credit is used meanwhile.
+  const [promptOpen, setPromptOpen] = useState(false);
+  // Credit for the bill chosen: the patient's own, or a deposit towards its visit.
+  const credit = account.data && chosen && chosen.balanceCents > 0 ? creditFor(account.data.credit, chosen.encounterId) : [];
   const opNumber = record.data ? opNumberOf(record.data) : null;
 
   return (
@@ -60,7 +68,12 @@ export function OwedBills({ patientId }: { patientId: string }) {
               dueCents={chosen.balanceCents > 0 ? chosen.balanceCents : null}
               dueRead={{ read: account.isSuccess, checking: account.isFetching, failed: account.isError }}
               nothingDue={{ title: words.owedBillPaid, help: words.owedBillPaidHelp }}
+              held={creditAwaited}
+              onPromptOpen={setPromptOpen}
             >
+              {chosen && (credit.length > 0 || creditToShow(chosen.encounterId)) && (
+                <UseCredit patientId={patientId} encounterId={chosen.encounterId} bill={{ id: chosen.id, number: chosen.number }} credit={credit} held={promptOpen} />
+              )}
               {owing.length > 0 && (
                 <div className="flex max-w-[900px] flex-col gap-2.5">
                   <h2 id={id} className="text-lg font-semibold">{words.owedBills}</h2>

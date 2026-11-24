@@ -8,6 +8,11 @@ describe("the desks a person has", () => {
     expect(desksFor(["cashier"]).map(desk => desk.id)).toEqual(["cashier"]);
   });
 
+  it("are the waivers for those who approve them: a finance manager, or the facility admin", () => {
+    expect(desksFor(["finance_manager"]).map(desk => desk.id)).toEqual(["waivers"]);
+    expect(desksFor(["facility_admin"]).map(desk => desk.id)).toEqual(["waivers"]);
+  });
+
   it("are listed front desk first, whatever order the roles come in", () => {
     expect(desksFor(["cashier", "records_clerk"]).map(desk => desk.id)).toEqual(["front-desk", "cashier"]);
   });

@@ -29163,6 +29163,15 @@ export interface paths {
                             /** Format: uuid */
                             invoiceId: string;
                             invoiceNumber: string | null;
+                            invoiceTotalCents: number | null;
+                            /** Format: uuid */
+                            encounterId: string;
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                opNumber: string | null;
+                            } | null;
                             /** Format: uuid */
                             documentId: string | null;
                             number: string | null;
@@ -29174,9 +29183,11 @@ export interface paths {
                             status: "pending" | "approved" | "rejected" | "withdrawn";
                             /** Format: uuid */
                             requestedBy: string;
+                            requestedByName: string | null;
                             requestedAt: string;
                             /** Format: uuid */
                             decidedBy: string | null;
+                            decidedByName: string | null;
                             decidedAt: string | null;
                             reversedAt: string | null;
                             reversalReason: string | null;
@@ -29304,12 +29315,13 @@ export interface paths {
         };
         /**
          * Adjustments, newest first
-         * @description `?status=pending` is the approver's queue. At most 100.
+         * @description `?status=pending` is the approver's queue; `?encounterId=` is one visit's, for the cashier. Each names the patient billed and who asked and decided. At most 100.
          */
         get: {
             parameters: {
                 query?: {
                     status?: "pending" | "approved" | "rejected" | "withdrawn";
+                    encounterId?: string;
                 };
                 header: {
                     /** @description The facility this request acts in */
@@ -29335,6 +29347,15 @@ export interface paths {
                                 /** Format: uuid */
                                 invoiceId: string;
                                 invoiceNumber: string | null;
+                                invoiceTotalCents: number | null;
+                                /** Format: uuid */
+                                encounterId: string;
+                                patient: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    opNumber: string | null;
+                                } | null;
                                 /** Format: uuid */
                                 documentId: string | null;
                                 number: string | null;
@@ -29346,9 +29367,11 @@ export interface paths {
                                 status: "pending" | "approved" | "rejected" | "withdrawn";
                                 /** Format: uuid */
                                 requestedBy: string;
+                                requestedByName: string | null;
                                 requestedAt: string;
                                 /** Format: uuid */
                                 decidedBy: string | null;
+                                decidedByName: string | null;
                                 decidedAt: string | null;
                                 reversedAt: string | null;
                                 reversalReason: string | null;
@@ -29400,7 +29423,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Unknown status */
+                /** @description Unknown status, or not a visit id */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -29485,6 +29508,15 @@ export interface paths {
                             /** Format: uuid */
                             invoiceId: string;
                             invoiceNumber: string | null;
+                            invoiceTotalCents: number | null;
+                            /** Format: uuid */
+                            encounterId: string;
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                opNumber: string | null;
+                            } | null;
                             /** Format: uuid */
                             documentId: string | null;
                             number: string | null;
@@ -29496,9 +29528,11 @@ export interface paths {
                             status: "pending" | "approved" | "rejected" | "withdrawn";
                             /** Format: uuid */
                             requestedBy: string;
+                            requestedByName: string | null;
                             requestedAt: string;
                             /** Format: uuid */
                             decidedBy: string | null;
+                            decidedByName: string | null;
                             decidedAt: string | null;
                             reversedAt: string | null;
                             reversalReason: string | null;
@@ -29641,6 +29675,15 @@ export interface paths {
                             /** Format: uuid */
                             invoiceId: string;
                             invoiceNumber: string | null;
+                            invoiceTotalCents: number | null;
+                            /** Format: uuid */
+                            encounterId: string;
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                opNumber: string | null;
+                            } | null;
                             /** Format: uuid */
                             documentId: string | null;
                             number: string | null;
@@ -29652,9 +29695,11 @@ export interface paths {
                             status: "pending" | "approved" | "rejected" | "withdrawn";
                             /** Format: uuid */
                             requestedBy: string;
+                            requestedByName: string | null;
                             requestedAt: string;
                             /** Format: uuid */
                             decidedBy: string | null;
+                            decidedByName: string | null;
                             decidedAt: string | null;
                             reversedAt: string | null;
                             reversalReason: string | null;
@@ -29797,6 +29842,15 @@ export interface paths {
                             /** Format: uuid */
                             invoiceId: string;
                             invoiceNumber: string | null;
+                            invoiceTotalCents: number | null;
+                            /** Format: uuid */
+                            encounterId: string;
+                            patient: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                opNumber: string | null;
+                            } | null;
                             /** Format: uuid */
                             documentId: string | null;
                             number: string | null;
@@ -29808,9 +29862,11 @@ export interface paths {
                             status: "pending" | "approved" | "rejected" | "withdrawn";
                             /** Format: uuid */
                             requestedBy: string;
+                            requestedByName: string | null;
                             requestedAt: string;
                             /** Format: uuid */
                             decidedBy: string | null;
+                            decidedByName: string | null;
                             decidedAt: string | null;
                             reversedAt: string | null;
                             reversalReason: string | null;
