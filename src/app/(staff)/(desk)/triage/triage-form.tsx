@@ -261,7 +261,12 @@ function Allergies({ allergies, draft, onChange, problem }: {
         {neverAsked && <span className="text-base font-normal text-muted-foreground">{` ${words.allergiesNotAsked}`}</span>}
       </legend>
       {allergies.isPending && <p role="status" className="text-muted-foreground">{words.allergiesChecking}</p>}
-      {allergies.isError && <p className="text-sm text-muted-foreground">{words.allergiesReadFailed(failureText(allergies.error))}</p>}
+      {allergies.isError && (
+        <Alert variant="problem">
+          <AlertDescription>{words.allergiesReadFailed(failureText(allergies.error))}</AlertDescription>
+          <Button variant="link" className="self-start" onClick={() => void allergies.refetch()}>{en.errors.tryAgain}</Button>
+        </Alert>
+      )}
       {found.length > 0 && (
         <ul className="flex flex-col gap-0.5 font-semibold">
           {found.map(allergy => (
