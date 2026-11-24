@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { accountKey, billKey, dueKey, useAccount } from "@/hooks/use-cashier";
 import { sentBody, useRepeatSafe } from "@/hooks/use-repeat-safe";
-import { visitWaiversKey } from "@/hooks/use-waivers";
+import { adjustmentsKey } from "@/hooks/use-waivers";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
 import { IDEMPOTENCY_HEADER, waitingIn } from "@/lib/api/repeat-safe";
@@ -89,8 +89,8 @@ export function AskWaiver({ visit, listed, draft, setDraft, onBack, children }: 
       setDraft(known => (known.billId === NOT_BILLED ? { ...known, billId: billed } : known));
     }
     const asked = await unwrap(api.POST("/invoices/{id}/adjustments", { params: { path: { id: invoiceId } }, body: { kind: "waiver", amountCents: body.amountCents, reason: body.reason }, headers: keyed("ask"), signal }));
-    // The bill now shows it waiting for the in-charge.
-    void queryClient.invalidateQueries({ queryKey: visitWaiversKey(body.encounterId) });
+    // The bill now shows it waiting for the in-charge, and so does the in-charge's list, wherever it is open in this tab.
+    void queryClient.invalidateQueries({ queryKey: adjustmentsKey });
     return { amountCents: asked.amountCents, invoiceNumber: asked.invoiceNumber ?? "" };
   });
   const { state } = ask;

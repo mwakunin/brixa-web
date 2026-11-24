@@ -14,7 +14,7 @@ import { unwrap } from "@/lib/api/refusal";
 export const adjustmentsKey = ["adjustments"] as const;
 const waitingKey = [...adjustmentsKey, "pending"] as const;
 const recentKey = [...adjustmentsKey, "recent"] as const;
-export const visitWaiversKey = (encounterId: string) => [...adjustmentsKey, "visit", encounterId] as const;
+const visitWaiversKey = (encounterId: string) => [...adjustmentsKey, "visit", encounterId] as const;
 
 /** Every adjustment waiting for a decision (`?status=pending`): the in-charge's queue, read like one. */
 export function useWaitingAdjustments() {
