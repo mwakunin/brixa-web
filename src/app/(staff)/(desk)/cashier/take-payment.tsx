@@ -215,11 +215,13 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, h
       main.current?.focus();
   }, [state.kind]);
 
-  // While a prompt is open, credit on this bill waits: the prompt may yet pay what the credit would.
+  // While a prompt is open, or its request is sent and unanswered (it may be on the phone already), credit on this bill
+  // waits: the prompt may yet pay what the credit would.
+  const promptAsked = promptOpen || waiting?.body.paying.method === "prompt";
   useEffect(() => {
-    onPromptOpen?.(promptOpen);
+    onPromptOpen?.(promptAsked);
     return () => onPromptOpen?.(false);
-  }, [promptOpen, onPromptOpen]);
+  }, [promptAsked, onPromptOpen]);
 
   const shown = waiting ? draftOf(waiting.body) : draft;
   const amount = amountTyped || waiting ? shown.amount : dueCents !== null ? String(dueCents / 100) : "";
