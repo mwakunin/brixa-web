@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { canSwitch, chooseFacility, chosenFacilityId, landing, type MyFacility, pickerOrder, roleNames, settle, workIn } from "./facility";
 
-const main: MyFacility = { id: "f-main", name: "Sample Hospital", status: "active", roles: ["records_clerk"] };
-const westside: MyFacility = { id: "f-west", name: "Sample Hospital, Westside", status: "active", roles: ["records_clerk", "cashier"] };
-const east: MyFacility = { id: "f-east", name: "Sample Hospital, East", status: "suspended", roles: ["records_clerk"] };
+const main: MyFacility = { id: "f-main", name: "Sample Hospital", status: "active", membershipId: "m-main", roles: ["records_clerk"] };
+const westside: MyFacility = { id: "f-west", name: "Sample Hospital, Westside", status: "active", membershipId: "m-west", roles: ["records_clerk", "cashier"] };
+const east: MyFacility = { id: "f-east", name: "Sample Hospital, East", status: "suspended", membershipId: "m-east", roles: ["records_clerk"] };
 
 describe("where someone lands after signing in", () => {
   it("goes straight in when only one facility is open to them", () => {

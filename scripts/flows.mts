@@ -1454,7 +1454,137 @@ const waiversFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, cashierFlow, waiversFlow];
+const triageFlow: Flow = {
+  name: "triage",
+  about: "the nurse calls in a made-up patient, is asked for what is missing, has a reading no patient could have refused at its field, and saves the triage through a lost answer, sending them to a clinic",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    // The front desk, at another computer: it starts a made-up patient's visit, which joins triage.
+    const clerk = await request.newContext();
+    const familyName = `Flows${RUN}`;
+    const name = `Jabali ${familyName}`;
+    let facilityId = "";
+    let visitId = "";
+    const as = () => ({ "x-facility-id": facilityId, "origin": APP_URL });
+    const clinic = "General OPD";
+    const triagePosts: string[] = [];
+    page.on("request", (sent) => {
+      if (sent.method() === "POST" && /^\/queue-entries\/[\w-]+\/triage$/.test(new URL(sent.url()).pathname))
+        triagePosts.push(sent.headers()["idempotency-key"] ?? "");
+    });
+
+    await step("the front desk starts a made-up patient's visit, and they join triage", async () => {
+      await apiSignIn(clerk, seeded("frontdesk"), SEED_PASSWORD);
+      const { facilities } = await (await clerk.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+      const registered = await clerk.post(`${API_URL}/patients`, { headers: as(), data: { givenName: "Jabali", familyName, sex: "male", dateOfBirth: "1990-03-14", noPhoneReason: "no_phone", noIdReason: "not_carried" } });
+      expect("registering the patient", registered.status(), 201);
+      const opened = await clerk.post(`${API_URL}/encounters`, { headers: as(), data: { patientId: (await registered.json() as { id: string }).id, kind: "opd" } });
+      expect("opening the visit", opened.status(), 201);
+      visitId = (await opened.json() as { id: string }).id;
+    });
+
+    await step("the nurse lands on triage, named in the header, with the patient waiting, their sex, age and wait", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("triage"), SEED_PASSWORD);
+      await page.waitForURL("**/triage");
+      await page.locator("header").getByText("Triage", { exact: true }).waitFor();
+      const row = page.getByRole("region", { name: "Waiting for triage" }).getByRole("listitem").filter({ hasText: name });
+      await row.getByText(/^Male · \d+ years · waiting (under a minute|\d+ min)$/).waitFor();
+    });
+
+    await step("calling the patient in puts them with the nurse, with the form for their triage", async () => {
+      await page.getByRole("button", { name: `Call in ${name}` }).click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      expect("the address names the queue entry", /^\?entry=[\w-]+$/.test(new URL(page.url()).search), true);
+      expect("the patient, with the nurse", await page.getByRole("button", { name: new RegExp(`^${name}`) }).getAttribute("aria-pressed"), "true");
+      await page.getByRole("group", { name: /^Allergies/ }).getByText("not asked before").waitFor();
+    });
+
+    await step("saving with nothing filled in asks for the complaint, how soon and where to, each at its field, and sends nothing", async () => {
+      await page.getByRole("button", { name: "Save and send", exact: true }).click();
+      for (const problem of ["Say what brings the patient in, in a few words.", "Choose how soon the patient must be seen.", "Choose where the patient goes next."])
+        await page.getByText(problem, { exact: true }).waitFor();
+      expect("triages sent", triagePosts.length, 0);
+    });
+
+    await step("a temperature no patient could have is refused at its field, and what was typed is kept", async () => {
+      await page.getByLabel(`What brings ${name} in today`).fill("Flows: fever for two days");
+      await page.getByLabel("Temperature, °C").fill("384");
+      await page.getByLabel("Pulse, per minute").fill("96");
+      await page.getByRole("button", { name: "Urgent, next" }).click();
+      await page.getByRole("button", { name: new RegExp(`^${clinic}`) }).click();
+      await page.getByRole("button", { name: `Save and send to ${clinic}` }).click();
+      await page.getByRole("alert").filter({ hasText: /^Not saved/ }).waitFor();
+      await page.getByText("No reading could be this: check it for a typing slip.").waitFor();
+      expect("what was typed, kept", [await page.getByLabel(`What brings ${name} in today`).inputValue(), await page.getByLabel("Pulse, per minute").inputValue()], ["Flows: fever for two days", "96"]);
+    });
+
+    await step("the triage saved through a lost answer is recorded once, under one key, and the patient is in the clinic's queue", async () => {
+      await page.getByLabel("Temperature, °C").fill("38.4");
+      await page.getByRole("button", { name: "None known" }).click();
+      const sentBefore = triagePosts.length;
+      let answerLost = false;
+      const triageCall = (url: URL) => /^\/queue-entries\/[\w-]+\/triage$/.test(url.pathname);
+      await page.route(triageCall, async (route) => {
+        if (answerLost)
+          return route.continue();
+        answerLost = true;
+        // Saved, but the answer never reaches the page.
+        const answered = await route.fetch();
+        if (!answered.ok())
+          return route.fulfill({ response: answered });
+        await route.abort("connectionreset");
+      });
+      await page.getByRole("button", { name: `Save and send to ${clinic}` }).click();
+      await page.getByRole("alert").filter({ hasText: "No answer: the connection dropped" }).waitFor();
+      expect("the form, held as sent", await page.getByLabel("Temperature, °C").isDisabled(), true);
+      const [replayed] = await Promise.all([
+        page.waitForResponse(response => triageCall(new URL(response.url())) && response.request().method() === "POST"),
+        page.getByRole("button", { name: `Try again: save and send to ${clinic}` }).click(),
+      ]);
+      await page.unroute(triageCall);
+      expect("the triage's answer, replayed", replayed.headers()["idempotent-replayed"], "true");
+      const keys = triagePosts.slice(sentBefore);
+      expect("one key, sent twice", [keys.length, keys[0] === keys[1]], [2, true]);
+      await page.getByRole("status").filter({ hasText: `${name} is in the ${clinic} queue, as urgent.` }).waitFor();
+      const visit = await (await clerk.get(`${API_URL}/encounters/${visitId}`, { headers: { "x-facility-id": facilityId } })).json() as { queue: { servicePointName: string; status: string } | null };
+      expect("where the API says the patient waits", [visit.queue?.servicePointName, visit.queue?.status], [clinic, "waiting"]);
+    });
+
+    await step("the clinic's fee is cancelled, the patient taken out of the queue and the visit closed, so no list keeps a made-up patient", async () => {
+      if (!visitId)
+        return;
+      // The clinic's consultation fee, charged when triage sent the patient there: cancelled by finance, who keep the charges.
+      const finance = await request.newContext();
+      await apiSignIn(finance, seeded("finance"), SEED_PASSWORD);
+      const { charges } = await (await finance.get(`${API_URL}/encounters/${visitId}/charges`, { headers: { "x-facility-id": facilityId } })).json() as { charges: { id: string; cancelledAt: string | null }[] };
+      for (const charge of charges.filter(standing => standing.cancelledAt === null)) {
+        const cancelled = await finance.post(`${API_URL}/charges/${charge.id}/cancel`, { headers: as(), data: { reason: "Charged by pnpm flows" } });
+        expect("cancelling the clinic's fee", cancelled.status(), 200);
+      }
+      await finance.dispose();
+      const visit = await (await clerk.get(`${API_URL}/encounters/${visitId}`, { headers: { "x-facility-id": facilityId } })).json() as { queue: { entryId: string; servicePointName: string; status: string } | null };
+      // Still with the nurse, if a step failed: triage ends with no clinic named, which joins no queue.
+      if (visit.queue?.status === "serving") {
+        const ended = await context.request.post(`${API_URL}/queue-entries/${visit.queue.entryId}/triage`, { headers: as(), data: { priority: "routine" } });
+        expect("ending the triage", ended.status(), 200);
+      }
+      else if (visit.queue) {
+        const removed = await clerk.post(`${API_URL}/queue-entries/${visit.queue.entryId}/remove`, { headers: as(), data: { outcome: "cancelled" } });
+        expect("taking the patient out of the queue", removed.status(), 200);
+      }
+      const closed = await clerk.post(`${API_URL}/encounters/${visitId}/close`, { headers: as() });
+      expect("closing the visit", closed.status(), 200);
+    }, { always: true });
+
+    await clerk.dispose();
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, triageFlow, cashierFlow, waiversFlow];
 
 // ---------------------------------------------------------------------------
 // The run

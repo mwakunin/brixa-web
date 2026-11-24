@@ -4,8 +4,8 @@ import { chooseFacility, type MyFacility, settle } from "@/lib/facility";
 
 import { FACILITY_HEADER, facilityHeader } from "./client";
 
-const main: MyFacility = { id: "f-main", name: "Sample Hospital", status: "active", roles: ["records_clerk"] };
-const westside: MyFacility = { id: "f-west", name: "Sample Hospital, Westside", status: "active", roles: ["records_clerk", "cashier"] };
+const main: MyFacility = { id: "f-main", name: "Sample Hospital", status: "active", membershipId: "m-main", roles: ["records_clerk"] };
+const westside: MyFacility = { id: "f-west", name: "Sample Hospital, Westside", status: "active", membershipId: "m-west", roles: ["records_clerk", "cashier"] };
 
 type OnRequest = NonNullable<typeof facilityHeader.onRequest>;
 
