@@ -273,8 +273,9 @@ function Allergies({ allergies, draft, onChange, problem }: {
       )}
       {noneKnown && <p>{words.noneKnownBefore(printedDay(businessDate(new Date(noneKnown.recordedAt)), today), noneKnown.recordedBy.name)}</p>}
       <div className="flex flex-wrap gap-2">
-        {/* "None known" only where none stands: the API refuses it beside an allergy on record. */}
-        {found.length === 0 && !noneKnown && <ChoiceButton pressed={draft.allergies === "none_known"} onClick={() => set("none_known")}>{words.noneKnown}</ChoiceButton>}
+        {/* "None known" only once the record is read and none stands, as the API refuses it beside an allergy on record; kept
+            while chosen, so a choice the record has since made wrong can be taken back. */}
+        {((allergies.data !== undefined && found.length === 0 && !noneKnown) || draft.allergies === "none_known") && <ChoiceButton pressed={draft.allergies === "none_known"} onClick={() => set("none_known")}>{words.noneKnown}</ChoiceButton>}
         <ChoiceButton pressed={draft.allergies === "recorded"} onClick={() => set("recorded")}>
           {found.length > 0 ? words.recordAnother : words.recordAllergy}
         </ChoiceButton>

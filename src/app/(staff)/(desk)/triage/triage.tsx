@@ -10,7 +10,7 @@ import { useWorking } from "@/components/facility-gate";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { servicePointsKey, useServicePoints } from "@/hooks/use-desk";
-import { useRepeatSafe } from "@/hooks/use-repeat-safe";
+import { useAwaited, useRepeatSafe } from "@/hooks/use-repeat-safe";
 import { queueKey, useQueue } from "@/hooks/use-triage";
 import { api } from "@/lib/api/client";
 import { failureText, unwrap } from "@/lib/api/refusal";
@@ -61,11 +61,23 @@ export function Triage() {
   const mine = entries.filter(entry => entry.status === "serving" && entry.servedBy?.membershipId === facility.membershipId);
   const others = entries.filter(entry => entry.status === "serving" && entry.servedBy?.membershipId !== facility.membershipId);
   const waiting = entries.filter(entry => entry.status === "waiting");
-  const withYou = mine.find(entry => entry.entryId === chosenId) ?? mine[0] ?? null;
+  // The patient last shown: their form stays while their triage is sent or awaits its answer, though the queue's next
+  // read may already have dropped them, so Try again is still there.
+  const [shown, setShown] = useState<QueueEntry | null>(null);
+  const shownAwaited = useAwaited(`triage:${shown?.entryId ?? ""}`);
+  const chosen = mine.find(entry => entry.entryId === chosenId) ?? null;
+  const withYou = chosen ?? (shown && shownAwaited ? shown : null) ?? mine[0] ?? null;
+  if (withYou && withYou !== shown)
+    setShown(withYou);
   const clinics = points.data?.filter(point => point.kind === "consultation" && point.isActive) ?? [];
   const [drafts, setDrafts] = useState<Record<string, TriageDraft>>({});
-  // The patient last sent on from here: their Done shows until the next is called in.
+  // The patient last sent on from here: their Done shows until the nurse chooses or calls in another.
   const [sent, setSent] = useState<Sent | null>(null);
+
+  function choose(entryId: string) {
+    setSent(null);
+    window.history.replaceState(null, "", `?entry=${entryId}`);
+  }
 
   function called(entryId: string) {
     setSent(null);
@@ -75,13 +87,17 @@ export function Triage() {
   }
 
   function sentOn(done: Sent) {
-    setSent(done);
     setDrafts(known => Object.fromEntries(Object.entries(known).filter(([entryId]) => entryId !== done.entryId)));
     if (triagePoint)
       void queryClient.invalidateQueries({ queryKey: queueKey(triagePoint.id) });
     // The clinics' counts have changed.
     void queryClient.invalidateQueries({ queryKey: servicePointsKey });
-    window.history.replaceState(null, "", window.location.pathname);
+    // The Done takes the panel only while the nurse is still on this patient: another chosen meanwhile keeps their form.
+    const current = idParam(new URLSearchParams(window.location.search).get("entry"));
+    if (current === null || current === done.entryId) {
+      setSent(done);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }
 
   if (points.data && !triagePoint) {
@@ -95,7 +111,7 @@ export function Triage() {
     );
   }
 
-  const showSent = sent !== null && (withYou === null || withYou.entryId === sent.entryId);
+  const showSent = sent !== null;
   return (
     <main className="flex min-h-0 w-full flex-1 gap-5 px-6 py-4">
       <QueueList
@@ -103,13 +119,13 @@ export function Triage() {
         others={others}
         waiting={waiting}
         withYouId={withYou?.entryId ?? null}
-        read={queue.isSuccess}
+        read={queue.data !== undefined}
         failure={queue.error ?? points.error}
         onRetry={() => {
           void points.refetch();
           void queue.refetch();
         }}
-        onChoose={entryId => window.history.replaceState(null, "", `?entry=${entryId}`)}
+        onChoose={choose}
         onCalled={called}
         nextId={showSent ? (waiting[0]?.entryId ?? null) : null}
       />
@@ -121,7 +137,7 @@ export function Triage() {
                 key={withYou.entryId}
                 entry={withYou}
                 clinics={clinics}
-                clinicsRead={points.isSuccess}
+                clinicsRead={points.data !== undefined}
                 draft={drafts[withYou.entryId] ?? emptyTriage}
                 setDraft={update => setDrafts(known => ({ ...known, [withYou.entryId]: update(known[withYou.entryId] ?? emptyTriage) }))}
                 onSent={sentOn}
