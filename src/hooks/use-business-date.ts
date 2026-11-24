@@ -14,7 +14,18 @@ export function useBusinessDate(): string {
   useEffect(() => {
     // A moment past the midnight that ends the day shown, so the new day has begun when it is read. Timed from the
     // day shown, not the clock: a day that ended between reading it and this effect moves on at once.
-    const timer = setTimeout(() => setToday(businessDate()), Math.max(0, msUntilDayAfter(today)) + 1_000);
+    let timer: ReturnType<typeof setTimeout>;
+    const arm = () => {
+      timer = setTimeout(() => {
+        const now = businessDate();
+        // Still the day shown, the device's clock having been set back since: timed again to its new midnight.
+        if (now === today)
+          arm();
+        else
+          setToday(now);
+      }, Math.max(0, msUntilDayAfter(today)) + 1_000);
+    };
+    arm();
     return () => clearTimeout(timer);
   }, [today]);
   return today;
