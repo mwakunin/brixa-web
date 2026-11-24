@@ -32324,7 +32324,7 @@ export interface paths {
         };
         /**
          * A patient's account
-         * @description Credit and what each finalised bill still owes. Audited.
+         * @description Credit, oldest received first, and what each finalised bill still owes, oldest finalised first. Audited.
          */
         get: {
             parameters: {
