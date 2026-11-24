@@ -9,6 +9,7 @@ import type { MembershipRole } from "@/lib/facility";
  */
 export const DESKS = [
   { id: "front-desk", path: "/front-desk", roles: ["records_clerk"] },
+  { id: "triage", path: "/triage", roles: ["nurse"] },
   { id: "cashier", path: "/cashier", roles: ["cashier"] },
   // Those who approve waivers: never the cashier who asked (rule 24).
   { id: "waivers", path: "/waivers", roles: ["finance_manager", "facility_admin"] },

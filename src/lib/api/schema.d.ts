@@ -150,6 +150,8 @@ export interface paths {
                                 name: string;
                                 /** @enum {string} */
                                 status: "active" | "suspended";
+                                /** Format: uuid */
+                                membershipId: string;
                                 roles: ("facility_admin" | "auditor" | "records_clerk" | "doctor" | "clinical_officer" | "nurse" | "ward_nurse" | "lab_tech" | "lab_supervisor" | "pharmacist" | "pharm_tech" | "storekeeper" | "cashier" | "billing_clerk" | "claims_officer" | "finance_manager")[];
                             }[];
                         };
@@ -1328,6 +1330,8 @@ export interface paths {
                             name: string;
                             /** @enum {string} */
                             status: "active" | "suspended";
+                            /** Format: uuid */
+                            membershipId: string;
                             roles: ("facility_admin" | "auditor" | "records_clerk" | "doctor" | "clinical_officer" | "nurse" | "ward_nurse" | "lab_tech" | "lab_supervisor" | "pharmacist" | "pharm_tech" | "storekeeper" | "cashier" | "billing_clerk" | "claims_officer" | "finance_manager")[];
                             kmhfrCode: string;
                             kephLevel: number;
@@ -1427,6 +1431,8 @@ export interface paths {
                             name: string;
                             /** @enum {string} */
                             status: "active" | "suspended";
+                            /** Format: uuid */
+                            membershipId: string;
                             roles: ("facility_admin" | "auditor" | "records_clerk" | "doctor" | "clinical_officer" | "nurse" | "ward_nurse" | "lab_tech" | "lab_supervisor" | "pharmacist" | "pharm_tech" | "storekeeper" | "cashier" | "billing_clerk" | "claims_officer" | "finance_manager")[];
                             kmhfrCode: string;
                             kephLevel: number;
@@ -32318,7 +32324,7 @@ export interface paths {
         };
         /**
          * A patient's account
-         * @description Credit and what each finalised bill still owes. Audited.
+         * @description Credit, oldest received first, and what each finalised bill still owes, oldest finalised first. Audited.
          */
         get: {
             parameters: {

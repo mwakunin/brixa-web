@@ -8,6 +8,10 @@ describe("the desks a person has", () => {
     expect(desksFor(["cashier"]).map(desk => desk.id)).toEqual(["cashier"]);
   });
 
+  it("are triage for a nurse", () => {
+    expect(desksFor(["nurse"]).map(desk => desk.id)).toEqual(["triage"]);
+  });
+
   it("are the waivers for those who approve them: a finance manager, or the facility admin", () => {
     expect(desksFor(["finance_manager"]).map(desk => desk.id)).toEqual(["waivers"]);
     expect(desksFor(["facility_admin"]).map(desk => desk.id)).toEqual(["waivers"]);
@@ -28,6 +32,7 @@ describe("the desk a page belongs to", () => {
     expect(deskAt("/front-desk")?.id).toBe("front-desk");
     expect(deskAt("/front-desk/new-patient")?.id).toBe("front-desk");
     expect(deskAt("/cashier")?.id).toBe("cashier");
+    expect(deskAt("/triage")?.id).toBe("triage");
   });
 
   it("is none for another page, even one whose name begins the same", () => {
