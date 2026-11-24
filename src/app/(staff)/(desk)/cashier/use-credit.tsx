@@ -89,6 +89,13 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
           <AlertDescription>{words.usedHelp}</AlertDescription>
         </Alert>
       )}
+      {/* A refusal shows even once no credit is left, as when another desk used it first. */}
+      {state.kind === "refused" && (
+        <Alert variant="problem">
+          <AlertTitle>{en.writes.notDone}</AlertTitle>
+          <AlertDescription>{failureText(state.error)}</AlertDescription>
+        </Alert>
+      )}
       {(credit.length > 0 || waiting) && (
         <>
           <h2 id={id} className="font-semibold">{words.title}</h2>
@@ -100,12 +107,6 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
             <Alert variant="problem">
               <AlertTitle>{en.writes.noAnswerTitle}</AlertTitle>
               <AlertDescription>{en.writes.noAnswer}</AlertDescription>
-            </Alert>
-          )}
-          {state.kind === "refused" && (
-            <Alert variant="problem">
-              <AlertTitle>{en.writes.notDone}</AlertTitle>
-              <AlertDescription>{failureText(state.error)}</AlertDescription>
             </Alert>
           )}
           <Button
