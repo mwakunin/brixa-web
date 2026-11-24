@@ -43,11 +43,10 @@ export function WaiverPanel({ id, adjustment, listsRead, next, onChoose }: {
 }) {
   const queryClient = useQueryClient();
   const today = useBusinessDate();
-  // The waiver last seen: it still shows while the lists are read again after a decision.
+  // The waiver last seen: it still shows while this desk's decision is sent, awaited or shown, as the lists are read again.
   const [known, setKnown] = useState(adjustment);
   if (adjustment && adjustment !== known)
     setKnown(adjustment);
-  const shown = adjustment ?? known;
   const main = useRef<HTMLButtonElement>(null);
 
   const decide = useRepeatSafe<Deciding, Adjustment>(`decide-waiver:${id}`, async ({ key, body }, signal) => {
@@ -65,6 +64,8 @@ export function WaiverPanel({ id, adjustment, listsRead, next, onChoose }: {
   });
   const { state } = decide;
   const waiting = waitingIn(state);
+  // Gone from both lists with nothing of this desk's to show, as when the cashier withdrew it: no longer to decide.
+  const shown = adjustment ?? (state.kind === "ready" || state.kind === "refused" ? null : known);
 
   // The button that pressed may be gone once an answer comes: the main one takes the keyboard's place.
   useEffect(() => {

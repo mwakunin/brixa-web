@@ -1431,7 +1431,8 @@ const waiversFlow: Flow = {
       // Next is the waiver that has waited longest: this flow's second, unless another patient's waits from before.
       const { adjustments } = await (await context.request.get(`${API_URL}/adjustments?status=pending`, { headers: { "x-facility-id": facilityId } })).json() as { adjustments: { kind: string; requestedAt: string; patient: { name: string } | null }[] };
       const oldest = adjustments.filter(adjustment => adjustment.kind === "waiver").sort((a, b) => a.requestedAt.localeCompare(b.requestedAt))[0];
-      await page.getByRole("button", { name: `Next: ${oldest?.patient?.name ?? name}` }).waitFor();
+      expect("a waiver still waiting, this flow's second at least", oldest !== undefined, true);
+      await page.getByRole("button", { name: `Next: ${oldest.patient?.name ?? "A payer's bill"}` }).waitFor();
     });
 
     await step("the next is rejected, and the bill stays due in full", async () => {
