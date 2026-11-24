@@ -1100,7 +1100,7 @@ const registerFlow: Flow = {
 
 const cashierFlow: Flow = {
   name: "cashier",
-  about: "the cashier sees who has money due, opens a patient's bill, takes part in cash, asks for a waiver, takes the rest of what the patient owes, and closes the shift",
+  about: "the cashier sees who has money due, opens a patient's bill, takes part in cash, asks for a waiver, uses credit and takes the rest of what the patient owes, and closes the shift",
   async run(browser, step) {
     const { context } = await freshContext(browser);
     const page = await context.newPage();
@@ -1266,21 +1266,32 @@ const cashierFlow: Flow = {
       ]);
       waiverId = (await asked.json() as { id: string }).id;
       await page.getByRole("status").filter({ hasText: /^Waiver of KES 50 asked for, on INV-/ }).waitFor();
+      // The bill says the waiver waits for the in-charge, so nobody asks for it again.
+      await page.getByText(/^A waiver of KES 50 on INV-\S+, asked for at \d\d:\d\d, waits for the in-charge\.$/).waitFor();
       expect("what the API says is due, the waiver not approved yet", (await dueOnVisit())?.dueCents, 20_000);
       await page.getByRole("button", { name: "Back to taking payment" }).click();
       expect("the payment's amount, as typed before the waiver", await page.getByLabel("Amount, in shillings").inputValue(), "150");
     });
 
-    await step("what the patient owes on bills out opens at the cashier for them, and the rest by bank transfer settles it", async () => {
+    await step("what the patient owes on bills out opens at the cashier for them, credit on the account goes on the bill, and the rest by bank transfer settles it", async () => {
+      // Paid before, naming only the patient: credit on their account.
+      const credited = await context.request.post(`${API_URL}/payments`, { headers: { "x-facility-id": facilityId, "origin": APP_URL }, data: { patientId, method: "bank", reference: `FT FLOWS ${RUN} CREDIT`, amountCents: 10_000 } });
+      expect("paying in credit", credited.status(), 201);
+      paid = true;
       await page.goto(`${APP_URL}/cashier?patient=${patientId}`);
       await heading(page).filter({ hasText: name }).waitFor();
       const bill = page.getByRole("button", { name: /^INV-.*KES 200 still owed, of KES 300/ });
       expect("the oldest bill owing, chosen", await bill.getAttribute("aria-pressed"), "true");
+      const credit = page.getByRole("region", { name: "Credit on the account" });
+      await credit.getByText(/^KES 100, paid \d\d:\d\d$/).waitFor();
+      await credit.getByRole("button", { name: /^Use the credit on INV-/ }).click();
+      await page.getByRole("status").filter({ hasText: /^KES 100 of the credit went on INV-/ }).waitFor();
+      await page.getByRole("button", { name: /^INV-.*KES 100 still owed, of KES 300/ }).waitFor();
       await page.getByRole("button", { name: "Card or bank" }).click();
       await page.getByRole("button", { name: "Bank transfer" }).click();
       await page.getByLabel("The transfer's reference").fill(`FT FLOWS ${RUN}`);
-      expect("the amount, what the bill owes", await page.getByLabel("Amount, in shillings").inputValue(), "200");
-      const [receipt] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 200 by bank transfer and print the receipt" }).click()]);
+      expect("the amount, what the bill owes", await page.getByLabel("Amount, in shillings").inputValue(), "100");
+      const [receipt] = await Promise.all([context.waitForEvent("page"), page.getByRole("button", { name: "Record KES 100 by bank transfer and print the receipt" }).click()]);
       await page.getByRole("status").filter({ hasText: /^Paid in full\. Receipt RCT-/ }).waitFor();
       await page.getByText("Nothing more is owed on this bill.").waitFor();
       await receipt.waitForURL(/^blob:/);
@@ -1332,7 +1343,118 @@ const cashierFlow: Flow = {
   },
 };
 
-const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, cashierFlow];
+const waiversFlow: Flow = {
+  name: "waivers",
+  about: "the in-charge sees the waivers the cashier asked for, approves one, which takes it off the bill, and rejects the next",
+  async run(browser, step) {
+    const { context } = await freshContext(browser);
+    const page = await context.newPage();
+    // The front desk and the cashier, at other computers: a made-up patient's test is billed, and two waivers asked for on it.
+    const clerk = await request.newContext();
+    const cashier = await request.newContext();
+    const familyName = `Flows${RUN}`;
+    const name = `Imani ${familyName}`;
+    let facilityId = "";
+    let visitId = "";
+    let patientId = "";
+    let invoiceId = "";
+    let cashierName = "";
+    const waivers: { id: string; amountCents: number; reason: string }[] = [];
+    const as = () => ({ "x-facility-id": facilityId, "origin": APP_URL });
+    const dueOnVisit = async () => {
+      const answered = await cashier.get(`${API_URL}/cashier/due`, { headers: { "x-facility-id": facilityId } });
+      expect("reading the list of money due", answered.status(), 200);
+      return (await answered.json() as { visits: { encounterId: string; dueCents: number }[] }).visits.find(visit => visit.encounterId === visitId)?.dueCents;
+    };
+
+    await step("the front desk sends a made-up patient to the lab, and the cashier bills the test and asks for two waivers on it", async () => {
+      await apiSignIn(clerk, seeded("frontdesk"), SEED_PASSWORD);
+      const { facilities } = await (await clerk.get(`${API_URL}/me/facilities`)).json() as { facilities: { id: string; name: string }[] };
+      facilityId = facilities.find(facility => facility.name === "Sample Hospital")?.id ?? "";
+      const registered = await clerk.post(`${API_URL}/patients`, { headers: as(), data: { givenName: "Imani", familyName, sex: "female", dateOfBirth: "1988-06-02", noPhoneReason: "no_phone", noIdReason: "not_carried" } });
+      expect("registering the patient", registered.status(), 201);
+      patientId = (await registered.json() as { id: string }).id;
+      const opened = await clerk.post(`${API_URL}/encounters`, { headers: as(), data: { patientId, kind: "opd", queueAt: null } });
+      expect("opening the visit", opened.status(), 201);
+      visitId = (await opened.json() as { id: string }).id;
+      const { tests } = await (await clerk.get(`${API_URL}/lab-tests`, { headers: { "x-facility-id": facilityId } })).json() as { tests: { id: string; name: string }[] };
+      const entered = await clerk.post(`${API_URL}/encounters/${visitId}/walk-in-orders`, { headers: as(), data: { selfRequested: true, labTestIds: [tests.find(test => test.name === "Malaria rapid test")?.id] } });
+      expect("entering the test", entered.status(), 201);
+      await apiSignIn(cashier, seeded("cashier"), SEED_PASSWORD);
+      const billed = await cashier.post(`${API_URL}/encounters/${visitId}/bill-now`, { headers: as() });
+      expect("billing the test", billed.status(), 201);
+      invoiceId = (await billed.json() as { id: string }).id;
+      for (const [amountCents, reason] of [[10_000, "Flows: to approve"], [5_000, "Flows: to reject"]] as const) {
+        const asked = await cashier.post(`${API_URL}/invoices/${invoiceId}/adjustments`, { headers: as(), data: { kind: "waiver", amountCents, reason } });
+        expect("asking for a waiver", asked.status(), 201);
+        const waiver = await asked.json() as { id: string; requestedByName: string };
+        waivers.push({ id: waiver.id, amountCents, reason });
+        cashierName = waiver.requestedByName;
+      }
+    });
+
+    await step("the in-charge lands on the waivers, named in the header, with both waiting, the longest waiting first", async () => {
+      await authRoom(1);
+      await signInAs(page, seeded("finance"), SEED_PASSWORD);
+      await page.waitForURL("**/waivers");
+      await page.locator("header").getByText("Waivers", { exact: true }).waitFor();
+      const queue = page.getByRole("region", { name: /^Waiting for you/ });
+      const rows = queue.getByRole("button", { name: new RegExp(`^${name}`) });
+      await rows.first().waitFor();
+      // Each row: who, the bill and when it was asked, and how much; the time and the bill's number as they come.
+      const texts = (await rows.allInnerTexts()).map(text => text.replace(/\s+/g, " ").replace(/INV-\S+/, "INV").replace(/\d\d:\d\d/, "HH:MM"));
+      expect("the patient's two waivers, the longest waiting first", texts, [`${name} INV · asked at HH:MM KES 100`, `${name} INV · asked at HH:MM KES 50`]);
+    });
+
+    await step("choosing a waiver shows who it is for, how much, on which bill, who asked and why", async () => {
+      await page.getByRole("region", { name: /^Waiting for you/ }).getByRole("button", { name: new RegExp(`^${name}.*KES 100$`) }).click();
+      await heading(page).filter({ hasText: name }).waitFor();
+      expect("the address", new URL(page.url()).search, `?waiver=${waivers[0].id}`);
+      const fact = (label: string) => page.locator("dt", { hasText: label }).locator("xpath=following-sibling::dd").innerText();
+      expect("what it shows", [await fact("To waive"), await fact("On the bill"), await fact("Asked by"), await fact("Why")].map(text => text.replace(/\d\d:\d\d/, "HH:MM").replace(/INV-\S+?,/, "INV,")), ["KES 100", "INV, a bill of KES 300", `${cashierName}, at HH:MM`, "Flows: to approve"]);
+    });
+
+    await step("approving it takes it off the bill, and it is decided today; the next waiver is offered", async () => {
+      await page.getByRole("button", { name: "Approve the waiver" }).click();
+      await page.getByRole("status").filter({ hasText: /^Approved: KES 100 off INV-/ }).waitFor();
+      const list = page.getByRole("region", { name: /^Waiting for you/ });
+      await list.getByText(/^Decided today/).waitFor();
+      await list.getByRole("listitem").filter({ hasText: name }).filter({ hasText: /Approved\s*by .+, \d\d:\d\d/ }).waitFor();
+      expect("what the API says is due, the waiver approved", await dueOnVisit(), 20_000);
+      await page.getByRole("button", { name: `Next: ${name}` }).waitFor();
+    });
+
+    await step("the next is rejected, and the bill stays due in full", async () => {
+      await page.getByRole("button", { name: `Next: ${name}` }).click();
+      expect("the address", new URL(page.url()).search, `?waiver=${waivers[1].id}`);
+      await page.locator("dt", { hasText: "Why" }).locator("xpath=following-sibling::dd").filter({ hasText: "Flows: to reject" }).waitFor();
+      await page.getByRole("button", { name: "Reject the waiver" }).click();
+      await page.getByRole("status").filter({ hasText: /^Rejected: INV-\S+ stays due in full/ }).waitFor();
+      expect("what the API says is due, the waiver rejected", await dueOnVisit(), 20_000);
+    });
+
+    await step("the waivers left waiting are withdrawn, and what the visit owes is paid, so no list keeps a made-up patient", async () => {
+      if (!facilityId || !visitId)
+        return;
+      for (const waiver of waivers) {
+        const withdrawn = await cashier.post(`${API_URL}/adjustments/${waiver.id}/withdraw`, { headers: as() });
+        // Decided already, by the in-charge: nothing to withdraw.
+        expect("withdrawing a waiver still waiting", [200, 409].includes(withdrawn.status()), true);
+      }
+      const owing = await dueOnVisit();
+      if (owing) {
+        const settled = await cashier.post(`${API_URL}/payments`, { headers: as(), data: { patientId, method: "bank", reference: `FT FLOWS ${RUN} WAIVERS`, amountCents: owing, encounterId: visitId } });
+        expect(`settling the ${owing / 100} shillings visit ${visitId} owes`, settled.status(), 201);
+      }
+    }, { always: true });
+
+    await clerk.dispose();
+    await cashier.dispose();
+    await context.close();
+  },
+};
+
+const FLOWS = [signInFlow, pickerFlow, invitationFlow, twoStepFlow, resetFlow, frontDeskFlow, registerFlow, cashierFlow, waiversFlow];
 
 // ---------------------------------------------------------------------------
 // The run

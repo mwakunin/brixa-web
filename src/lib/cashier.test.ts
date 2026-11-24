@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { billLine, billsToChoose, type Charge, emptyPayment, emptyWaiver, matchingPayments, mayReadAccount, NOT_BILLED, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords, waiverFor } from "./cashier";
+import { billLine, billsToChoose, type Charge, creditFor, owingBillOf, emptyPayment, emptyWaiver, matchingPayments, mayReadAccount, NOT_BILLED, type PaymentDraft, paymentFieldProblem, payingFor, printedQuantity, standingCharges, visitWords, waiverFor } from "./cashier";
 
 const charge: Charge = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -162,5 +162,29 @@ describe("the bills out a payment can be taken against", () => {
 
   it("are none once nothing is owed and no payment is still to show", () => {
     expect(billsToChoose([bill("a", 0)], none)).toEqual({ listed: [], first: null });
+  });
+});
+
+describe("credit the cashier can use on a visit", () => {
+  const visit = "00000000-0000-4000-8000-0000000000aa";
+  const other = "00000000-0000-4000-8000-0000000000bb";
+  const credit = (paymentId: string, encounterId: string | null, unallocatedCents: number) => ({ paymentId, encounterId, receivedAt: "2026-11-24T06:40:00.000Z", unallocatedCents });
+
+  it("is the patient's own credit and this visit's deposits, never another visit's, oldest first as the account lists them", () => {
+    const listed = [credit("patient", null, 60_000), credit("other-visit", other, 20_000), credit("this-visit", visit, 9_200), credit("spent", null, 0)];
+    expect(creditFor(listed, visit).map(c => c.paymentId)).toEqual(["patient", "this-visit"]);
+  });
+});
+
+describe("the bill a visit's credit goes on", () => {
+  const visit = "00000000-0000-4000-8000-0000000000aa";
+  const bill = (id: string, encounterId: string, balanceCents: number) => ({ id, number: id, encounterId, totalCents: 50_800, balanceCents });
+
+  it("is the visit's oldest bill still owing", () => {
+    expect(owingBillOf([bill("other", "elsewhere", 100), bill("paid", visit, 0), bill("old", visit, 5_000), bill("new", visit, 8_000)], visit)?.id).toBe("old");
+  });
+
+  it("is none when nothing out on the visit owes", () => {
+    expect(owingBillOf([bill("paid", visit, 0)], visit)).toBeNull();
   });
 });

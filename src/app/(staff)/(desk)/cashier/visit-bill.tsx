@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useBusinessDate } from "@/hooks/use-business-date";
-import { useBill, useMoneyDue } from "@/hooks/use-cashier";
+import { useAccount, useBill, useMoneyDue } from "@/hooks/use-cashier";
 import { hasAction } from "@/hooks/use-repeat-safe";
+import { useVisitWaivers } from "@/hooks/use-waivers";
 import { failureText } from "@/lib/api/refusal";
-import { billLine, type DueVisit, printedQuantity, standingCharges, visitWords, type WaiverDraft } from "@/lib/cashier";
+import { billLine, creditFor, type DueVisit, owingBillOf, printedQuantity, standingCharges, visitWords, type WaiverDraft } from "@/lib/cashier";
+import { printedSince } from "@/lib/dates";
 import { formatKes } from "@/lib/money";
 import { en } from "@/strings/en";
 
 import { AskWaiver, waiverDraftFor } from "./ask-waiver";
 import { paymentAction, TakePayment } from "./take-payment";
+import { creditToShow, UseCredit } from "./use-credit";
 
 const words = en.cashier;
 
@@ -33,7 +36,10 @@ const lastListed = new Map<string, DueVisit>();
  * Who the patient is and what is due come from the visit's row on the money
  * due list; the lines come from the visit's charges, read once the visit is
  * known on the list. Every figure is the API's: the screen adds nothing up.
- * Under the bill, the payment is taken (`TakePayment`).
+ * Beside the bill, the waivers asked for on it and still waiting, and any
+ * credit on the patient's account to use on it; under it, the payment is
+ * taken (`TakePayment`). The patient's account is read with the bill, as
+ * what they owe (audited).
  */
 export function VisitBill({ id, listed, listRead }: {
   id: string;
@@ -52,6 +58,8 @@ export function VisitBill({ id, listed, listRead }: {
   }, [id, listed]);
   const visit = listed ?? known;
   const bill = useBill(id, visit !== null);
+  const account = useAccount(visit?.patient.id ?? "", visit !== null);
+  const waivers = useVisitWaivers(id, visit !== null);
   const due = useMoneyDue();
   const today = useBusinessDate();
   const dueNow = listed !== null;
@@ -76,6 +84,11 @@ export function VisitBill({ id, listed, listRead }: {
   }
 
   const lines = bill.data ? standingCharges(bill.data.charges) : [];
+  const waitingWaivers = waivers.data?.filter(waiver => waiver.kind === "waiver") ?? [];
+  // Credit goes on the visit's oldest bill still owing, or on its charges once billed.
+  const credit = account.data ? creditFor(account.data.credit, id) : [];
+  const creditBill = account.data ? owingBillOf(account.data.invoices, id) : null;
+  const creditUsable = dueNow && credit.length > 0 && (creditBill !== null || (listed?.unbilledCents ?? 0) > 0);
   // The rest of the visit's charges were paid before, or taken off the bill.
   const partDue = bill.data !== undefined && bill.data.totalCents !== visit.dueCents;
 
@@ -132,6 +145,23 @@ export function VisitBill({ id, listed, listRead }: {
             </div>
           )
         : !bill.isError && <p role="status" className="text-muted-foreground">{words.readingBill}</p>}
+      {waitingWaivers.length > 0 && (
+        <Alert variant="caution" className="max-w-[900px]">
+          {waitingWaivers.map(waiver => (
+            <AlertTitle key={waiver.id}>{words.waiver.waiting(formatKes(waiver.amountCents), waiver.invoiceNumber ?? "", printedSince(new Date(waiver.requestedAt), today))}</AlertTitle>
+          ))}
+          <AlertDescription>{words.waiver.waitingHelp}</AlertDescription>
+        </Alert>
+      )}
+      {waivers.isError && <p className="text-sm text-muted-foreground">{words.waiver.waitingReadFailed(failureText(waivers.error))}</p>}
+      {(creditUsable || creditToShow(id)) && (
+        <UseCredit
+          patientId={visit.patient.id}
+          encounterId={id}
+          bill={creditBill && { id: creditBill.id, number: creditBill.number }}
+          credit={creditUsable ? credit : []}
+        />
+      )}
       {/* A read of the bill that failed says so, beside the lines read before when there are some. */}
       {bill.isError && (
         <Alert variant="problem">
