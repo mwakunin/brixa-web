@@ -34,6 +34,9 @@ interface Used {
 
 const creditAction = (encounterId: string) => `credit:${encounterId}`;
 
+/** How long using credit waits for what is due to be read again before it ends all the same. */
+const REREAD_WAIT_MS = 15_000;
+
 /** Whether a visit's credit has anything to show: an answer still awaited, or one not shown yet. */
 export function creditToShow(encounterId: string): boolean {
   return hasAction(creditAction(encounterId));
@@ -79,11 +82,15 @@ export function UseCredit({ patientId, encounterId, bill, credit, held = false }
     }
     finally {
       // Billed, or credit applied: what is due, the bills and the account are read again, whatever the answer. The action
-      // ends once they are, so a payment held meanwhile is taken on what is due after the credit, not before it.
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: dueKey }),
-        queryClient.invalidateQueries({ queryKey: accountKey(patientId) }),
-        queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) }),
+      // ends once they are, so a payment held meanwhile is taken on what is due after the credit, not before it; a read
+      // that stalls ends the wait after a while, so the action always ends.
+      await Promise.race([
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: dueKey }),
+          queryClient.invalidateQueries({ queryKey: accountKey(patientId) }),
+          queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) }),
+        ]),
+        new Promise(resolve => setTimeout(resolve, REREAD_WAIT_MS)),
       ]);
     }
   });
