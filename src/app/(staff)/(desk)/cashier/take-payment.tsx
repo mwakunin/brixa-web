@@ -93,7 +93,7 @@ function payerPhone(msisdn: string): string {
  * through. A prompt is paid on the patient's phone, so its receipt is
  * printed from the Done message once it is.
  */
-export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, held = false, children }: {
+export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, held = false, onPromptOpen, children }: {
   patient: { id: string; name: string };
   towards: Towards;
   /** What is due now, as the API last said: null once nothing is. */
@@ -107,6 +107,8 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, h
    * may already be less, so no new payment is taken until it comes.
    */
   held?: boolean;
+  /** Told whether a prompt for this bill is open on the patient's phone, for credit to wait on it. */
+  onPromptOpen?: (open: boolean) => void;
   /** The bill. */
   children: React.ReactNode;
 }) {
@@ -212,6 +214,12 @@ export function TakePayment({ patient, towards, dueCents, dueRead, nothingDue, h
     if (state.kind === "done" || state.kind === "no_answer")
       main.current?.focus();
   }, [state.kind]);
+
+  // While a prompt is open, credit on this bill waits: the prompt may yet pay what the credit would.
+  useEffect(() => {
+    onPromptOpen?.(promptOpen);
+    return () => onPromptOpen?.(false);
+  }, [promptOpen, onPromptOpen]);
 
   const shown = waiting ? draftOf(waiting.body) : draft;
   const amount = amountTyped || waiting ? shown.amount : dueCents !== null ? String(dueCents / 100) : "";

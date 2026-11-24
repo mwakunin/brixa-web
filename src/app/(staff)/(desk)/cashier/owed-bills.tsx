@@ -39,6 +39,8 @@ export function OwedBills({ patientId }: { patientId: string }) {
   const name = record.data ? fullName(record.data) : null;
   // Credit put on the chosen bill's visit, its answer still awaited: no payment is taken meanwhile.
   const creditAwaited = useCreditAwaited(chosen?.encounterId ?? "");
+  // A prompt open on the patient's phone for the chosen bill: no credit is used meanwhile.
+  const [promptOpen, setPromptOpen] = useState(false);
   // Credit for the bill chosen: the patient's own, or a deposit towards its visit.
   const credit = account.data && chosen && chosen.balanceCents > 0 ? creditFor(account.data.credit, chosen.encounterId) : [];
   const opNumber = record.data ? opNumberOf(record.data) : null;
@@ -67,9 +69,10 @@ export function OwedBills({ patientId }: { patientId: string }) {
               dueRead={{ read: account.isSuccess, checking: account.isFetching, failed: account.isError }}
               nothingDue={{ title: words.owedBillPaid, help: words.owedBillPaidHelp }}
               held={creditAwaited}
+              onPromptOpen={setPromptOpen}
             >
               {chosen && (credit.length > 0 || creditToShow(chosen.encounterId)) && (
-                <UseCredit patientId={patientId} encounterId={chosen.encounterId} bill={{ id: chosen.id, number: chosen.number }} credit={credit} />
+                <UseCredit patientId={patientId} encounterId={chosen.encounterId} bill={{ id: chosen.id, number: chosen.number }} credit={credit} held={promptOpen} />
               )}
               {owing.length > 0 && (
                 <div className="flex max-w-[900px] flex-col gap-2.5">

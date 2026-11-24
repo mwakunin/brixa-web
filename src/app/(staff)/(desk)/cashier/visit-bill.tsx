@@ -62,6 +62,8 @@ export function VisitBill({ id, listed, listRead }: {
   const waivers = useVisitWaivers(id, visit !== null);
   // Credit put on this visit's bill, its answer still awaited: no payment is taken meanwhile.
   const creditAwaited = useCreditAwaited(id);
+  // A prompt open on the patient's phone for this visit: no credit is used meanwhile.
+  const [promptOpen, setPromptOpen] = useState(false);
   const due = useMoneyDue();
   const today = useBusinessDate();
   const dueNow = listed !== null;
@@ -169,6 +171,7 @@ export function VisitBill({ id, listed, listRead }: {
           encounterId={id}
           bill={creditBill && { id: creditBill.id, number: creditBill.number }}
           credit={creditUsable ? credit : []}
+          held={promptOpen}
         />
       )}
       {/* A read of the bill that failed says so, beside the lines read before when there are some. */}
@@ -208,6 +211,7 @@ export function VisitBill({ id, listed, listRead }: {
           dueRead={{ read: due.isSuccess, checking: due.isFetching, failed: due.isError }}
           nothingDue={{ title: words.notDue, help: words.notDueHelp }}
           held={creditAwaited}
+          onPromptOpen={setPromptOpen}
         >
           {!asking && billBlock}
         </TakePayment>

@@ -53,13 +53,15 @@ export function useCreditAwaited(encounterId: string): boolean {
  * Charges not billed yet are billed first (`bill-now`). Repeat-safe, with
  * the keys `<key>.bill` and `<key>.use`.
  */
-export function UseCredit({ patientId, encounterId, bill, credit }: {
+export function UseCredit({ patientId, encounterId, bill, credit, held = false }: {
   patientId: string;
   encounterId: string;
   /** The bill the credit goes on, or null to bill the visit's charges first. */
   bill: { id: string; number: string } | null;
   /** The credit usable here, oldest first. */
   credit: AccountCredit[];
+  /** A prompt for this bill is open on the patient's phone: credit waits until it is paid or has failed. */
+  held?: boolean;
 }) {
   const id = useId();
   const queryClient = useQueryClient();
@@ -76,10 +78,13 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
       return { amountCents: made?.amountCents ?? 0, invoiceNumber: made?.invoiceNumber ?? "" };
     }
     finally {
-      // Billed, or credit applied: what is due, the bills and the account are read again, whatever the answer.
-      void queryClient.invalidateQueries({ queryKey: dueKey });
-      void queryClient.invalidateQueries({ queryKey: accountKey(patientId) });
-      void queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) });
+      // Billed, or credit applied: what is due, the bills and the account are read again, whatever the answer. The action
+      // ends once they are, so a payment held meanwhile is taken on what is due after the credit, not before it.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: dueKey }),
+        queryClient.invalidateQueries({ queryKey: accountKey(patientId) }),
+        queryClient.invalidateQueries({ queryKey: billKey(body.encounterId) }),
+      ]);
     }
   });
   const { state } = use;
@@ -108,6 +113,7 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
             {credit.map(entry => <li key={entry.paymentId}>{words.line(formatKes(entry.unallocatedCents), printedSince(new Date(entry.receivedAt), today))}</li>)}
           </ul>
           <p className="text-sm text-muted-foreground">{words.help}</p>
+          {held && !waiting && <p className="font-semibold text-caution-foreground">{words.heldByPrompt}</p>}
           {state.kind === "no_answer" && (
             <Alert variant="problem">
               <AlertTitle>{en.writes.noAnswerTitle}</AlertTitle>
@@ -117,7 +123,7 @@ export function UseCredit({ patientId, encounterId, bill, credit }: {
           <Button
             variant="second"
             className="self-start"
-            disabled={state.kind === "sending" || (!waiting && !oldest)}
+            disabled={state.kind === "sending" || (!waiting && (!oldest || held))}
             onClick={() => void use.press(waiting?.body ?? { encounterId, invoiceId: bill?.id ?? null, paymentId: oldest.paymentId })}
           >
             {state.kind === "sending" ? words.using : state.kind === "no_answer" ? words.tryAgain : bill ? words.use(bill.number) : words.useVisit}

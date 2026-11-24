@@ -35,8 +35,8 @@ export function Waivers() {
   const recent = useRecentAdjustments();
   const today = useBusinessDate();
   const queue = waiting.data ? waitingWaivers(waiting.data) : null;
-  // The chosen waiver, wherever it is now: still waiting, or decided.
-  const chosen = [...(waiting.data ?? []), ...(recent.data ?? [])].find(adjustment => adjustment.id === chosenId) ?? null;
+  // The chosen waiver, wherever it is now: still waiting, or decided. Another kind of adjustment is not this desk's to decide.
+  const chosen = [...(waiting.data ?? []), ...(recent.data ?? [])].find(adjustment => adjustment.id === chosenId && adjustment.kind === "waiver") ?? null;
 
   function choose(id: string) {
     window.history.replaceState(null, "", `?waiver=${id}`);
